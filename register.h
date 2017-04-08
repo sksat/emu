@@ -16,7 +16,7 @@ public:
 	};
 };
 
-class Flags : Register {
+class Flags : public Register {
 public:
 	bool getCarry();
 	bool getZero();

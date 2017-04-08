@@ -1,6 +1,7 @@
 TARGET	:= emu
 OBJS	:= main.o emulator.o register.o memory.o
 OBJS	+= instruction.o instruction16.o instruction32.o
+OBJS	+= device/device.a
 
 CC	:= gcc
 CXX	:= g++
@@ -25,6 +26,7 @@ run: $(TARGET) $(EMU_BIN)
 	./$(TARGET) $(RUNFLAGS)
 
 clean :
+	make -C device clean
 	make -C sample clean
 	rm -f $(TARGET) $(OBJS)
 
@@ -41,3 +43,7 @@ $(TARGET) : $(OBJS)
 
 $(EMU_BIN):
 	make -C sample
+
+device/device.a:
+	make -C device
+

@@ -6,6 +6,12 @@ using namespace std;
 
 Emulator *emu;
 
+void errExit(){
+	if(emu == nullptr) exit(-1);
+	emu->memory.Dump("memdump.bin", 0x00, 1 * MB);
+	exit(-1);
+}
+
 int main(int argc, char **argv){
 	try{
 		//TODO parse args
@@ -40,15 +46,17 @@ int main(int argc, char **argv){
 				break;
 			};
 		}
-		
+
+		emu->memory.Dump("memdump.bin", 0x00, 1 * MB);
+
 	}catch(Interrupt *i){	// 割り込み処理
 		cout<<"interrupt."<<endl;
 	}catch(string str){
 		cout<<"error: "<<str<<endl;
-		return -1;
+		errExit();
 	}catch(const char *str){
 		cout<<"error: "<<str<<endl;
-		return -1;
+		errExit();
 	}catch(...){
 		cout<<"exception."<<endl;
 		return -1;

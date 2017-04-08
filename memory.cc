@@ -37,9 +37,17 @@ void Memory::LoadBinary(const char *fname, uint32_t addr, unsigned int size){
 	uint8_t test = this->operator[](addr+size);
 
 	fp = fopen(fname, "rb");
-	if(fp == NULL) throw string("memory: LoadBinary: can't open file");
+	if(fp == NULL) throw "memory: LoadBinary: can't open file";
 	fread(mem + addr, 1, size, fp);
 	fclose(fp);
 }
 
+void Memory::Dump(const char *fname, uint32_t addr, unsigned int size){
+	uint8_t test = this->operator[](addr+size);
+	FILE *fp;
+	fp = fopen(fname, "wb");
+	if(fp == NULL) throw "memory: Dump: can't open file.";
+	fwrite(mem+addr, sizeof(uint8_t), size, fp);
+	fclose(fp);
+}
 

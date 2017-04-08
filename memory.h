@@ -18,6 +18,8 @@ public:
 	uint8_t operator [] (uint32_t addr);
 
 	void LoadBinary(const char *fname, uint32_t addr, unsigned int size);
+
+	void Dump(const char *fname, uint32_t addr, unsigned int size);
 private:
 	unsigned int size;
 	uint8_t *mem;
