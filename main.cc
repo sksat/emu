@@ -1,10 +1,12 @@
 #include <iostream>
 #include <string>
 #include "emulator.h"
+#include "device/display.h"
 
 using namespace std;
 
 Emulator *emu;
+Display  *disp;
 //extern char hankaku[4096];
 
 void errExit(){
@@ -22,6 +24,11 @@ int main(int argc, char **argv){
 		
 		emu = new Emulator();
 		emu->Init(DEFAULT_MEMORY_SIZE, 0x7c00, 0x7c00);
+
+		disp = new Display();
+		disp->Init();
+
+		emu->memory.MapMemory(disp->vram, 0xa0000, 0xffff);
 		
 		emu->LoadBinary(argv[1], 0x7c00, 512); // IPLの読み込み(本来BIOSがやるべき)
 		

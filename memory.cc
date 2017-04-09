@@ -28,7 +28,43 @@ uint8_t Memory::operator [] (uint32_t addr) {
 		ss<<"memory: out of range address ("<<addr<<")";
 		throw ss.str();
 	}
-	return mem[addr];
+	uint8_t ret = mem[addr];
+
+	if(minfo.empty()) return ret;
+	for(int i=0;i<minfo.size();i++){
+		if(addr < minfo[i].addr)	continue;
+		if(addr > minfo[i].end_addr)	continue;
+		if(minfo[i].mem != nullptr){
+			ret = minfo[i].mem[addr - minfo[i].addr];
+			return ret;
+		}
+		if(minfo[i].dev != nullptr){
+			minfo[i].dev->MemoryMappedProc(this, addr);
+			return ret;
+		}
+	}
+
+	return ret;
+}
+
+void Memory::MapDevice(Device *dev, uint32_t addr, unsigned int size){
+//	throw "Memory: MapDevice() not implemented.";
+	MapInfo mi;
+	mi.dev  = dev;
+	mi.mem  = nullptr;
+	mi.addr = addr;
+	mi.end_addr = addr + size;
+	minfo.push_back(mi);
+}
+
+void Memory::MapMemory(uint8_t *mem, uint32_t addr, unsigned int size){
+//	throw "Memory: MapMemory() not implemented.";
+	MapInfo mi;
+	mi.dev  = nullptr;
+	mi.mem  = mem;
+	mi.addr = addr;
+	mi.end_addr = addr + size;
+	minfo.push_back(mi);
 }
 
 void Memory::LoadBinary(const char *fname, uint32_t addr, unsigned int size){

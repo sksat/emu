@@ -13,7 +13,7 @@ void Instruction::Init(){
 void Instruction::Exec(Emulator *emu, uint8_t code){
 	if(insn_func[code] == nullptr){
 		stringstream ss;
-		ss<<"not implemented: code = "<<(int)code<<endl;
+		ss<<"not implemented: code = "<<hex<<showbase<<(int)code<<endl;
 		throw ss.str();
 	}
 }
