@@ -5,13 +5,17 @@
 
 class Emulator;
 
+typedef void instruction_func_t(Emulator*);
+
 class Instruction {
 public:
+	Instruction(){ Init(); }
+	~Instruction(){}
 	virtual void Init(void);
+	void InitCommonInsn(void);
 	void Exec(Emulator *emu, uint8_t code);
 private:
-	typedef void (*instruction_func_t)(Emulator *emu);
-	instruction_func_t insn_func[0xff];
+	instruction_func_t* insn_func[256];
 };
 
 #endif

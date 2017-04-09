@@ -9,6 +9,10 @@ Memory::Memory(){
 	virt_flg = false;
 }
 
+Memory::~Memory(){
+	delete[] mem;
+}
+
 void Memory::Init(int size){
 	this->size = size;
 	if(mem == nullptr)
