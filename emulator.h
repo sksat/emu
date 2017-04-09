@@ -78,7 +78,10 @@ public:
 	Instruction32 insn32;
 
 	int GetBitMode();
+
 	bool IsHalt();
+	bool IsReal();
+	bool IsProtected(){ return !IsReal(); } // とりあえず
 
 	// alias
 	void LoadBinary(const char *fname, uint32_t addr, unsigned int size){ memory.LoadBinary(fname,addr,size); }

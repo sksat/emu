@@ -19,6 +19,11 @@ bool Emulator::IsHalt(){
 	return halt_flg;
 }
 
+bool Emulator::IsReal(){
+	if((CR0 & 0x80000000) == 0) return true;
+	return false;
+}
+
 uint8_t Emulator::GetCode8(int index){
 	return memory[pc.reg64 + index];	// 一応64bitにしておく
 }
