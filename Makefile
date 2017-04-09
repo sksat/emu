@@ -2,6 +2,7 @@ TARGET	:= emu
 OBJS	:= main.o emulator.o register.o memory.o
 OBJS	+= instruction.o instruction16.o instruction32.o
 OBJS	+= device/device.a
+OBJS	+= font/font.a
 
 CC	:= gcc
 CXX	:= g++
@@ -26,6 +27,7 @@ run: $(TARGET) $(EMU_BIN)
 	./$(TARGET) $(RUNFLAGS)
 
 clean :
+	make -C font clean
 	make -C device clean
 	make -C sample clean
 	rm -f $(TARGET) $(OBJS)
@@ -47,3 +49,5 @@ $(EMU_BIN):
 device/device.a:
 	make -C device
 
+font/font.a:
+	make -C font

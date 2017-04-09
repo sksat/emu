@@ -3,6 +3,8 @@
 
 #include "device.h"
 
+extern char hankaku[4096];
+
 class Display : public Device {
 public:
 	void FlushImage();

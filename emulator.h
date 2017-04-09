@@ -55,7 +55,7 @@
 class Emulator {
 public:
 	Emulator();
-	void Init(int memory_size);
+	void Init(int memory_size, uint32_t ip, uint32_t sp);
 
 	Register pc;	// program counter
 	Register cr[5]; // control register

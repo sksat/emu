@@ -5,6 +5,7 @@
 using namespace std;
 
 Emulator *emu;
+//extern char hankaku[4096];
 
 void errExit(){
 	if(emu == nullptr) exit(-1);
@@ -14,11 +15,13 @@ void errExit(){
 
 int main(int argc, char **argv){
 	try{
+//		for(int i=0;i<4096;i++)
+//			cout<<hankaku[i];
 		//TODO parse args
 		if(argc < 2) return -1;
 		
 		emu = new Emulator();
-		emu->Init(DEFAULT_MEMORY_SIZE);
+		emu->Init(DEFAULT_MEMORY_SIZE, 0x7c00, 0x7c00);
 		
 		emu->LoadBinary(argv[1], 0x7c00, 512); // IPLの読み込み(本来BIOSがやるべき)
 		

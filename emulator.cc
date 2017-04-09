@@ -4,9 +4,11 @@ Emulator::Emulator(){
 	
 }
 
-void Emulator::Init(int memory_size){
+void Emulator::Init(int memory_size, uint32_t ip, uint32_t sp){
 	bit_mode = DEFAULT_BIT_MODE;
 	memory.Init(memory_size);
+	IP = ip;
+	SP = sp;
 }
 
 int Emulator::GetBitMode(){
