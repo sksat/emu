@@ -33,6 +33,16 @@
 #define ESI     reg[6].reg32
 #define EDI     reg[7].reg32
 
+//64bit
+#define RAX	reg[0].reg64
+#define RCX	reg[1].reg64
+#define RDX	reg[2].reg64
+#define RBX	reg[3].reg64
+#define RSP	reg[4].reg64
+#define RBP	reg[5].reg64
+#define RSI	reg[6].reg64
+#define RDI	reg[7].reg64
+
 //特殊なレジスタに簡単にアクセスするためのdefine
 #define FLAGS   flags.reg16
 #define EFLAGS  flags.reg32
@@ -70,6 +80,7 @@ public:
 	int GetBitMode();
 	bool IsHalt();
 
+	// alias
 	void LoadBinary(const char *fname, uint32_t addr, unsigned int size){ memory.LoadBinary(fname,addr,size); }
 
 	uint8_t GetCode8(int);
