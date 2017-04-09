@@ -40,7 +40,10 @@ int main(int argc, char **argv){
 				cout<<"halt."<<endl;
 				continue;
 			}
-			
+		
+			cout<<"EIP = "<<hex<<showbase<<emu->EIP;
+			cout<<", code = "<<hex<<showbase<<(int)code<<endl;
+		
 			switch(bit){
 			case 16:
 				emu->insn16.Exec(emu, code);
