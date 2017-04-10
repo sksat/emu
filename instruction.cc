@@ -7,7 +7,7 @@
 using namespace std;
 
 void Instruction::Init(){
-	for(char c=0x00;c<=0xff;c++)
+	for(int c=0;c<256;c++)
 		insn_func[c] = nullptr;
 	InitCommonInsn();
 }
@@ -18,11 +18,13 @@ void Instruction::Exec(Emulator *emu, uint8_t code){
 		ss<<"not implemented: code = "<<hex<<showbase<<(int)code<<endl;
 		throw ss.str();
 	}
+	insn_func[code](emu);
 }
 
 namespace common_insn {
 
 void nop(Emulator *emu){
+//	cout<<"nop"<<endl;
 	emu->pc.reg64++;
 }
 
