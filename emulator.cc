@@ -28,4 +28,14 @@ uint8_t Emulator::GetCode8(int index){
 	return memory[pc.reg64 + index];	// 一応64bitにしておく
 }
 
+uint32_t Emulator::GetCode32(int index){
+	uint32_t ret = 0;
+
+	// little endian
+	for(int i=0;i<4;i++){
+		ret |= GetCode8(index + i) << (i * 8);
+	}
+	return ret;
+}
+
 

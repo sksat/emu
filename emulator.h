@@ -86,7 +86,11 @@ public:
 	// alias
 	void LoadBinary(const char *fname, uint32_t addr, unsigned int size){ memory.LoadBinary(fname,addr,size); }
 
-	uint8_t GetCode8(int);
+	uint8_t  GetCode8(int index);
+	uint32_t GetCode32(int index);
+
+	int8_t  GetSignCode8(int index) { return (int8_t) GetCode8(index); }
+	int32_t GetSignCode32(int index){ return (int32_t)GetCode32(index); }
 private:
 	bool halt_flg;
 	int bit_mode;
