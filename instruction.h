@@ -14,7 +14,7 @@ public:
 	virtual void Init(void);
 	void InitCommonInsn(void);
 	void Exec(Emulator *emu, uint8_t code);
-private:
+protected:
 	instruction_func_t* insn_func[256];
 };
 

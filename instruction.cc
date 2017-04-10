@@ -28,7 +28,10 @@ void nop(Emulator *emu){
 	emu->pc.reg64++;
 }
 
-
+void short_jump(Emulator *emu){
+	int8_t diff = emu->GetSignCode8(1);
+	emu->pc.reg64 += (diff + 2);
+}
 
 };
 
@@ -36,6 +39,7 @@ void Instruction::InitCommonInsn(void){
 	using namespace common_insn;
 
 	insn_func[0x90] = nop;
+	insn_func[0xEB] = short_jump;
 //	insn_func[0xFA] = cli;
 //	insn_func[0xFB] = sti;
 //	insn_func[0xF4] = hlt;
