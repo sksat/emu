@@ -2,11 +2,13 @@
 #include <string>
 #include "emulator.h"
 #include "device/display.h"
+#include "shell/shell.h"
 
 using namespace std;
 
 Emulator *emu;
 Display  *disp;
+Shell    *sh;
 //extern char hankaku[4096];
 
 void errExit(){
@@ -21,9 +23,12 @@ int main(int argc, char **argv){
 //			cout<<hankaku[i];
 		//TODO parse args
 		if(argc < 2) return -1;
-		
+
 		emu = new Emulator();
 		emu->Init(DEFAULT_MEMORY_SIZE, 0x7c00, 0x7c00);
+
+		sh  = new Shell(emu);
+		sh->Start();
 
 		disp = new Display();
 		disp->Init();
@@ -41,8 +46,8 @@ int main(int argc, char **argv){
 				continue;
 			}
 		
-			cout<<"EIP = "<<hex<<showbase<<emu->EIP;
-			cout<<", code = "<<hex<<showbase<<(int)code<<endl;
+//			cout<<"EIP = "<<hex<<showbase<<emu->EIP;
+//			cout<<", code = "<<hex<<showbase<<(int)code<<endl;
 		
 			switch(bit){
 			case 16:
@@ -63,15 +68,15 @@ int main(int argc, char **argv){
 		emu->memory.Dump("memdump.bin", 0x00, 1 * MB);
 
 	}catch(Interrupt *i){	// 割り込み処理
-		cout<<"interrupt."<<endl;
+		cerr<<"interrupt."<<endl;
 	}catch(string str){
-		cout<<"error: "<<str<<endl;
+		cerr<<"error: "<<str<<endl;
 		errExit();
 	}catch(const char *str){
-		cout<<"error: "<<str<<endl;
+		cerr<<"error: "<<str<<endl;
 		errExit();
 	}catch(...){
-		cout<<"exception."<<endl;
+		cerr<<"exception."<<endl;
 		return -1;
 	}
 	return 0;
