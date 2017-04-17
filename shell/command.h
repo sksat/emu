@@ -6,7 +6,9 @@
 namespace shell {
 
 	void InitDefaultCommand(Shell *sh);
-	int alias(Shell *sh, int argc, char **argv);
+	int alias(Shell *sh, Emulator *emu, std::vector<std::string> arg);
+	int exit(Shell *sh, Emulator *emu, std::vector<std::string> args);
+	int emu(Shell *sh, Emulator *emu, std::vector<std::string> args);
 
 };
 

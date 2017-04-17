@@ -45,19 +45,83 @@ void Shell::Start(){
 	sh_thread = new thread(&Shell::sh_proc, this);
 }
 
+struct COMMAND_DATA {
+	vector<string> args;
+};
+
+string rm_space(string str){
+	string tmp, ret;
+
+	for(int i=0;i<str.size();i++){
+		if(str[i] == ' ') continue;
+		for(int j=i-1;j<str.size();j++){
+			tmp.push_back(str[i]);
+		}
+		str = tmp;
+		break;
+	}
+
+	for(int i=0;i<str.size()-1;i++){
+		if(str[i] == ' ' && str[i+1])
+			i++;
+		ret.push_back(str[i]);
+	}
+
+	return ret;
+}
+
+struct ARG_INFO {
+	vector<string> str;
+};
+
+vector<string> parse_line(string line){
+	vector<string> arg;
+	bool flg=false;
+	int  now=0;
+	arg.push_back(string());
+	for(int i=0;i<line.size();i++){
+		char c = line[i];
+		if(c == ' ' || c == '\n'){
+			flg = false;
+//			continue;
+		}else{
+			flg = true;
+		}
+		if(flg){
+			arg[now].push_back(c);
+			continue;
+		}else{
+			now++;
+			arg.push_back(string());
+		}
+	}
+	return arg;
+}
+
 void Shell::sh_proc(void){
 	InitDefaultCommand(this);
 	cout<<"welcome to emulator control shell !!!"<<endl;
-	string str;
-	string com;
+	for(int i=0;i<cinfo.size();i++){
+		cout<<cinfo[i].command<<endl;
+	}
 	for(;;){
-		cout<<"$ ";
-		cin>>str;
-		cout<<"test: "<<str<<endl;
-		com = str;
-		for(int i=0; i<cinfo.size(); i++){
-			if(cinfo[i].command == com){
-				cout<<"command: "<<com<<endl;
+		string line;
+		cout<<"ecsh> ";
+		char c;
+		do{
+			c = getchar();
+			line.push_back(c);
+		}while(c!='\n');
+		cout<<"line: "<<line;
+		vector<string> args = parse_line(line);
+		for(int i=0;i<args.size();i++){
+			cout<<"arg "<<i<<": '"<<args[i]<<"'"<<endl;
+		}
+
+		for(int i=0;i<cinfo.size();i++){
+			if(string(cinfo[i].command) == args[0]){
+				cout<<"command: "<<args[0]<<endl;
+				cinfo[i].func(this, emu, args);
 			}
 		}
 	}

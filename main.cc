@@ -42,7 +42,7 @@ int main(int argc, char **argv){
 			uint8_t code = emu->GetCode8(0);
 			
 			if(emu->IsHalt()){
-				cout<<"halt."<<endl;
+				cerr<<"halt."<<endl;
 				continue;
 			}
 		

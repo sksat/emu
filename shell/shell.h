@@ -11,7 +11,7 @@
 class Shell;
 class Emulator;
 
-typedef int command_func_t(Shell* sh, Emulator *emu);
+typedef int command_func_t(Shell* sh, Emulator *emu, std::vector<std::string> args);
 
 struct CommandInfo {
 	char *command;
@@ -37,6 +37,12 @@ public:
 	void Start();
 	void Stop();
 	void Close();
+	void Register(char *com, command_func_t* f){
+		CommandInfo i;
+		i.command = com;
+		i.func    = f;
+		cinfo.push_back(i);
+	}
 	int exec_command(std::string);
 private:
 	void sh_proc(void);
