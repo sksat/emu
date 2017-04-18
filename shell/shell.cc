@@ -127,6 +127,7 @@ vector<string> parse_line(string line){
 }
 
 void Shell::sh_proc(void){
+try{
 	InitDefaultCommand(this);
 	cout<<"welcome to emulator control shell !!!"<<endl;
 	for(int i=0;i<cinfo.size();i++){
@@ -165,6 +166,9 @@ void Shell::sh_proc(void){
 		}
 	}
 	cout<<"end shell."<<endl;
+}catch(...){
+	cout<<"exception"<<endl;
+}
 }
 
 

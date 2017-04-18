@@ -14,7 +14,16 @@ void InitDefaultCommand(Shell *sh){
 }
 
 int exit(Shell *sh, Emulator *emu, vector<string> args){
-	::exit(0);
+	int i=0, size = args.size();
+	if(size > 2){
+		cout<<"exit: Too many arguments."<<endl;
+		return -1;
+	}
+
+	if(size == 1) goto exit;
+	sscanf(args[1].c_str(), "%d", &i);
+exit:
+	::exit(i);
 }
 
 int test(Shell *sh, Emulator *emu, vector<string> args){
