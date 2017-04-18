@@ -43,14 +43,19 @@ public:
 		i.func    = f;
 		cinfo.push_back(i);
 	}
+	int Exec(const char *script);
+	int Exec(std::ifstream &script);
+
 	int exec_command(std::string);
-private:
+//private:
 	void sh_proc(void);
+private:
 	Emulator *emu;
 	std::thread *sh_thread;
 	std::vector<CommandInfo> cinfo;
 	std::ifstream *ifs;
 	std::ofstream *ofs;
+	bool script_flg;
 	static std::streambuf *cin_buf, *cout_buf;
 	static int sh_num;
 };

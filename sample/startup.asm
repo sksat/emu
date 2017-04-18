@@ -4,4 +4,9 @@ global start
 
 start:
 	nop
+	nop
+	nop
+	nop
+	nop
+	nop
 	jmp start

@@ -14,7 +14,7 @@ default:
 	make $(TARGET)
 
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGET) *.o
 
 $(TARGET):$(OBJS)
 	ld -melf_i386 --entry=start --oformat=binary -Ttext 0x7c00 -o $@ $^

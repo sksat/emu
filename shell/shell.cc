@@ -20,17 +20,20 @@ void Shell::Init(Emulator *emu){
 	}else{
 		SetDefaultStream();
 	}
+	script_flg = false;
 	sh_num++;
 }
 
 void Shell::SetDefaultStream(){
 	cin.rdbuf(cin_buf);
 	cout.rdbuf(cout_buf);
+	script_flg = false;
 }
 
 void Shell::ChangeStream(ifstream &ifs){
 	SetDefaultStream();
 	cin.rdbuf(ifs.rdbuf());
+	script_flg = true;
 }
 
 void Shell::ChangeStream(ofstream &ofs){
@@ -43,6 +46,24 @@ void Shell::Start(){
 		delete sh_thread;
 	}
 	sh_thread = new thread(&Shell::sh_proc, this);
+}
+
+int Shell::Exec(const char *script){
+	ifstream ifs;
+
+	ifs.open(script);
+	Exec(ifs);
+	return 0;
+}
+
+int Shell::Exec(ifstream &script){
+	Shell *sh;
+	sh = new Shell(emu);
+	sh->ChangeStream(script);
+	sh->sh_proc();
+	SetDefaultStream();
+//	delete sh;
+	return 0;
 }
 
 struct COMMAND_DATA {
@@ -95,6 +116,13 @@ vector<string> parse_line(string line){
 			arg.push_back(string());
 		}
 	}
+
+	for(int i=0;i<arg.size();i++){
+		if(!arg[i].empty()) continue;
+		arg.erase(arg.begin() + i);
+		i--;
+	}
+
 	return arg;
 }
 
@@ -108,12 +136,19 @@ void Shell::sh_proc(void){
 		string line;
 		cout<<"ecsh> ";
 		char c;
-		do{
-			c = getchar();
+		for(;;){
+			c = cin.get();
+			if(c=='\n' || c==EOF) break;
 			line.push_back(c);
-		}while(c!='\n');
-		cout<<"line: "<<line;
+		}
+		cout<<"line: "<<line<<endl;
 		vector<string> args = parse_line(line);
+		if(args.size() == 1){
+			if(args[0].empty()){
+				if(cin.eof()) break;
+				continue;
+			}
+		}
 		for(int i=0;i<args.size();i++){
 			cout<<"arg "<<i<<": '"<<args[i]<<"'"<<endl;
 		}
@@ -124,7 +159,12 @@ void Shell::sh_proc(void){
 				cinfo[i].func(this, emu, args);
 			}
 		}
+
+		if(script_flg){
+			if(cin.eof()) break;
+		}
 	}
+	cout<<"end shell."<<endl;
 }
 
 

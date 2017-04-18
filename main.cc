@@ -28,6 +28,12 @@ int main(int argc, char **argv){
 		emu->Init(DEFAULT_MEMORY_SIZE, 0x7c00, 0x7c00);
 
 		sh  = new Shell(emu);
+		ifstream ifs;
+		ifs.open(".emurc");
+		sh->Exec(ifs);
+//		sh->ChangeStream(ifs);
+//		sh->sh_proc();
+//		sh->SetDefaultStream();
 		sh->Start();
 
 		disp = new Display();
@@ -46,8 +52,8 @@ int main(int argc, char **argv){
 				continue;
 			}
 		
-//			cout<<"EIP = "<<hex<<showbase<<emu->EIP;
-//			cout<<", code = "<<hex<<showbase<<(int)code<<endl;
+//			cerr<<"EIP = "<<hex<<showbase<<emu->EIP;
+//			cerr<<", code = "<<hex<<showbase<<(int)code<<endl;
 		
 			switch(bit){
 			case 16:
