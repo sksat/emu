@@ -9,15 +9,21 @@ namespace shell {
 
 void InitDefaultCommand(Shell *sh){
 	sh->Register("exit", exit);
-	sh->Register("emu", emu);
+	sh->Register("test", test);
+	sh->Register("print", print);
 }
 
 int exit(Shell *sh, Emulator *emu, vector<string> args){
 	::exit(0);
 }
 
-int emu(Shell *sh, Emulator *emu, vector<string> args){
-	
+int test(Shell *sh, Emulator *emu, vector<string> args){
+	cout<<"test command."<<endl;
+}
+
+int print(Shell *sh, Emulator *emu, vector<string> args){
+	cout<<"EIP : "<<hex<<showbase<<emu->EIP<<endl;
+	cout<<"ESP : "<<hex<<emu->ESP<<endl;
 }
 
 };
