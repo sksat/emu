@@ -4,6 +4,7 @@ OBJS	+= instruction.o instruction16.o instruction32.o
 OBJS	+= device/device.a
 OBJS	+= font/font.a
 OBJS	+= shell/shell.a
+OBJS	+= gui/gui.a
 
 CC	:= gcc
 CXX	:= g++
@@ -27,9 +28,11 @@ default:
 	make $(TARGET)
 
 run: $(TARGET) $(EMU_BIN)
+	make
 	./$(TARGET) $(RUNFLAGS)
 
 clean :
+	make -C gui clean
 	make -C shell clean
 	make -C font clean
 	make -C device clean
@@ -58,3 +61,7 @@ font/font.a:
 
 shell/shell.a:
 	make -C shell
+
+gui/gui.a:
+	make -C gui
+
