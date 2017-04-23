@@ -48,7 +48,7 @@ public:
 
 	int exec_command(std::string);
 //private:
-	void sh_proc(void);
+	int sh_proc(void);
 private:
 	Emulator *emu;
 	std::thread *sh_thread;

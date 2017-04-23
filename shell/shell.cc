@@ -9,7 +9,7 @@ streambuf* Shell::cout_buf= nullptr;
 int Shell::sh_num = 0;
 
 void Shell::Init(Emulator *emu){
-	if(emu == nullptr) throw "shell: Emulator* is nullptr.";
+//	if(emu == nullptr) throw "shell: Emulator* is nullptr.";
 	this->emu = emu;
 	sh_thread = nullptr;
 	ifs = nullptr;
@@ -37,7 +37,7 @@ void Shell::ChangeStream(ifstream &ifs){
 }
 
 void Shell::ChangeStream(ofstream &ofs){
-	SetDefaultStream();
+//	SetDefaultStream();
 	cout.rdbuf(ofs.rdbuf());
 }
 
@@ -60,6 +60,11 @@ int Shell::Exec(ifstream &script){
 	Shell *sh;
 	sh = new Shell(emu);
 	sh->ChangeStream(script);
+
+	ofstream ofs;
+	ofs.open("script_out.txt");
+	sh->ChangeStream(ofs);
+
 	sh->sh_proc();
 	SetDefaultStream();
 //	delete sh;
@@ -126,48 +131,70 @@ vector<string> parse_line(string line){
 	return arg;
 }
 
-void Shell::sh_proc(void){
+int Shell::sh_proc(void){
 try{
 	InitDefaultCommand(this);
-	cout<<"welcome to emulator control shell !!!"<<endl;
+	if(!script_flg) cout<<"welcome to emulator control shell !!!"<<endl;
+/*
 	for(int i=0;i<cinfo.size();i++){
 		cout<<cinfo[i].command<<endl;
 	}
+*/
 	for(;;){
+loop:
 		string line;
-		cout<<"ecsh> ";
+		if(!script_flg) cout<<"ecsh> ";
 		char c;
 		for(;;){
 			c = cin.get();
 			if(c=='\n' || c==EOF) break;
 			line.push_back(c);
 		}
-		cout<<"line: "<<line<<endl;
+//		cout<<"line: "<<line<<endl;
 		vector<string> args = parse_line(line);
+//		if(args[0].empty()) continue;
 		if(args.size() == 1){
 			if(args[0].empty()){
 				if(cin.eof()) break;
+				cerr<<"empty"<<endl;
 				continue;
 			}
 		}
+/*
 		for(int i=0;i<args.size();i++){
 			cout<<"arg "<<i<<": '"<<args[i]<<"'"<<endl;
 		}
-
+*/
+		bool com_flg = false;
 		for(int i=0;i<cinfo.size();i++){
 			if(string(cinfo[i].command) == args[0]){
-				cout<<"command: "<<args[0]<<endl;
+//				cout<<"command: "<<args[0]<<endl;
+				com_flg = true;
 				cinfo[i].func(this, emu, args);
 			}
+		}
+		if(!com_flg){
+			if(!args[0].empty())
+				cout<<"コマンド \'"<<args[0]<<"\' は見つかりませんでした。"<<endl;
 		}
 
 		if(script_flg){
 			if(cin.eof()) break;
 		}
 	}
-	cout<<"end shell."<<endl;
+
+	if(!script_flg)
+		cout<<"end shell."<<endl;
+
+}catch(string msg){
+	cout<<"error: shell: "<<msg<<endl;
+	return -1;
+}catch(const char *msg){
+	cout<<"error: shell: "<<msg<<endl;
+	return -1;
 }catch(...){
 	cout<<"exception"<<endl;
+	return -1;
 }
 }
 

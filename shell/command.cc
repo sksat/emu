@@ -11,6 +11,7 @@ void InitDefaultCommand(Shell *sh){
 	sh->Register("exit", exit);
 	sh->Register("test", test);
 	sh->Register("print", print);
+	sh->Register("load", load);
 }
 
 int exit(Shell *sh, Emulator *emu, vector<string> args){
@@ -31,8 +32,18 @@ int test(Shell *sh, Emulator *emu, vector<string> args){
 }
 
 int print(Shell *sh, Emulator *emu, vector<string> args){
+	if(emu == nullptr) throw "emulator is null";
 	cout<<"EIP : "<<hex<<showbase<<emu->EIP<<endl;
 	cout<<"ESP : "<<hex<<emu->ESP<<endl;
+}
+
+int load(Shell *sh, Emulator *emu, vector<string> args){
+	if(args.size() != 3) throw "option error.";
+	if(args[1] == "binary") cout<<"loading binary..."<<endl;
+	cout<<"loading \""<<args[2]<<"\"."<<endl;
+	if(emu == nullptr) throw "emulator is null";
+	cout<<"setting default addr: 0x7c00~"<<endl;
+	emu->LoadBinary(args[2].c_str(), 0x7c00, 512);
 }
 
 };

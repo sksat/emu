@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <iostream>
 #include <sstream>
 #include "memory.h"
 
@@ -75,6 +76,8 @@ void Memory::LoadBinary(const char *fname, uint32_t addr, unsigned int size){
 	FILE *fp;
 
 	uint8_t test = this->operator[](addr+size);
+
+	cout<<"loading binary: "<<fname<<endl;
 
 	fp = fopen(fname, "rb");
 	if(fp == NULL) throw "memory: LoadBinary: can't open file";
