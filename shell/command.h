@@ -10,7 +10,9 @@ namespace shell {
 	int exit(Shell *sh, Emulator *emu, std::vector<std::string> args);
 	int test(Shell *sh, Emulator *emu, std::vector<std::string> args);
 	int print(Shell *sh, Emulator *emu, std::vector<std::string> args);
+	int init(Shell *sh, Emulator *emu, std::vector<std::string> args);
 	int load(Shell *sh, Emulator *emu, std::vector<std::string> args);
+	int run(Shell *sh, Emulator *emu, std::vector<std::string> args);
 
 };
 

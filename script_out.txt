@@ -1,5 +1,0 @@
-test command.
-loading binary...
-loading "sample/test.bin".
-setting default addr: 0x7c00~
-loading binary: sample/test.bin

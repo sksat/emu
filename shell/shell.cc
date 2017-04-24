@@ -63,7 +63,7 @@ int Shell::Exec(ifstream &script){
 
 	ofstream ofs;
 	ofs.open("script_out.txt");
-	sh->ChangeStream(ofs);
+//	sh->ChangeStream(ofs);
 
 	sh->sh_proc();
 	SetDefaultStream();

@@ -14,7 +14,7 @@ CXXFLAGS:= -std=c++11 -g
 LDFLAGS	:= -pthread
 
 EMU_BIN	:= sample/test.bin
-RUNFLAGS:= $(EMU_BIN)
+RUNFLAGS:= 
 
 export
 
@@ -25,6 +25,11 @@ export
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
 default:
+	make -C gui
+	make -C shell
+	make -C font
+	make -C device
+	make -C sample
 	make $(TARGET)
 
 run: $(TARGET) $(EMU_BIN)
