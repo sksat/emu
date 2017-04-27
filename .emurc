@@ -1,1 +1,2 @@
+init 1MB 0x7c00 0x7c00
 load binary sample/test.bin

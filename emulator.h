@@ -1,6 +1,8 @@
 #ifndef EMULATOR_H_
 #define EMULATOR_H_
 
+#include <thread>
+
 #include "common.h"
 #include "register.h"
 #include "memory.h"
@@ -66,6 +68,7 @@ class Emulator {
 public:
 	Emulator();
 	void Init(int memory_size, uint32_t ip, uint32_t sp);
+	void Start();
 
 	Register pc;	// program counter
 	Register cr[5]; // control register
@@ -92,9 +95,11 @@ public:
 	int8_t  GetSignCode8(int index) { return (int8_t) GetCode8(index); }
 	int32_t GetSignCode32(int index){ return (int32_t)GetCode32(index); }
 private:
-	int emu_proc();
+	std::thread *emu_thread;
 	bool halt_flg;
 	int bit_mode;
+
+	int emu_proc();
 };
 
 #endif

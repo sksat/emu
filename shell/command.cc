@@ -48,7 +48,11 @@ try{
 
 	int tmp = args[1].size(), unit=1, unit_long=0;
 
-	if(siz<4){ cout<<"init: Too few arguments."<<endl; goto init_usage;}
+	if(siz < 2){
+		emu->Init(1 * MB, 0x7c00, 0x7c00);
+		return 0;
+	}
+//	if(siz<4){ cout<<"init: Too few arguments."<<endl; goto init_usage;}
 	if(siz>4){ cout<<"init: Too many arguments."<<endl; goto init_usage;}
 
 	// get memory size
@@ -86,13 +90,15 @@ try{
 	memory_size *= unit;
 
 	// get eip and esp
-	init_eip = stoi(args[2], nullptr, 0);
-	init_esp = stoi(args[3], nullptr, 0);
+	if(siz > 2)
+		init_eip = stoi(args[2], nullptr, 0);
+	if(siz > 3)
+		init_esp = stoi(args[3], nullptr, 0);
 
 	cout<<"memory size : "<<memory_size<<endl;
 	cout<<"init eip : "<<hex<<showbase<<init_eip<<endl;
 	cout<<"init esp : "<<init_esp<<endl;
-//	emu->Init(memory_size, init_eip, init_esp);
+	emu->Init(memory_size, init_eip, init_esp);
 	return 0;
 init_usage:
 	cout<<"> init memory_size init_eip init_esp"<<endl;
@@ -119,6 +125,8 @@ int load(Shell *sh, Emulator *emu, vector<string> args){
 
 int run(Shell *sh, Emulator *emu, vector<string> args){
 	cout<<"runing..."<<endl;
+	emu->Start();
+	return 0;
 }
 
 };
