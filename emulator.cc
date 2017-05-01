@@ -4,8 +4,10 @@
 
 using namespace std;
 
+vector<Emulator*> Emulator::instances;
+
 Emulator::Emulator(){
-	
+	instances.push_back(this);
 }
 
 void Emulator::Init(int memory_size, uint32_t ip, uint32_t sp){

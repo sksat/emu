@@ -95,6 +95,7 @@ public:
 	int8_t  GetSignCode8(int index) { return (int8_t) GetCode8(index); }
 	int32_t GetSignCode32(int index){ return (int32_t)GetCode32(index); }
 private:
+	static std::vector<Emulator*> instances;
 	std::thread *emu_thread;
 	bool halt_flg;
 	int bit_mode;
