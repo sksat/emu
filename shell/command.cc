@@ -139,8 +139,9 @@ int startg(Shell *sh, vector<string> args){
 	cout<<"starting GUI...";
 
 	Gui *gui = new Gui();
-	gui->gui_proc();
+//	gui->gui_proc();
 	sh->set_gui(gui);
+	gui->Start();
 
 	cout<<endl;
 }

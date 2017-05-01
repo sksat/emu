@@ -13,6 +13,7 @@ public:
 	~Gui();
 
 	void Init();
+	int Start();
 
 	void gui_proc();
 private:

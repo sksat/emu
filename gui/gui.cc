@@ -1,3 +1,4 @@
+#include <iostream>
 #include <GLFW/glfw3.h>
 #include "gui.h"
 
@@ -19,6 +20,10 @@ void Gui::Init(){
 	scrny = DEFAULT_SCRNY;
 }
 
+int Gui::Start(){
+	gui_th = new thread(&Gui::gui_proc, this);
+}
+
 void Gui::gui_proc(){
 	GLFWwindow *win;
 
@@ -33,7 +38,10 @@ void Gui::gui_proc(){
 		glfwWaitEvents();
 	}
 
-	glfwTerminate();
+	cerr<<"Gui::gui_proc() ending..."<<endl;
+
+	glfwDestroyWindow(win);
+//	glfwTerminate();
 	return;
 }
 
