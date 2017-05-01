@@ -7,14 +7,15 @@
 #include <string>
 #include <thread>
 #include "../emulator.h"
+#include "../gui/gui.h"
 
 class Shell;
 class Emulator;
 
-typedef int command_func_t(Shell* sh, Emulator *emu, std::vector<std::string> args);
+typedef int command_func_t(Shell* sh, std::vector<std::string> args);
 
 struct CommandInfo {
-	char *command;
+	const char *command;
 	command_func_t *func;
 };
 
@@ -37,7 +38,7 @@ public:
 	void Start();
 	void Stop();
 	void Close();
-	void Register(char *com, command_func_t* f){
+	void Register(const char *com, command_func_t* f){
 		CommandInfo i;
 		i.command = com;
 		i.func    = f;
@@ -47,10 +48,16 @@ public:
 	int Exec(std::ifstream &script);
 
 	int exec_command(std::string);
+
+	Emulator* get_emu(){ return emu; }
+	void set_emu(Emulator *emu){ this->emu = emu; }
+	Gui* get_gui(){ return gui; }
+	void set_gui(Gui *gui){ this->gui = gui; }
 //private:
 	int sh_proc(void);
 private:
 	Emulator *emu;
+	Gui *gui;
 	std::thread *sh_thread;
 	std::vector<CommandInfo> cinfo;
 	std::ifstream *ifs;

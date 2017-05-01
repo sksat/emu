@@ -14,9 +14,10 @@ void InitDefaultCommand(Shell *sh){
 	sh->Register("init", init);
 	sh->Register("load", load);
 	sh->Register("run", run);
+	sh->Register("startg", startg);
 }
 
-int exit(Shell *sh, Emulator *emu, vector<string> args){
+int exit(Shell *sh, vector<string> args){
 	int i=0, size = args.size();
 	if(size > 2){
 		cout<<"exit: Too many arguments."<<endl;
@@ -29,19 +30,21 @@ exit:
 	::exit(i);
 }
 
-int test(Shell *sh, Emulator *emu, vector<string> args){
+int test(Shell *sh, vector<string> args){
 	cout<<"test command."<<endl;
 }
 
-int print(Shell *sh, Emulator *emu, vector<string> args){
+int print(Shell *sh, vector<string> args){
+	Emulator *emu = sh->get_emu();
 	if(emu == nullptr) throw "emulator is null";
 	cout<<"EIP : "<<hex<<showbase<<emu->EIP<<endl;
 	cout<<"ESP : "<<hex<<emu->ESP<<endl;
 }
 
 // init memory_size init_eip init_esp
-int init(Shell *sh, Emulator *emu, vector<string> args){
+int init(Shell *sh, vector<string> args){
 try{
+	Emulator *emu = sh->get_emu();
 	int siz = args.size();
 	int memory_size;
 	uint32_t init_eip, init_esp;
@@ -114,7 +117,8 @@ init_usage:
 
 }
 
-int load(Shell *sh, Emulator *emu, vector<string> args){
+int load(Shell *sh, vector<string> args){
+	Emulator *emu = sh->get_emu();
 	if(args.size() != 3) throw "option error.";
 	if(args[1] == "binary") cout<<"loading binary..."<<endl;
 	cout<<"loading \""<<args[2]<<"\"."<<endl;
@@ -123,10 +127,22 @@ int load(Shell *sh, Emulator *emu, vector<string> args){
 	emu->LoadBinary(args[2].c_str(), 0x7c00, 512);
 }
 
-int run(Shell *sh, Emulator *emu, vector<string> args){
+int run(Shell *sh, vector<string> args){
+	Emulator *emu = sh->get_emu();
 	cout<<"runing..."<<endl;
 	emu->Start();
 	return 0;
+}
+
+//starting GUI
+int startg(Shell *sh, vector<string> args){
+	cout<<"starting GUI...";
+
+	Gui *gui = new Gui();
+	gui->gui_proc();
+	sh->set_gui(gui);
+
+	cout<<endl;
 }
 
 };

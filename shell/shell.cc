@@ -11,6 +11,7 @@ int Shell::sh_num = 0;
 void Shell::Init(Emulator *emu){
 //	if(emu == nullptr) throw "shell: Emulator* is nullptr.";
 	this->emu = emu;
+	this->gui = nullptr;
 	sh_thread = nullptr;
 	ifs = nullptr;
 	ofs = nullptr;
@@ -170,7 +171,7 @@ loop:
 			if(string(cinfo[i].command) == args[0]){
 //				cout<<"command: "<<args[0]<<endl;
 				com_flg = true;
-				cinfo[i].func(this, emu, args);
+				cinfo[i].func(this, args);
 			}
 		}
 		if(!com_flg){
