@@ -49,6 +49,10 @@ try{
 	return 0;
 }
 
+/*
+
+old emulator proc
+
 //int main(int argc, char **argv){
 int emu_proc(Emulator *emu){
 	try{
@@ -124,4 +128,4 @@ int emu_proc(Emulator *emu){
 	return 0;
 }
 
-
+*/
