@@ -11,7 +11,7 @@ CXX	:= g++
 
 CFLAGS	:= -g
 CXXFLAGS:= -std=c++11 -g
-LDFLAGS	:= -pthread
+LDFLAGS	:= -pthread -lglfw -lGL
 
 EMU_BIN	:= sample/test.bin
 RUNFLAGS:= 
