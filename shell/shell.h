@@ -52,12 +52,27 @@ public:
 	Emulator* get_emu(){ return emu; }
 	void set_emu(Emulator *emu){ this->emu = emu; }
 	Gui* get_gui(){ return gui; }
-	void set_gui(Gui *gui){ this->gui = gui; }
+	Gui* get_gui(int n){
+		if(n<guis.size()) return guis[n];
+		return nullptr;
+	}
+	int get_guinum(){
+		for(int i=1;i<guis.size();i++){
+			if(guis[i] == gui)
+				return i;
+		}
+		return 0;
+	}
+	void set_gui(Gui *gui){
+		this->gui = gui;
+		guis.push_back(gui);
+	}
 //private:
 	int sh_proc(void);
 private:
 	Emulator *emu;
 	Gui *gui;
+	std::vector<Gui*> guis;
 	std::thread *sh_thread;
 	std::vector<CommandInfo> cinfo;
 	std::ifstream *ifs;

@@ -15,6 +15,7 @@ void InitDefaultCommand(Shell *sh){
 	sh->Register("load", load);
 	sh->Register("run", run);
 	sh->Register("startg", startg);
+	sh->Register("congui", congui);
 }
 
 int exit(Shell *sh, vector<string> args){
@@ -136,14 +137,44 @@ int run(Shell *sh, vector<string> args){
 
 //starting GUI
 int startg(Shell *sh, vector<string> args){
-	cout<<"starting GUI...";
-
 	Gui *gui = new Gui();
 //	gui->gui_proc();
 	sh->set_gui(gui);
 	gui->Start();
+	cout<<"starting GUI : "<<sh->get_guinum()<<endl;
 
 	cout<<endl;
+	return 0;
+}
+
+int congui(Shell *sh, vector<string> args){
+	Emulator *emu;
+	Gui *gui;
+	Display *disp;
+
+	switch(args.size()){
+	case 1:
+		emu = sh->get_emu();
+		gui = sh->get_gui();
+		break;
+	default:
+		cout<<"congui: arg num error"<<endl;
+		return -1;
+	}
+
+	if(gui == nullptr){
+		cout<<"can't get gui"<<endl;
+		return -1;
+	}
+
+	disp = emu->GetDisplay();
+	if(disp == nullptr){
+		cout<<"can't get display."<<endl;
+		return -1;
+	}
+	gui->SetDisplay(disp);
+
+	return 0;
 }
 
 };

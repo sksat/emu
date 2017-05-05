@@ -14,6 +14,7 @@ namespace shell {
 	int load(Shell *sh, std::vector<std::string> args);
 	int run(Shell *sh, std::vector<std::string> args);
 	int startg(Shell *sh,  std::vector<std::string> args);
+	int congui(Shell *sh, std::vector<std::string> args);
 
 };
 

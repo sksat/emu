@@ -12,6 +12,8 @@ void Shell::Init(Emulator *emu){
 //	if(emu == nullptr) throw "shell: Emulator* is nullptr.";
 	this->emu = emu;
 	this->gui = nullptr;
+	this->guis = vector<Gui*>();
+	this->guis.push_back(nullptr);
 	sh_thread = nullptr;
 	ifs = nullptr;
 	ofs = nullptr;
