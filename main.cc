@@ -20,10 +20,13 @@ void errExit(Emulator *emu){
 int main(int argc, char **argv){
 try{
 	Emulator *emu = new Emulator();
+	Display  *disp= new Display();
 	Shell    *sh;
 
 	emu = new Emulator();
 	emu->Init(DEFAULT_MEMORY_SIZE, 0x7c00, 0x7c00);
+	emu->AddDevice(disp);
+
 	sh = new Shell(emu);
 
 	// default script
