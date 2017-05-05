@@ -23,6 +23,8 @@ public:
 	unsigned char* GetImage(){ return img; }
 	void FlushImage();
 
+	void TestDraw();
+
 	unsigned char vram[0xffff];	// とりあえず0xa0000 ~ 0affff だけ考える
 private:
 	bool txtmode_flg;
