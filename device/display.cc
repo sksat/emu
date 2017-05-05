@@ -1,6 +1,7 @@
 #include "display.h"
 
 Display::Display(){
+	InitDevice();
 	img = nullptr;
 }
 
