@@ -55,22 +55,23 @@ void Gui::gui_proc(){
 	glfwInit();
 
 	win = glfwCreateWindow(scrnx, scrny, "window", NULL, NULL);
-	glfwSetKeyCallback(win, keyCallBack);
+//	glfwSetKeyCallback(win, keyCallBack);
 
 	glfwMakeContextCurrent(win);
 
-//	glRasterPos2i(-1,1);
+	glPixelZoom(1,-1);
 
-	int i= hoge % 3;
+/*	int i= hoge % 3;
 	if(i == 0) glClearColor(1.0, 0.0, 0.0, 1.0);
 	if(i == 1) glClearColor(0.0, 1.0, 0.0, 1.0);
 	if(i == 2) glClearColor(0.0, 0.0, 1.0, 1.0);
 	hoge++;
-
+*/
 	while(!glfwWindowShouldClose(win) && th_flg){
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		if(disp != nullptr){
+			glRasterPos2f(-1,1);
 			glDrawPixels(scrnx, scrny, GL_RGB, GL_UNSIGNED_BYTE, disp->GetImage());
 		}
 

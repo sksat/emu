@@ -19,13 +19,18 @@ void errExit(Emulator *emu){
 
 int main(int argc, char **argv){
 try{
-	Emulator *emu = new Emulator();
-	Display  *disp= new Display();
+	Emulator *emu;
+	Display  *disp;
 	Shell    *sh;
 
 	emu = new Emulator();
+	disp= new Display();
+
 	emu->Init(DEFAULT_MEMORY_SIZE, 0x7c00, 0x7c00);
+	disp->Init();
+
 	emu->AddDevice(disp);
+	disp->TestDraw();
 
 	sh = new Shell(emu);
 
