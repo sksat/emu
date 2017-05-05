@@ -1,6 +1,7 @@
 #ifndef EMULATOR_H_
 #define EMULATOR_H_
 
+#include <vector>
 #include <thread>
 
 #include "common.h"
@@ -9,6 +10,8 @@
 #include "interrupt.h"
 #include "instruction16.h"
 #include "instruction32.h"
+#include "device/device.h"
+#include "device/display.h"
 
 #define DEFAULT_BIT_MODE	16
 #define DEFAULT_MEMORY_SIZE	1 * MB
@@ -80,6 +83,8 @@ public:
 	Instruction16 insn16;
 	Instruction32 insn32;
 
+	std::vector<Device*> devs;
+
 	int GetBitMode();
 
 	bool IsHalt();
@@ -94,6 +99,12 @@ public:
 
 	int8_t  GetSignCode8(int index) { return (int8_t) GetCode8(index); }
 	int32_t GetSignCode32(int index){ return (int32_t)GetCode32(index); }
+
+	void InitDevices(){ devs = std::vector<Device*>(); }
+	int  AddDevice(Device &dev){ devs.push_back(&dev); }
+	int  AddDevice(Device *dev){ devs.push_back(dev); }
+	Display* GetDisplay();
+
 private:
 	static std::vector<Emulator*> instances;
 	std::thread *emu_thread;

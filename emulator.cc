@@ -50,6 +50,15 @@ uint32_t Emulator::GetCode32(int index){
 	return ret;
 }
 
+Display* Emulator::GetDisplay(){
+	Device *dev;
+	for(int i=0;i<devs.size();i++){
+		dev = devs[i];
+		return dynamic_cast<Display*>(dev);
+	}
+	return nullptr;
+}
+
 int Emulator::emu_proc(){
 	try{
 //		if(emu == nullptr) throw "emu_proc: emulator is null";
