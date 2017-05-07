@@ -31,6 +31,10 @@ private:
 	unsigned char pallete[0xff * 3]; // パレット
 	unsigned char *img;		// ウィンドウに実際に渡すイメージ
 	unsigned int scrnx, scrny;	// 縦、横サイズ
+
+	// text mode
+	char *font;
+	unsigned int font_xsiz, font_ysiz;
 };
 
 #endif
