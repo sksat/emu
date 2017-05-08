@@ -4,6 +4,8 @@
 #include "emulator_base.h"
 #include "arch/arch.h"
 
+#define CASE(a) case (static_cast<int>(a))
+
 class Emulator {
 public:
 	Emulator(ARCH arch){ SetArch(static_cast<int>(arch)); }
@@ -16,7 +18,7 @@ public:
 	void SetArch(int arch){
 		if(emu != nullptr) delete emu;
 		switch(arch){
-		case ARCH::x86:
+		CASE(ARCH::x86):
 			this->arch = ARCH::x86;
 			emu = new x86::Emulator();
 			break;
