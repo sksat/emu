@@ -21,6 +21,7 @@ public:
 		CASE(ARCH::x86):
 			this->arch = ARCH::x86;
 			emu = new x86::Emulator();
+//			throw "x86";
 			break;
 		default:
 			// unkown arch
