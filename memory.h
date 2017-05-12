@@ -30,6 +30,8 @@ public:
 	void EnableVirt(){ virt_flg=true; }
 	void UnableVirt(){ virt_flg=false; }
 
+	Memory* operator->(){ return this; }
+
 	// little endianでのuint32_tの読み込み処理はEmulatorクラスから持ってくる
 	uint8_t operator [] (uint32_t addr);
 
