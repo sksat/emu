@@ -55,7 +55,7 @@ void Display::TestDraw(){
 	vram[0] = 'a';
 	vram[1] = 'b';
 	vram[2] = 'c';
-	for(int y=100;y<=150;y++){
+/*	for(int y=100;y<=150;y++){
 		for(int x=20;x<=50;x++){
 			int p = (y*scrnx + x)*3;
 			img[p  ] = 0xff;
@@ -63,5 +63,6 @@ void Display::TestDraw(){
 			img[p+2] = 0x00;
 		}
 	}
+*/
 }
 
