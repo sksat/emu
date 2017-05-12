@@ -5,6 +5,7 @@ OBJS	+= device/device.a
 OBJS	+= font/font.a
 OBJS	+= shell/shell.a
 OBJS	+= gui/gui.a
+OBJS	+= arch/arch.a
 
 CC	:= gcc
 CXX	:= g++
@@ -30,6 +31,7 @@ default:
 	make -C font
 	make -C device
 	make -C sample
+	make -C arch
 	make $(TARGET)
 
 run: $(TARGET) $(EMU_BIN)
@@ -42,6 +44,7 @@ clean :
 	make -C font clean
 	make -C device clean
 	make -C sample clean
+	make -C arch clean
 	rm -f $(TARGET) $(OBJS)
 
 full :
