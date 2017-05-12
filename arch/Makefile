@@ -1,7 +1,7 @@
 LIBARCH := arch.a
 
-X86	:= x86/emulator.o
-OSECPU	:= osecpu/emulator.o
+X86	:= x86/emulator.o x86/instruction.o
+OSECPU	:= osecpu/emulator.o osecpu/instruction.o
 
 all:$(COMMON)
 	make $(X86)
