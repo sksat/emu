@@ -3,7 +3,7 @@
 
 namespace x86 {
 
-class Instruction : public InsnBase {
+class Instruction : public InstructionBase {
 public:
 	Instruction(){}
 	void Init();

@@ -32,26 +32,21 @@ public:
 		CASE(ARCH::x86):
 			this->arch = ARCH::x86;
 			emu = new x86::Emulator();
-			insn = new x86::Instruction();
-			insn->Init();
-//			throw "x86";
 			break;
 		CASE(ARCH::osecpu):
 			this->arch = ARCH::osecpu;
 			emu = new osecpu::Emulator();
-			insn = new osecpu::Instruction();
-			insn->Init();
 			break;
 		default:
 			// unkown arch
 			throw "error: Emulator: unkown arch";
 		}
 		emu->Init();
+		emu->InitInstructions();
 	}
 
 private:
 	ARCH arch;
-	InsnBase *insn;
 	EmulatorBase *emu;
 };
 

@@ -22,9 +22,9 @@ try{
 	}
 
 }catch(const char *msg){
-	cout<<"error:"<<msg<<endl;
+	cout<<"error:\n\t"<<msg<<endl;
 }catch(string msg){
-	cout<<"error:"<<msg<<endl;
+	cout<<"error:\n\t"<<msg<<endl;
 }
 
 }

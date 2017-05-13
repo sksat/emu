@@ -4,7 +4,8 @@ namespace x86 {
 
 class Emulator : public EmulatorBase {
 public:
-	void Init(){}
+	void Init();
+	void InitInstructions();
 };
 
 };

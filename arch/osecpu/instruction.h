@@ -5,7 +5,7 @@
 
 namespace osecpu {
 
-class Instruction : public InsnBase {
+class Instruction : public InstructionBase {
 public:
 	Instruction(){}
 	void Init();
