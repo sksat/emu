@@ -7,7 +7,7 @@ void Emulator::Init(){
 }
 
 void Emulator::InitInstructions(){
-	throw "osecpu::Emulator::InitInstructions() insn is not implemented";
+//	throw "osecpu::Emulator::InitInstructions() insn is not implemented";
 }
 
 };

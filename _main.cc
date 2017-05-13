@@ -16,9 +16,9 @@ try{
 	emu->memory->LoadBinary("sample/osecpu/app0100.ose", 0x00, 512);
 
 	cout<<"emulation start"<<endl;
-
+int i=0x00;
 	while(true){
-		
+		cout<<hex<<(uint32_t)emu->memory[i];i++;
 	}
 
 }catch(const char *msg){
