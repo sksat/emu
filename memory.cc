@@ -30,7 +30,7 @@ int Memory::GetSize(){
 uint8_t Memory::operator [] (uint32_t addr) {
 	if(addr > size){
 		stringstream ss;
-		ss<<"memory: out of range address ("<<addr<<")";
+		ss<<"memory: out of range address ("<<hex<<showbase<<addr<<")";
 		throw ss.str();
 	}
 	uint8_t ret = mem[addr];
