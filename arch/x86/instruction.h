@@ -1,3 +1,6 @@
+#ifndef X86_INSTRUCTION_H_
+#define X86_INSTRUCTION_H_
+
 #include <vector>
 #include "../../insn_base.h"
 
@@ -8,7 +11,9 @@ public:
 	Instruction(){}
 	void Init();
 	void Parse();
-	void Exec();
+	void StepExec();
 };
 
 };
+
+#endif

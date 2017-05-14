@@ -7,7 +7,6 @@
 class EmulatorBase {
 public:
 	virtual void Init() = 0;
-
 	virtual void InitInstructions() = 0;
 
 	InstructionBase *insn;

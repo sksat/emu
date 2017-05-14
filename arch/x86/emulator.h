@@ -1,3 +1,6 @@
+#ifndef X86_EMULATOR_H_
+#define X86_EMULATOR_H_
+
 #include "../../emulator_base.h"
 
 namespace x86 {
@@ -9,3 +12,5 @@ public:
 };
 
 };
+
+#endif
