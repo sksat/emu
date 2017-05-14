@@ -3,13 +3,13 @@
 
 namespace osecpu {
 
-void Emulator::Init(){
-	InitInstructions();
+void Emulator::InitInstructions(){
+//	throw "osecpu::Emulator::InitInstructions() is not implemented";
+	insn = new osecpu::Instruction();
 }
 
-void Emulator::InitInstructions(){
-//	throw "osecpu::Emulator::InitInstructions() insn is not implemented";
-	insn = new osecpu::Instruction();
+void Emulator::InitRegisters(){
+	throw "osecpu::Emulator::InitRegisters() is not implemented";
 }
 
 };

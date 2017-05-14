@@ -7,9 +7,8 @@ namespace osecpu {
 
 class Emulator : public EmulatorBase {
 public:
-	void Init();
-
 	void InitInstructions();
+	void InitRegisters();
 };
 
 };
