@@ -4,11 +4,11 @@ include ../com_mak.txt
 FONT_LIB := font.a
 FONT_OBJS:= hankaku.o
 
-%.o : %.obj
-	objcopy -I pe-i386 $< -O elf32-i386 $@
+BFD_TARGET:= elf64-x86-64
 
-%.obj : %.bin
-	$(BIN2OBJ) $< $@ $*
+%.o : %.bin
+	objcopy -I binary $< -O $(BFD_TARGET) -B i386 $@
+	# objcopy -I elf32-x86-64 $@ --redefine-sym binary_hankaku=hankaku $@
 
 %.bin : %.txt
 	$(MAKEFONT) $< $@
