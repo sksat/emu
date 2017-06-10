@@ -6,6 +6,8 @@
 #define DEFAULT_SCRNX	320
 #define DEFAULT_SCRNY	200
 
+#define hankaku _binary_hankaku_bin_start 
+
 extern char hankaku[4096];	// /font/hankaku.txt
 
 class Display : public Device {
