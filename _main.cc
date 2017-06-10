@@ -10,7 +10,7 @@ int main(int argc, char **argv){
 
 try{
 	Emulator *_emu;
-	_emu = new Emulator(ARCH::osecpu);
+	_emu = new Emulator(ARCH::x86);
 
 	emu->memory->Init(0xffff);
 	emu->memory->LoadBinary("sample/osecpu/app0100.ose", 0x00, 512);
@@ -18,7 +18,7 @@ try{
 	cout<<"emulation start"<<endl;
 
 	while(true){
-		emu->insn->StepExec();
+		emu->insn->ExecStep();
 	}
 
 }catch(const char *msg){

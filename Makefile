@@ -73,3 +73,5 @@ shell/shell.a:
 gui/gui.a:
 	make -C gui
 
+arch/arch.a:
+	make -C arch

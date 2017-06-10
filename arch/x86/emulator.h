@@ -2,6 +2,7 @@
 #define X86_EMULATOR_H_
 
 #include "../../emulator_base.h"
+#include "instruction.h"
 
 namespace x86 {
 

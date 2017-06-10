@@ -10,7 +10,7 @@ void Instruction::Parse(){
 	
 }
 
-void Instruction::StepExec(){
+void Instruction::ExecStep(){
 	
 }
 

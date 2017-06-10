@@ -10,7 +10,7 @@ class Instruction : public InstructionBase {
 public:
 	Instruction(){}
 	void Init();
-	void StepExec();
+	void ExecStep();
 private:
 	osecpu::Emulator *emu;
 

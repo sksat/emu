@@ -11,7 +11,9 @@ public:
 	Instruction(){}
 	void Init();
 	void Parse();
-	void StepExec();
+	void ExecStep();
+private:
+	void nop(){}
 };
 
 };
