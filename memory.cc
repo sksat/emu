@@ -14,11 +14,11 @@ Memory::~Memory(){
 	delete[] mem;
 }
 
-void Memory::Init(int size){
+void Memory::Init(int s){
 //	this->size = size;
 //	if(mem == nullptr)
 //		delete[] mem;
-	mem = new uint8_t[size];
+	mem = new uint8_t[s];
 	virt_flg = false;
 	return;
 }
