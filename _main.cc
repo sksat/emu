@@ -13,7 +13,7 @@ try{
 	_emu = new Emulator(ARCH::x86);
 
 	emu->insn->Init();
-	emu->memory->Init(0xffff);
+	emu->memory->Init(DEFAULT_MEMORY_SIZE);
 	emu->memory->LoadBinary("sample/osecpu/app0100.ose", 0x00, 512);
 
 	cout<<"emulation start"<<endl;
@@ -21,6 +21,8 @@ try{
 	while(true){
 		emu->insn->ExecStep();
 	}
+
+	delete _emu;
 
 }catch(const char *msg){
 	cout<<"error:\n\t"<<msg<<endl;

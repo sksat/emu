@@ -15,7 +15,7 @@ public:
 
 	InstructionBase *insn;
 	std::vector<Register> regs;
-	Memory memory;
+	Memory *memory;
 };
 
 #endif

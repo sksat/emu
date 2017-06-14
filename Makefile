@@ -1,6 +1,6 @@
 TARGET	:= emu
-OBJS	:= _main.o emulator_base.o emulator.o register.o memory.o
-OBJS	+= instruction.o instruction16.o instruction32.o
+OBJS	:= _main.o emulator_base.o _emulator.o register.o memory.o
+#OBJS	+= instruction.o instruction16.o instruction32.o
 OBJS	+= device/device.a
 OBJS	+= font/font.a
 OBJS	+= shell/shell.a
@@ -11,7 +11,7 @@ CC	:= gcc
 CXX	:= g++
 
 CFLAGS	:= -g
-CXXFLAGS:= -std=c++11 -g
+CXXFLAGS:= -std=c++11 -g -Wall
 LDFLAGS	:= -pthread -lglfw -lGL
 
 EMU_BIN	:= sample/test.bin

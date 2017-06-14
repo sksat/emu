@@ -1,4 +1,5 @@
 #include "instruction.h"
+#include "emulator.h"
 
 namespace x86 {
 
@@ -11,10 +12,11 @@ void Instruction::Init(){
 }
 
 void Instruction::Parse(){
-	
+	opcode = (*emu->memory)[0x00];
 }
 
 void Instruction::ExecStep(){
+	Parse();
 	insnfunc_t func = insn[opcode];
 	(this->*func)();
 }

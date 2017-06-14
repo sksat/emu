@@ -19,6 +19,7 @@ struct MapInfo {
 class Memory {
 public:
 	ENDIAN endian;
+	int size;
 
 	Memory();
 	~Memory();
@@ -42,7 +43,6 @@ public:
 
 	void Dump(const char *fname, uint32_t addr, unsigned int size);
 private:
-	unsigned int size;
 	uint8_t *mem;
 	std::vector<MapInfo> minfo;
 	int minfo_num;

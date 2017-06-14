@@ -5,7 +5,7 @@
 
 using namespace std;
 
-Memory::Memory(){
+Memory::Memory():size(0){
 	mem = nullptr;
 	virt_flg = false;
 }
@@ -15,9 +15,9 @@ Memory::~Memory(){
 }
 
 void Memory::Init(int size){
-	this->size = size;
-	if(mem == nullptr)
-		delete[] mem;
+//	this->size = size;
+//	if(mem == nullptr)
+//		delete[] mem;
 	mem = new uint8_t[size];
 	virt_flg = false;
 	return;
@@ -28,7 +28,7 @@ int Memory::GetSize(){
 }
 
 uint8_t Memory::operator [] (uint32_t addr) {
-	if(addr > size){
+	if(addr > (uint32_t)size){
 		stringstream ss;
 		ss<<"memory: out of range address ("<<hex<<showbase<<addr<<")";
 		throw ss.str();
