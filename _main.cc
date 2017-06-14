@@ -12,6 +12,7 @@ try{
 	Emulator *_emu;
 	_emu = new Emulator(ARCH::x86);
 
+	emu->insn->Init();
 	emu->memory->Init(0xffff);
 	emu->memory->LoadBinary("sample/osecpu/app0100.ose", 0x00, 512);
 

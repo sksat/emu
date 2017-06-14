@@ -3,8 +3,11 @@
 namespace x86 {
 
 void Instruction::Init(){
-	insn = std::vector<insnfunc_t>(0xff, nullptr);
-//	insn.push_back((insnfunc_t)&Instruction::nop);
+	// default insn
+	insn = std::vector<insnfunc_t>(0xff, (insnfunc_t)&Instruction::not_impl);
+	opcode = 0x90;
+
+	insn[0x90] = (insnfunc_t)&Instruction::nop;
 }
 
 void Instruction::Parse(){
@@ -12,7 +15,8 @@ void Instruction::Parse(){
 }
 
 void Instruction::ExecStep(){
-	throw "not implemented insn.";
+	insnfunc_t func = insn[opcode];
+	(this->*func)();
 }
 
 };

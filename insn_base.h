@@ -3,6 +3,8 @@
 
 #include <vector>
 //#include "_emulator.h"
+#include "common.h"
+
 class Emulator;
 class InstructionBase;
 using insnfunc_t = void (InstructionBase::*)();
