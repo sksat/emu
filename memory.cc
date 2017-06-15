@@ -75,7 +75,7 @@ void Memory::MapMemory(uint8_t *mem, uint32_t addr, unsigned int size){
 void Memory::LoadBinary(const char *fname, uint32_t addr, unsigned int size){
 	FILE *fp;
 
-	uint8_t test = this->operator[](addr+size);
+//	uint8_t test = this->operator[](addr+size);
 
 	cout<<"loading binary: "<<fname<<endl;
 

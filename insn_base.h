@@ -13,6 +13,7 @@ class InstructionBase {
 public:
 	InstructionBase(){}
 
+	void SetEmu(EmulatorBase *emu){ this->emu=emu; }
 	virtual void Init() = 0;
 	virtual void Parse() = 0;
 	virtual void ExecStep() = 0;

@@ -9,7 +9,6 @@ namespace x86 {
 
 class Instruction : public InstructionBase {
 public:
-	Instruction():opcode(0x90){}
 	void Init();
 	void Parse();
 	void ExecStep();
