@@ -3,7 +3,7 @@ OBJS	:= _main.o emulator_base.o _emulator.o register.o memory.o
 #OBJS	+= instruction.o instruction16.o instruction32.o
 OBJS	+= device/device.a
 OBJS	+= font/font.a
-OBJS	+= shell/shell.a
+#OBJS	+= shell/shell.a
 OBJS	+= gui/gui.a
 OBJS	+= arch/arch.a
 
@@ -27,7 +27,7 @@ export
 
 default:
 	make -C gui
-	make -C shell
+	#make -C shell
 	make -C font
 	make -C device
 	make -C sample
@@ -40,7 +40,7 @@ run: $(TARGET) $(EMU_BIN)
 
 clean :
 	make -C gui clean
-	make -C shell clean
+	#make -C shell clean
 	make -C font clean
 	make -C device clean
 	make -C sample clean

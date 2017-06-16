@@ -5,7 +5,7 @@ namespace osecpu {
 
 void Emulator::InitInstructions(){
 //	throw "osecpu::Emulator::InitInstructions() is not implemented";
-	insn = new osecpu::Instruction();
+	insn = new osecpu::Instruction(this);
 }
 
 void Emulator::InitRegisters(){

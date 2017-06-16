@@ -12,7 +12,7 @@ void Instruction::Init(){
 }
 
 void Instruction::Parse(){
-	opcode = (*emu->memory)[0x00];
+	opcode = (*emu->memory)[emu->regs[0].reg32];
 }
 
 void Instruction::ExecStep(){

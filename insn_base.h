@@ -10,8 +10,10 @@ class InstructionBase;
 using insnfunc_t = void (InstructionBase::*)();
 
 class InstructionBase {
-public:
+private:
 	InstructionBase(){}
+public:
+	InstructionBase(EmulatorBase *e) : emu(e) {}
 
 	void SetEmu(EmulatorBase *emu){ this->emu=emu; }
 	virtual void Init() = 0;
