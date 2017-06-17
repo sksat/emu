@@ -11,14 +11,15 @@ public:
 	Instruction(Emulator *e) : InstructionBase(e) {}
 	void Init();
 	void ExecStep();
-private:
-	osecpu::Emulator *emu;
-
 	void Parse();
 
 	void SkipSignature(){ // 0x05
 		// if(memory[pc+1]==0xE2 && memory[pc+2]) pc+=3;
 	}
+
+	uint8_t opcode;
+
+	void not_impl_insn(){ throw "osecpu: not implemented insn."; }
 };
 
 };

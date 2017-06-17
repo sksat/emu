@@ -27,7 +27,7 @@ public:
 	}
 
 	void SetArch(int arch){
-		if(emu != nullptr) delete emu;
+		delete emu;
 		switch(arch){
 		CASE(ARCH::x86):
 			this->arch = ARCH::x86;

@@ -12,4 +12,8 @@ void Emulator::InitRegisters(){
 	throw "osecpu::Emulator::InitRegisters() is not implemented";
 }
 
+void Emulator::Dump(){
+	throw "osecpu::Emulator::Dump() is not implemented.";
+}
+
 };

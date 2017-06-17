@@ -5,13 +5,17 @@
 //#include "_emulator.h"
 #include "common.h"
 
+#define SETINSN(o,f) (insn[o] = (insnfunc_t)&Instruction::f)
+
 class EmulatorBase;
 class InstructionBase;
 using insnfunc_t = void (InstructionBase::*)();
 
 class InstructionBase {
 private:
-	InstructionBase(){}
+	InstructionBase(){
+		insn = std::vector<insnfunc_t>(0xff, (insnfunc_t)&InstructionBase::not_impl_insn);
+	}
 public:
 	InstructionBase(EmulatorBase *e) : emu(e) {}
 
@@ -23,6 +27,7 @@ protected:
 	EmulatorBase *emu;
 //	typedef void (InstructionBase::*insnfunc_t)();
 	std::vector<insnfunc_t> insn;
+	virtual void not_impl_insn() = 0;
 };
 
 #endif

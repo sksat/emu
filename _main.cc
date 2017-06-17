@@ -23,6 +23,8 @@ try{
 		emu->insn->ExecStep();
 	}
 
+	cout<<"emulator deleted"<<endl;
+
 	delete _emu;
 
 }catch(const char *msg){

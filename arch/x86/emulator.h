@@ -5,10 +5,13 @@
 
 namespace x86 {
 
+const int REGISTERS_COUNT = 8;
+
 class Emulator : public EmulatorBase {
 public:
 	void InitInstructions();
 	void InitRegisters();
+	void Dump(){ std::cout<<"dump"<<std::endl; }
 };
 
 };

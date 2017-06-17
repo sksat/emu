@@ -5,8 +5,5 @@ global start
 start:
 	nop
 	nop
-	nop
-	nop
-	nop
-	nop
+	inc eax
 	jmp start

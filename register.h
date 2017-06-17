@@ -2,6 +2,7 @@
 #define REGISTER_H_
 
 #include <stdint.h>
+#include <string>
 
 /*
 class Register {
@@ -52,7 +53,15 @@ public:
 	uint32_t Get32()	{ return reg32; }
 	int32_t GetSign32()	{ return (int32_t)Get32(); }
 
-//private:
+	operator uint8_t()	{ return Get8(); }
+	operator int8_t()	{ return GetSign8(); }
+	operator uint16_t()	{ return Get16(); }
+	operator int16_t()	{ return GetSign16(); }
+	operator uint32_t()	{ return Get32(); }
+	operator int32_t()	{ return GetSign32(); }
+
+	std::string name;
+
 public:
 	size_t size;
 	union {

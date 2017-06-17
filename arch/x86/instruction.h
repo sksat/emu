@@ -14,14 +14,14 @@ public:
 	void Parse();
 	void ExecStep();
 private:
-	const void not_impl();
+	uint8_t opcode;
+
+	void not_impl_insn();
 	void nop(){ puts("nop"); emu->regs[0].reg32++; }
 	void short_jump(){
 		uint8_t diff = (*emu->memory)[emu->regs[0].reg32 + 1];
 		emu->regs[0].reg32 += (static_cast<int8_t>(diff) + 2);
 	}
-
-	uint8_t opcode;
 };
 
 };

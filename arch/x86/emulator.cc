@@ -10,7 +10,9 @@ void Emulator::InitInstructions(){
 
 void Emulator::InitRegisters(){
 //	throw "x86::Emulator::InitRegisters() is not implemented";
-	regs.push_back((uint32_t)0x00);
+	//regs.push_back((uint32_t)0x00);
+	regs = std::vector<Register>(REGISTERS_COUNT, (uint32_t)0x00);
+	regs[0].name = "EIP";
 }
 
 };

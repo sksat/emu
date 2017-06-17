@@ -36,7 +36,7 @@ uint8_t Memory::operator [] (uint32_t addr) {
 	uint8_t ret = mem[addr];
 
 	if(minfo.empty()) return ret;
-	for(int i=0;i<minfo.size();i++){
+	for(unsigned int i=0;i<minfo.size();i++){
 		if(addr < minfo[i].addr)	continue;
 		if(addr > minfo[i].end_addr)	continue;
 		if(minfo[i].mem != nullptr){

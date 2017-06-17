@@ -1,6 +1,7 @@
 #ifndef EMULATOR_BASE_H_
 #define EMULATOR_BASE_H_
 
+#include <iostream>
 #include <vector>
 
 #include "insn_base.h"
@@ -12,6 +13,7 @@ public:
 	void Init();
 	virtual void InitInstructions() = 0;
 	virtual void InitRegisters() = 0;
+	virtual void Dump() = 0;
 
 	InstructionBase *insn;
 	std::vector<Register> regs;
