@@ -1,3 +1,4 @@
+#include <sstream>
 #include "instruction.h"
 #include "emulator.h"
 
@@ -9,6 +10,7 @@ void Instruction::Init(){
 	opcode = 0x90;
 
 	insn[0x90] = (insnfunc_t)&Instruction::nop;
+	insn[0xeb] = (insnfunc_t)&Instruction::short_jump;
 }
 
 void Instruction::Parse(){
@@ -19,6 +21,12 @@ void Instruction::ExecStep(){
 	Parse();
 	insnfunc_t func = insn[opcode];
 	(this->*func)();
+}
+
+const void Instruction::not_impl(){
+	std::stringstream ss;
+	ss<<"not implemented insn : "<<std::hex<<std::showbase<<static_cast<uint32_t>(opcode);
+	throw ss.str();
 }
 
 };
