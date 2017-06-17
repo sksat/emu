@@ -14,12 +14,14 @@ using insnfunc_t = void (InstructionBase::*)();
 class InstructionBase {
 private:
 	InstructionBase(){
-		insn = std::vector<insnfunc_t>(0xff, (insnfunc_t)&InstructionBase::not_impl_insn);
+/* ✟私はコンストラクタで純粋仮想関数を使おうとしました✟ */
+		//insn = std::vector<insnfunc_t>(0xff, (insnfunc_t)&InstructionBase::not_impl_insn);
 	}
 public:
 	InstructionBase(EmulatorBase *e) : emu(e) {}
 
 	void SetEmu(EmulatorBase *emu){ this->emu=emu; }
+	void ClearInsn(size_t num){ insn = std::vector<insnfunc_t>(num, (insnfunc_t)&InstructionBase::not_impl_insn); }
 	virtual void Init() = 0;
 	virtual void Parse() = 0;
 	virtual void ExecStep() = 0;
