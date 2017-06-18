@@ -19,12 +19,13 @@ try{
 
 	cout<<"emulation start"<<endl;
 
-	while(true){
+	while(!emu->finish_flg){
 		emu->insn->ExecStep();
 	}
 
-	cout<<"emulator deleted"<<endl;
+	emu->Dump();
 
+	cout<<"emulator deleted"<<endl;
 	delete _emu;
 
 }catch(const char *msg){

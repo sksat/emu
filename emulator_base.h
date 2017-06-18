@@ -15,8 +15,10 @@ public:
 	virtual void InitRegisters() = 0;
 	virtual void Dump() = 0;
 
+	bool finish_flg = false;
+
 	InstructionBase *insn;
-	std::vector<Register> regs;
+	std::vector<Register> reg;
 	Memory *memory;
 };
 

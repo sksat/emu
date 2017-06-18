@@ -20,6 +20,8 @@ public:
 	uint8_t opcode;
 
 	void not_impl_insn(){ throw "osecpu: not implemented insn."; }
+
+	void nop(){ puts("osecpu: nop"); }
 };
 
 };

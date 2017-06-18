@@ -17,10 +17,23 @@ private:
 	uint8_t opcode;
 
 	void not_impl_insn();
-	void nop(){ puts("nop"); emu->regs[0].reg32++; }
+
+	void inc_r32(){
+		uint8_t r = static_cast<Emulator*>(emu)->GetCode8(0) - 0x40;
+		emu->reg[r].reg32++;
+		emu->reg[8].reg32++;
+	}
+
+	void nop(){ puts("nop"); emu->reg[8].reg32++; }
+
+	void near_jump(){
+		int32_t diff = static_cast<Emulator*>(emu)->GetCode32(1);
+		emu->reg[8].reg32 += (diff + 5);
+	}
+
 	void short_jump(){
-		uint8_t diff = (*emu->memory)[emu->regs[0].reg32 + 1];
-		emu->regs[0].reg32 += (static_cast<int8_t>(diff) + 2);
+		uint8_t diff = (*emu->memory)[emu->reg[8].reg32 + 1];
+		emu->reg[8].reg32 += (static_cast<int8_t>(diff) + 2);
 	}
 };
 
