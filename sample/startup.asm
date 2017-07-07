@@ -6,5 +6,8 @@ start:
 	nop
 	inc eax
 	inc eax
-	dec eax
+	inc ecx
+	inc edx
+	inc esp
+;	dec eax
 	jmp start

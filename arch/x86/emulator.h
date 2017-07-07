@@ -3,6 +3,8 @@
 
 #include "../../emulator_base.h"
 
+#define EIP reg[8].reg32
+
 namespace x86 {
 
 const int REGISTERS_COUNT = 8 + 1;
