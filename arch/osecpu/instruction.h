@@ -8,7 +8,7 @@ namespace osecpu {
 
 class Instruction : public InstructionBase {
 public:
-	Instruction(Emulator *e) : InstructionBase(e) {}
+	Instruction(Emulator *e) {}
 	void Init();
 	void ExecStep();
 	void Parse();

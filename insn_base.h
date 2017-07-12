@@ -12,21 +12,20 @@ class InstructionBase;
 using insnfunc_t = void (InstructionBase::*)();
 
 class InstructionBase {
-private:
+public:
 	InstructionBase(){
 /* ✟私はコンストラクタで純粋仮想関数を使おうとしました✟ */
 		//insn = std::vector<insnfunc_t>(0xff, (insnfunc_t)&InstructionBase::not_impl_insn);
 	}
-public:
-	InstructionBase(EmulatorBase *e) : emu(e) {}
+	//InstructionBase(EmulatorBase *e) : emu(e) {}
 
-	void SetEmu(EmulatorBase *emu){ this->emu=emu; }
+	//void SetEmu(EmulatorBase *emu){ this->emu=emu; }
 	void ClearInsn(size_t num){ insn = std::vector<insnfunc_t>(num, (insnfunc_t)&InstructionBase::not_impl_insn); }
 	virtual void Init() = 0;
 	virtual void Parse() = 0;
 	virtual void ExecStep() = 0;
 protected:
-	EmulatorBase *emu;
+	//EmulatorBase *emu;
 //	typedef void (InstructionBase::*insnfunc_t)();
 	std::vector<insnfunc_t> insn;
 	virtual void not_impl_insn() = 0;

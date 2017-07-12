@@ -2,6 +2,8 @@
 #include <sstream>
 #include "emulator.h"
 #include "instruction.h"
+#include "instruction16.h"
+#include "instruction32.h"
 
 using namespace std;
 
@@ -9,7 +11,7 @@ namespace x86{
 
 void Emulator::InitInstructions(){
 //	throw "x86::Emulator::InitInstructions() is not implemented";
-	insn = new Instruction(this);
+	insn = new Instruction32(this);
 }
 
 void Emulator::InitRegisters(){

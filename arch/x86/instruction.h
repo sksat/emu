@@ -9,21 +9,22 @@ namespace x86 {
 
 class Instruction : public InstructionBase {
 public:
-	Instruction(Emulator *e) : InstructionBase(e) {}
-	void Init();
+	Instruction(x86::Emulator *e) : emu(e) {}
+	virtual void Init();
 	void Parse();
 	void ExecStep();
-private:
+protected:
+	x86::Emulator *emu;
 	uint8_t opcode;
 
 	void not_impl_insn();
-
+/*
 	void inc_r32(){
 		uint8_t r = static_cast<Emulator*>(emu)->GetCode8(0) - 0x40;
 		emu->reg[r].reg32++;
 		emu->EIP++;
 	}
-
+*/
 	void nop(){ puts("nop"); emu->EIP++; }
 
 	void near_jump(){
