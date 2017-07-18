@@ -9,6 +9,7 @@ class Instruction32 : public x86::Instruction {
 public:
 	Instruction32(x86::Emulator *e) : Instruction(e) {}
 	void Init();
+	void Parse();
 private:
 	void inc_r32(){
 		uint8_t r = emu->GetCode8(0) - 0x40;

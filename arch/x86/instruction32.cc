@@ -8,4 +8,8 @@ void Instruction32::Init(){
 		SETINSN(0x40+i, inc_r32);
 }
 
+void Instruction32::Parse(){
+	Instruction::Parse();
+}
+
 };

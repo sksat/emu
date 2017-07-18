@@ -15,7 +15,7 @@ CXXFLAGS:= -std=c++11 -g -Wall
 LDFLAGS	:= -pthread -lglfw -lGL
 
 EMU_BIN	:= sample/test.bin
-RUNFLAGS:= 
+RUNFLAGS:=
 
 export
 

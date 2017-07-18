@@ -4,6 +4,10 @@
 
 namespace x86 {
 
+Instruction::Instruction(x86::Emulator *e) : emu(e) {
+	modrm = new ModRM(0x00);
+}
+
 void Instruction::Init(){
 	// default insn
 //	insn = std::vector<insnfunc_t>(0xff, (insnfunc_t)&Instruction::not_impl_insn);

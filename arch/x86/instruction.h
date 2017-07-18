@@ -4,31 +4,27 @@
 #include <stdio.h>
 #include "../../insn_base.h"
 #include "emulator.h"
+#include "modrm.h"
 
 namespace x86 {
 
 class Instruction : public InstructionBase {
 public:
-	Instruction(x86::Emulator *e) : emu(e) {}
+	Instruction(x86::Emulator *e);
+	~Instruction(){ delete modrm; }
 	virtual void Init();
-	void Parse();
+	virtual void Parse() = 0;
 	void ExecStep();
 protected:
 	x86::Emulator *emu;
+	x86::ModRM *modrm;
 	uint8_t opcode;
 
 	void not_impl_insn();
-/*
-	void inc_r32(){
-		uint8_t r = static_cast<Emulator*>(emu)->GetCode8(0) - 0x40;
-		emu->reg[r].reg32++;
-		emu->EIP++;
-	}
-*/
 	void nop(){ puts("nop"); emu->EIP++; }
 
 	void near_jump(){
-		int32_t diff = static_cast<Emulator*>(emu)->GetCode32(1);
+		int32_t diff = emu->GetCode32(1);
 		emu->EIP += (diff + 5);
 	}
 
