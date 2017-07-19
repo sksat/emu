@@ -5,7 +5,7 @@ global start
 start:
 	nop
 	nop
-	inc ax
+	inc eax
 	inc eax
 	inc ecx
 	inc edx
