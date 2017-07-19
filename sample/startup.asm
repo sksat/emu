@@ -4,7 +4,8 @@ global start
 
 start:
 	nop
-	inc eax
+	nop
+	inc ax
 	inc eax
 	inc ecx
 	inc edx

@@ -18,7 +18,7 @@ public:
 protected:
 	x86::Emulator *emu;
 	x86::ModRM *modrm;
-	uint8_t opcode;
+	uint8_t prefix, opcode;
 
 	void not_impl_insn();
 	void nop(){ puts("nop"); emu->EIP++; }

@@ -10,7 +10,6 @@ Instruction::Instruction(x86::Emulator *e) : emu(e) {
 
 void Instruction::Init(){
 	// default insn
-//	insn = std::vector<insnfunc_t>(0xff, (insnfunc_t)&Instruction::not_impl_insn);
 	ClearInsn(0xff);
 	opcode = 0x90;
 
@@ -22,18 +21,33 @@ void Instruction::Init(){
 }
 
 void Instruction::Parse(){
-	static int a=0;
-	if(a!=0){
-		if(emu->reg[8].reg32 == 0) emu->finish_flg=true;
+	prefix = opcode = (*emu->memory)[(uint32_t)emu->reg[8]];
+	std::stringstream ss;
+	switch(prefix){
+		case 0xf0:
+		case 0xf2:
+		case 0xf3:
+		case 0x26:
+		case 0x2e:
+		case 0x36:
+		case 0x3e:
+		case 0x64:
+		case 0x65:
+		case 0x66:
+		case 0x67:
+			ss<<"not implemented prefix:"<<std::hex<<std::showbase<<(uint32_t)prefix<<std::endl;
+			throw ss.str();
+			break;
+		default:
+			break;
 	}
-	a++;
-	opcode = (*emu->memory)[(uint32_t)emu->reg[8]];
 }
 
 void Instruction::ExecStep(){
 	Parse();
 	insnfunc_t func = insn[opcode];
 	(this->*func)();
+	if(emu->EIP == 0) emu->finish_flg=true;
 }
 
 void Instruction::not_impl_insn(){
