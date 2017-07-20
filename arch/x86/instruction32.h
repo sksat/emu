@@ -16,6 +16,10 @@ private:
 		emu->reg[r].reg32++;
 		emu->EIP++;
 	}
+	void mov_rm32_imm32(){
+		emu->EIP += 4;
+		modrm->SetRM32(emu->GetCode32(-4));
+	}
 };
 
 };

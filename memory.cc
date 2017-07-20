@@ -27,7 +27,7 @@ int Memory::GetSize(){
 	return size;
 }
 
-uint8_t Memory::operator [] (uint32_t addr) {
+uint8_t Memory::GetData8(uint32_t addr) {
 	if(addr > static_cast<uint32_t>(size)){
 		stringstream ss;
 		ss<<"memory: out of range address ("<<hex<<showbase<<addr<<")";
@@ -50,6 +50,22 @@ uint8_t Memory::operator [] (uint32_t addr) {
 	}
 
 	return ret;
+}
+
+uint32_t GetData32Little(uint32_t addr){
+	uint32_t ret;
+	for(int i=0;i<4;i++){
+		ret |= GetData8(addr + i) << (i*8);
+	}
+	return ret;
+}
+
+uint32_t Memory::operator[](uint32_t addr){
+	if(endian == ENDIAN::LITTLE){
+		return GetData32Little(addr);
+	}else{
+		throw "big endian";
+	}
 }
 
 void Memory::MapDevice(Device *dev, uint32_t addr, unsigned int size){

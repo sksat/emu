@@ -11,9 +11,12 @@ private:
 	x86::Emulator *emu;
 	uint8_t mod,rm,reg;
 	uint8_t _modrm;
+	union {
+		int8_t disp8;
+		uint32_t disp32;
+	};
 public:
 	ModRM(x86::Emulator *e);
-	ModRM(x86::Emulator *e, uint8_t modrm);
 	inline ModRM& operator=(uint8_t code){
 		_modrm = code;
 		return *this;
@@ -38,6 +41,47 @@ public:
 		if((mod == 0 && rm == 5) || mod == 2)
 			return true;
 		return false;
+	}
+	inline uint32_t CalcMemAddr(){
+		switch(mod){
+			case 0:
+				switch(rm){
+					case 4:
+						throw "not implemented ModRM mod=0, rm=4";
+					case 5:
+						return disp32;
+					default:
+						return emu->reg[rm];
+				}
+				break;
+			case 1:
+				if(rm == 4){
+					throw "not implemented ModRM mod=1, rm=4";
+				}else{
+					return emu->reg[rm].reg32 + disp8;
+				}
+				break;
+			case 2:
+				if(rm == 4){
+					throw "not implemented ModRM mod=2, rm=4";
+				}else{
+					return emu->reg[rm].reg32 + disp32;
+				}
+				break;
+			case 3:
+				throw "not implemented ModRM mod=3";
+				break;
+			default:
+				throw "ModRM error";
+				break;
+		}
+	}
+	inline void SetRM32(uint32_t val){
+		if(mod == 3){
+			emu->reg[rm].reg32 = val;
+		}else{
+			emu->memory[CalcMemAddr()] = val;
+		}
 	}
 };
 

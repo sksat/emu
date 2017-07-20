@@ -36,6 +36,30 @@ public:
 	// little endianでのuint32_tの読み込み処理はEmulatorクラスから持ってくる
 	uint8_t operator [] (uint32_t addr);
 	//int8_t operator [] (uint32_t addr){ return static_cast<int8_t>(operator=(addr)); }
+//	uint32_t operator[](uint32_t addr);
+
+	uint8_t  GetData8(uint32_t addr);
+
+	uint32_t GetData32Big(uint32_t addr){ throw "big endian"; }
+	uint32_t GetData32Little(uint32_t addr);
+	uint32_t GetData32(uint32_t addr){
+		if(endian == ENDIAN::BIG)	return GetData32Big(addr);
+		return GetData32Little(addr);
+	}
+
+	void SetData8(uint32_t addr, uint32_t val){
+		mem[addr] = val;
+	}
+	void SetData32Big(uint32_t addr, uint32_t val){ throw "big endian"; }
+	void SetData32Little(uint32_t addr, uint32_t val);
+	void SetData32(uint32_t addr, uint32_t val){
+		if(endian == ENDIAN::BIG){
+			SetData32Big(addr, val);
+		}else{
+			SetData32Little(addr, val);
+		}
+		return;
+	}
 
 	void MapDevice(Device *dev, uint32_t addr, unsigned int size);
 	void MapMemory(uint8_t *mem, uint32_t addr, unsigned int size);
