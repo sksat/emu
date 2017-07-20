@@ -10,6 +10,8 @@
 
 class EmulatorBase {
 public:
+	EmulatorBase();
+	~EmulatorBase();
 	void Init();
 	virtual void InitInstructions() = 0;
 	virtual void InitRegisters() = 0;

@@ -1,6 +1,14 @@
 #include <iomanip>
 #include "emulator_base.h"
 
+EmulatorBase::EmulatorBase(){
+	memory = new Memory();
+}
+
+EmulatorBase::~EmulatorBase(){
+	delete memory;
+}
+
 void EmulatorBase::Init(){
 	finish_flg = false;
 	InitInstructions();

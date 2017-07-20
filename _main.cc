@@ -13,7 +13,6 @@ try{
 	_emu = new Emulator(ARCH::x86);
 
 	emu->insn->Init();
-	emu->memory = new Memory();
 	emu->memory->Init(DEFAULT_MEMORY_SIZE);
 	emu->memory->LoadBinary("sample/test.bin", 0x00, 512);
 

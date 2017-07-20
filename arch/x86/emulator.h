@@ -17,7 +17,12 @@ public:
 
 	inline uint8_t GetCode8(int index)		{ return (*memory)[EIP + index]; }
 	inline int8_t GetSignCode8(int index)	{ return static_cast<int8_t>(GetCode8(index)); }
-	inline uint32_t GetCode32(int index)	{ return (*memory)[EIP + index]; }
+	inline uint32_t GetCode32(int index)	{
+		uint32_t ret = 0;
+		for(int i=0;i<4;i++)
+			ret |= GetCode8(index + i) << (i * 8);
+		return ret;
+	}
 	inline int32_t GetSignCode32(int index)	{ return static_cast<int32_t>(GetCode32(index)); }
 };
 
