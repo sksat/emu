@@ -5,7 +5,8 @@
 //#include "_emulator.h"
 #include "common.h"
 
-#define SETINSN(o,f) (insn[o] = (insnfunc_t)&Instruction::f)
+#define SETINSN(op,func,insn_flg) {insn[op] = (insnfunc_t)&Instruction::func;\
+								insn_flgs[op] = insn_flg;}
 
 class EmulatorBase;
 class InstructionBase;

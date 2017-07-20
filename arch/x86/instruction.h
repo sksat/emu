@@ -18,7 +18,13 @@ public:
 protected:
 	x86::Emulator *emu;
 	x86::ModRM *modrm;
-	uint8_t prefix, opcode;
+	friend x86::ModRM;
+	bool insn_flgs[0xff];
+	uint8_t prefix, opcode, sib;
+	union {
+		int8_t disp8;
+		uint32_t disp32;
+	};
 
 	void not_impl_insn();
 	void nop(){ puts("nop"); emu->EIP++; }

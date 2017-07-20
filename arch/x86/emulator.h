@@ -15,8 +15,10 @@ public:
 	void InitRegisters();
 	void Dump(){ DumpRegisters(); }
 
-	uint8_t GetCode8(int index){ return (*memory)[reg[8].reg32 + index]; }
-	uint32_t GetCode32(int index){ return (*memory)[reg[8].reg32 + index]; }
+	inline uint8_t GetCode8(int index)		{ return (*memory)[EIP + index]; }
+	inline int8_t GetSignCode8(int index)	{ return static_cast<int8_t>(GetCode8(index)); }
+	inline uint32_t GetCode32(int index)	{ return (*memory)[EIP + index]; }
+	inline int32_t GetSignCode32(int index)	{ return static_cast<int32_t>(GetCode32(index)); }
 };
 
 };

@@ -7,7 +7,7 @@ void Instruction::Init(){
 	ClearInsn(0xff);
 	opcode = 0x00;
 
-	SETINSN(0x00, nop);
+	SETINSN(0x00, nop, 0);
 }
 
 void Instruction::Parse(){

@@ -18,6 +18,7 @@ public:
 	}
 
 	uint8_t opcode;
+	uint8_t insn_flgs[0xff];
 
 	void not_impl_insn(){ throw "osecpu: not implemented insn."; }
 

@@ -5,7 +5,7 @@
 namespace x86 {
 
 Instruction::Instruction(x86::Emulator *e) : emu(e) {
-	modrm = new ModRM(0x00);
+	modrm = new ModRM(e, 0x00);
 }
 
 void Instruction::Init(){
@@ -13,11 +13,9 @@ void Instruction::Init(){
 	ClearInsn(0xff);
 	opcode = 0x90;
 
-//	for(i=0;i<8;i++)
-//		SETINSN(0x40 + i, inc_r32);
-	SETINSN(0x90, nop);
-	SETINSN(0xe9, near_jump);
-	SETINSN(0xeb, short_jump);
+	SETINSN(0x90, nop,			0);
+	SETINSN(0xe9, near_jump,	0);
+	SETINSN(0xeb, short_jump,	0);
 }
 
 void Instruction::Parse(){
@@ -40,6 +38,24 @@ void Instruction::Parse(){
 			break;
 		default:
 			break;
+	}
+	//if modrm
+	if(insn_flgs[opcode]){
+		emu->EIP++;
+		modrm->Set(emu->GetCode8(0));
+		modrm->Parse();
+		emu->EIP++;
+		if(modrm->IsSIB()){
+			sib = emu->GetCode8(0);
+			emu->EIP++;
+		}
+		if(modrm->IsDisp32()){
+			disp32 = emu->GetSignCode32(0);
+			emu->EIP+=4;
+		}else if(modrm->GetMod() == 1){
+			disp8 = emu->GetSignCode8(0);
+			emu->EIP++;
+		}
 	}
 }
 
