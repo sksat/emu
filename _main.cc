@@ -6,10 +6,11 @@ using namespace std;
 
 #define emu (*_emu)
 
+Emulator *_emu;
+
 int main(int argc, char **argv){
 
 try{
-	Emulator *_emu;
 	_emu = new Emulator(ARCH::x86);
 
 	emu->insn->Init();
@@ -29,8 +30,12 @@ try{
 
 }catch(const char *msg){
 	cout<<"error:\n\t"<<msg<<endl;
+	emu->Dump();
+	delete _emu;
 }catch(string msg){
 	cout<<"error:\n\t"<<msg<<endl;
+	emu->Dump();
+	delete _emu;
 }
 
 }
