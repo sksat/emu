@@ -52,7 +52,7 @@ uint8_t Memory::GetData8(uint32_t addr) {
 	return ret;
 }
 
-uint32_t GetData32Little(uint32_t addr){
+uint32_t Memory::GetData32Little(uint32_t addr){
 	uint32_t ret;
 	for(int i=0;i<4;i++){
 		ret |= GetData8(addr + i) << (i*8);
@@ -60,12 +60,20 @@ uint32_t GetData32Little(uint32_t addr){
 	return ret;
 }
 
+/*
 uint32_t Memory::operator[](uint32_t addr){
 	if(endian == ENDIAN::LITTLE){
 		return GetData32Little(addr);
 	}else{
 		throw "big endian";
 	}
+}
+*/
+
+void Memory::SetData32Little(uint32_t addr, uint32_t val){
+	for(int i=0;i<4;i++)
+		SetData8(addr+i, val>>(i*8));
+	return;
 }
 
 void Memory::MapDevice(Device *dev, uint32_t addr, unsigned int size){

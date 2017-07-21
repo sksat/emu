@@ -34,7 +34,9 @@ public:
 	Memory* operator->(){ return this; }
 
 	// little endianでのuint32_tの読み込み処理はEmulatorクラスから持ってくる
-	uint8_t operator [] (uint32_t addr);
+	uint8_t operator [] (uint32_t addr){
+		return GetData8(addr);
+	}
 	//int8_t operator [] (uint32_t addr){ return static_cast<int8_t>(operator=(addr)); }
 //	uint32_t operator[](uint32_t addr);
 
