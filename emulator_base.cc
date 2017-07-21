@@ -13,13 +13,14 @@ void EmulatorBase::Init(){
 	finish_flg = false;
 	InitInstructions();
 	InitRegisters();
+	InitMemory();
 }
 
 void EmulatorBase::DumpRegisters(){
 	std::cout
 		<< "---- dump registers ----"
 		<< std::endl;
-	for(int i=0;i<reg.size();i++){
+	for(unsigned int i=0;i<reg.size();i++){
 		std::cout
 			<< reg[i].name << " : "
 			<< "0x"
