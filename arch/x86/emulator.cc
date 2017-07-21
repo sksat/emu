@@ -29,4 +29,8 @@ void Emulator::InitRegisters(){
 	reg[7].name = "EDI";
 }
 
+void Emulator::InitMemory(){
+	memory->endian = ENDIAN::LITTLE;
+}
+
 }

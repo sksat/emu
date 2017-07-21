@@ -17,8 +17,10 @@ private:
 		emu->EIP++;
 	}
 	void mov_rm32_imm32(){
+		uint32_t val = emu->GetCode32(0);
 		emu->EIP += 4;
-		modrm->SetRM32(emu->GetCode32(-4));
+		idata->SetRM32(val);
+//		idata->SetRM32(emu->GetCode32(-4));
 	}
 };
 

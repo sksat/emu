@@ -4,23 +4,21 @@
 #include <stdio.h>
 #include "../../insn_base.h"
 #include "emulator.h"
-#include "modrm.h"
+#include "insndata.h"
 
 namespace x86 {
 
 class Instruction : public InstructionBase {
 public:
 	Instruction(x86::Emulator *e);
-	~Instruction(){ delete modrm; }
+	~Instruction(){ delete idata; }
 	virtual void Init();
 	virtual void Parse() = 0;
 	void ExecStep();
 protected:
 	x86::Emulator *emu;
-	x86::ModRM *modrm;
-	friend x86::ModRM;
+	x86::InsnData *idata;
 	bool insn_flgs[0xff];
-	uint8_t prefix, opcode, sib;
 
 	void not_impl_insn();
 	void nop(){ puts("nop"); emu->EIP++; }

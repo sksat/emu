@@ -5,13 +5,13 @@
 namespace x86 {
 
 Instruction::Instruction(x86::Emulator *e) : emu(e) {
-	modrm = new ModRM(e, 0x00);
+	idata = new InsnData(e);
 }
 
 void Instruction::Init(){
 	// default insn
 	ClearInsn(0xff);
-	opcode = 0x90;
+	idata->opcode = 0x90;
 
 	SETINSN(0x90, nop,			0);
 	SETINSN(0xe9, near_jump,	0);
@@ -19,9 +19,9 @@ void Instruction::Init(){
 }
 
 void Instruction::Parse(){
-	prefix = opcode = (*emu->memory)[(uint32_t)emu->reg[8]];
+	idata->prefix = idata->opcode = (*emu->memory)[emu->reg[8].reg32];
 	std::stringstream ss;
-	switch(prefix){
+	switch(idata->prefix){
 		case 0xf0:
 		case 0xf2:
 		case 0xf3:
@@ -33,27 +33,26 @@ void Instruction::Parse(){
 		case 0x65:
 		case 0x66:
 		case 0x67:
-			ss<<"not implemented prefix:"<<std::hex<<std::showbase<<(uint32_t)prefix<<std::endl;
+			ss<<"not implemented prefix:"<<std::hex<<std::showbase<<(uint32_t)idata->prefix<<std::endl;
 			throw ss.str();
 			break;
 		default:
 			break;
 	}
 	//if modrm
-	if(insn_flgs[opcode]){
+	if(insn_flgs[idata->opcode]){
 		emu->EIP++;
-		modrm->Set(emu->GetCode8(0));
-		modrm->Parse();
+		idata->SetModRM(emu->GetCode8(0));
 		emu->EIP++;
-		if(modrm->IsSIB()){
-			sib = emu->GetCode8(0);
+		if(idata->IsSIB()){
+			idata->sib = emu->GetCode8(0);
 			emu->EIP++;
 		}
-		if(modrm->IsDisp32()){
-			disp32 = emu->GetSignCode32(0);
+		if(idata->IsDisp32()){
+			idata->disp32 = emu->GetSignCode32(0);
 			emu->EIP+=4;
-		}else if(modrm->GetMod() == 1){
-			disp8 = emu->GetSignCode8(0);
+		}else if(idata->GetMod() == 1){
+			idata->disp8 = emu->GetSignCode8(0);
 			emu->EIP++;
 		}
 	}
@@ -61,14 +60,14 @@ void Instruction::Parse(){
 
 void Instruction::ExecStep(){
 	Parse();
-	insnfunc_t func = insn[opcode];
+	insnfunc_t func = insn[idata->opcode];
 	(this->*func)();
 	if(emu->EIP == 0) emu->finish_flg=true;
 }
 
 void Instruction::not_impl_insn(){
 	std::stringstream ss;
-	ss<<"x86: not implemented insn : "<<std::hex<<std::showbase<<static_cast<uint32_t>(opcode);
+	ss<<"x86: not implemented insn : "<<std::hex<<std::showbase<<static_cast<uint32_t>(idata->opcode);
 	throw ss.str();
 }
 

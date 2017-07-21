@@ -9,6 +9,7 @@ class Emulator : public EmulatorBase {
 public:
 	void InitInstructions();
 	void InitRegisters();
+	void InitMemory(){}
 	void Dump();
 };
 

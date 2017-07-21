@@ -13,6 +13,7 @@ class Emulator : public EmulatorBase {
 public:
 	void InitInstructions();
 	void InitRegisters();
+	void InitMemory();
 	void Dump(){ DumpRegisters(); }
 
 	inline uint8_t GetCode8(int index)		{ return (*memory)[EIP + index]; }
