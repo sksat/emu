@@ -5,10 +5,6 @@ global start
 start:
 	nop
 	nop
-	inc eax
-	inc eax
-	inc ecx
-	inc edx
-	inc esp
-;	dec eax
+	mov dword [eax], 5
+	;	dec eax
 	jmp start
