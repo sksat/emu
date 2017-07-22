@@ -79,11 +79,11 @@ public:
 	inline void SetRM32(uint32_t val){
 		if(mod == 3){
 			emu->reg[rm].reg32 = val;
+			std::cout<<"SetRM32: reg="<<emu->reg[rm].name<<" val="<<std::hex<<val<<std::endl;
 		}else{
-			std::stringstream ss;
-			ss<<"val"<<std::hex<<std::showbase<<val;
-			throw ss.str();
-			emu->memory->SetData32(CalcMemAddr(), val);
+			uint32_t addr = CalcMemAddr();
+			emu->memory->SetData32(addr, val);
+			std::cout<<"SetRM32: addr="<<std::hex<<addr<<" val="<<val<<std::endl;
 		}
 	}
 };

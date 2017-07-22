@@ -41,8 +41,11 @@ void Instruction::Parse(){
 	}
 	//if modrm
 	if(insn_flgs[idata->opcode]){
+		std::cout<<"ModRM : ";
 		emu->EIP++;
 		idata->SetModRM(emu->GetCode8(0));
+		std::cout<<"Mod="<<std::hex<<(uint32_t)idata->mod
+				<<" RM="<<(uint32_t)idata->rm<<std::endl;
 		emu->EIP++;
 		if(idata->IsSIB()){
 			idata->sib = emu->GetCode8(0);

@@ -1,7 +1,8 @@
 #include "instruction.h"
 
 #undef SETINSN
-#define SETINSN(o,f) (insn[o] = (insnfunc_t)&Instruction32::f)
+#define SETINSN(op,func,flg) {insn[op] = (insnfunc_t)&Instruction32::func;\
+						insn_flgs[op] = flg;}
 
 namespace x86 {
 
@@ -18,6 +19,7 @@ private:
 	}
 	void mov_rm32_imm32(){
 		uint32_t val = emu->GetCode32(0);
+		std::cout<<"mov_rm32_imm32: val="<<val<<std::endl;
 		emu->EIP += 4;
 		idata->SetRM32(val);
 //		idata->SetRM32(emu->GetCode32(-4));
