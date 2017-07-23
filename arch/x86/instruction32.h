@@ -17,6 +17,9 @@ private:
 		emu->reg[r].reg32++;
 		emu->EIP++;
 	}
+	void mov_rm32_r32(){
+		idata->SetRM32(emu->reg[idata->reg]);
+	}
 	void mov_rm32_imm32(){
 		uint32_t val = emu->GetCode32(0);
 		std::cout<<"mov_rm32_imm32: val="<<val<<std::endl;
