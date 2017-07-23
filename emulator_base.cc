@@ -16,6 +16,11 @@ void EmulatorBase::Init(){
 	InitMemory();
 }
 
+void EmulatorBase::Dump(){
+	DumpRegisters();
+	DumpMemory();
+}
+
 void EmulatorBase::DumpRegisters(){
 	std::cout
 		<< "---- dump registers ----"
@@ -35,3 +40,8 @@ void EmulatorBase::DumpRegisters(){
 		<< "------------------------"
 		<< std::endl;
 }
+
+void EmulatorBase::DumpMemory(){
+	memory->Dump("memdump.bin", 0, memory->size);
+}
+

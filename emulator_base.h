@@ -16,8 +16,9 @@ public:
 	virtual void InitInstructions() = 0;
 	virtual void InitRegisters() = 0;
 	virtual void InitMemory() = 0;
-	virtual void Dump() = 0;
+	virtual void Dump();
 	virtual void DumpRegisters();
+	virtual void DumpMemory();
 
 	bool finish_flg = false;
 

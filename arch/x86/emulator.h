@@ -14,7 +14,6 @@ public:
 	void InitInstructions();
 	void InitRegisters();
 	void InitMemory();
-	void Dump(){ DumpRegisters(); }
 
 	inline uint8_t GetCode8(int index)		{ return (*memory)[EIP + index]; }
 	inline int8_t GetSignCode8(int index)	{ return static_cast<int8_t>(GetCode8(index)); }
