@@ -30,8 +30,6 @@ public:
 		reg = ((code & 0x38) >> 3);
 		rm  = code & 0x07;
 	}
-	inline uint8_t GetMod(){	return mod; }
-	inline uint8_t GetRM(){		return rm; }
 	inline bool IsSIB(){
 		if(mod != 3 && rm == 4)
 			return true;
@@ -75,6 +73,11 @@ public:
 				throw "ModRM error";
 				break;
 		}
+	}
+	inline uint32_t GetRM32(){
+		if(mod == 3)
+			return emu->reg[rm].reg32;
+		return emu->memory->GetData32(CalcMemAddr());
 	}
 	inline void SetRM32(uint32_t val){
 		if(mod == 3){

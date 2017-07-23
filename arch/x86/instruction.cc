@@ -54,7 +54,7 @@ void Instruction::Parse(){
 		if(idata->IsDisp32()){
 			idata->disp32 = emu->GetSignCode32(0);
 			emu->EIP+=4;
-		}else if(idata->GetMod() == 1){
+		}else if(idata->mod == 1){
 			idata->disp8 = emu->GetSignCode8(0);
 			emu->EIP++;
 		}

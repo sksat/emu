@@ -12,6 +12,9 @@ public:
 	void Init();
 	void Parse();
 private:
+	void add_rm32_r32(){
+		idata->SetRM32(idata->GetRM32() + emu->reg[idata->reg].reg32);
+	}
 	void inc_r32(){
 		uint8_t r = emu->GetCode8(0) - 0x40;
 		emu->reg[r].reg32++;

@@ -5,7 +5,7 @@ global start
 start:
 	nop
 	nop
+	inc eax
 	mov dword [0x20], 5
-;	mov dword [ebp+4], eax
-	;	dec eax
+	add dword [0x20], eax
 	jmp start
