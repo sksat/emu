@@ -13,7 +13,11 @@ private:
 	uint8_t _modrm;
 public:
 	uint8_t prefix, opcode;
-	uint8_t mod,rm,reg;
+	uint8_t mod,rm;
+	union {
+		uint8_t reg;
+		uint8_t subopcode;
+	};
 	uint8_t sib;
 	union {
 		int8_t disp8;

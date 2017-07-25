@@ -10,7 +10,7 @@ Instruction::Instruction(x86::Emulator *e) : emu(e) {
 
 void Instruction::Init(){
 	// default insn
-	ClearInsn(0xff);
+	ClearInsn(256);
 	idata->opcode = 0x90;
 
 	SETINSN(0x90, nop,			0);
@@ -63,6 +63,7 @@ void Instruction::Parse(){
 
 void Instruction::ExecStep(){
 	Parse();
+	std::cout<<"opcode = "<<std::hex<<(uint32_t)idata->opcode<<std::endl;
 	insnfunc_t func = insn[idata->opcode];
 	(this->*func)();
 	if(emu->EIP == 0) emu->finish_flg=true;
