@@ -25,15 +25,18 @@ void EmulatorBase::DumpRegisters(){
 	std::cout
 		<< "---- dump registers ----"
 		<< std::endl;
-	for(unsigned int i=0;i<reg.size();i++){
+	for(unsigned int i=0;i<all_reg.size();i++){
+		if(all_reg[i] = nullptr)
+			throw "error";
 		std::cout
-			<< reg[i].name << " : "
+			<< all_reg[i]->GetName() << " : "
 			<< "0x"
 		//	<< std::showbase	// <- if 0, dosen't work
-			<< std::hex
-			<< std::setw(4)
-			<< std::setfill('0')
-			<< reg[i].reg32
+//			<< std::hex
+//			<< std::setw(4)
+//			<< std::setfill('0')
+//			<< all_reg[i].reg32
+			<< all_reg[i]->GetDataByString()
 			<< std::endl;
 	}
 	std::cout

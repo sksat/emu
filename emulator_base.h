@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "insn_base.h"
-#include "register.h"
+#include "register_base.h"
 #include "memory.h"
 
 class EmulatorBase {
@@ -23,7 +23,7 @@ public:
 	bool finish_flg = false;
 
 	InstructionBase *insn;
-	std::vector<Register> reg;
+	std::vector<RegisterBase*> all_reg;
 	Memory *memory;
 };
 

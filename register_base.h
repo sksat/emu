@@ -1,45 +1,18 @@
-#ifndef REGISTER_H_
-#define REGISTER_H_
+#ifndef REGISTER_BASE_H_
+#define REGISTER_BASE_H_
 
 #include <stdint.h>
 #include <string>
 
 /*
-class Register {
-public:
-	union {
-		uint64_t reg64;
-		uint32_t reg32;
-		uint16_t reg16;
-		struct {
-			uint8_t low8;
-			uint8_t high8;
-		};
-	};
-};
-
-class Flags : public Register {
-public:
-	bool getCarry();
-	bool getZero();
-	bool getSign();
-	bool getTrap();
-	bool getInt();
-	bool getDirect();
-	bool getOverflow();
-	bool getVirtInt();
-private:
-	int mode;
-};
-*/
 
 class Register {
 public:
 	Register(){}
 	explicit Register(size_t size){}
-	Register(uint8_t r) : low8(r) {}
-	Register(uint16_t r): reg16(r){}
-	Register(uint32_t r): reg32(r){}
+	explicit Register(uint8_t r) : low8(r) {}
+	explicit Register(uint16_t r): reg16(r){}
+	explicit Register(uint32_t r): reg32(r){}
 
 	void SetSize(size_t size){}
 
@@ -72,6 +45,25 @@ public:
 			uint8_t high8;
 		};
 	};
+};
+
+*/
+
+class RegisterBase {
+public:
+	explicit RegisterBase(std::size_t s) : size(s) {};
+
+	std::size_t GetSize() const	{ return size; }
+	void SetSize(std::size_t s)	{ size = s; }
+
+	const char* GetName() const	{ return name.c_str(); }
+	void SetName(std::string n) { name = n; }
+	void SetName(const char* n) { name = n; }
+
+	virtual std::string GetDataByString() = 0;
+private:
+	std::size_t size;
+	std::string name;
 };
 
 #endif

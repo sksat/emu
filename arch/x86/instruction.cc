@@ -19,7 +19,7 @@ void Instruction::Init(){
 }
 
 void Instruction::Parse(){
-	idata->prefix = idata->opcode = (*emu->memory)[emu->reg[8].reg32];
+	idata->prefix = idata->opcode = (*emu->memory)[emu->EIP];
 	std::stringstream ss;
 	switch(idata->prefix){
 		case 0xf0:

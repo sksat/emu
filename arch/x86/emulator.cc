@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include "emulator.h"
+#include "register.h"
 #include "instruction.h"
 #include "instruction16.h"
 #include "instruction32.h"
@@ -15,9 +16,10 @@ void Emulator::InitInstructions(){
 }
 
 void Emulator::InitRegisters(){
-//	throw "x86::Emulator::InitRegisters() is not implemented";
-	//regs.push_back((uint32_t)0x00);
-	reg = std::vector<Register>(REGISTERS_COUNT, (uint32_t)0x00);
+	pc.SetName("EIP");
+
+	reg = std::vector<x86::Register>(REGISTERS_COUNT);
+/*
 	reg[8].name = "EIP";
 	reg[0].name = "EAX";
 	reg[1].name = "ECX";
@@ -27,6 +29,22 @@ void Emulator::InitRegisters(){
 	reg[5].name = "EBP";
 	reg[6].name = "ESI";
 	reg[7].name = "EDI";
+*/
+	const char* reg_name[REGISTERS_COUNT] = {
+		"EAX", "ECX", "EDX", "EBX", "ESP", "EBP", "ESI", "EDI",
+	};
+	for(int i=0;i<REGISTERS_COUNT;i++){
+		reg[i].SetName(reg_name[i]);
+	}
+
+// all_regへの登録
+	all_reg = std::vector<::RegisterBase*>(REGISTERS_COUNT + 1);
+	for(int i=0;i<REGISTERS_COUNT;i++)
+		all_reg[i] = &reg[i];
+	all_reg[REGISTERS_COUNT] = &pc;
+
+	// EIPとESPの初期設定(ここでやるべきではない)
+	EIP = ESP = 0x7c00;
 }
 
 void Emulator::InitMemory(){

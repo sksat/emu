@@ -87,7 +87,7 @@ std::cout<<"GetRM32: mem addr ="<<std::hex<<CalcMemAddr()<<std::endl;
 	inline void SetRM32(uint32_t val){
 		if(mod == 3){
 			emu->reg[rm].reg32 = val;
-			std::cout<<"SetRM32: reg="<<emu->reg[rm].name<<" val="<<std::hex<<val<<std::endl;
+			std::cout<<"SetRM32: reg="<<emu->reg[rm].GetName()<<" val="<<std::hex<<val<<std::endl;
 		}else{
 			uint32_t addr = CalcMemAddr();
 			emu->memory->SetData32(addr, val);

@@ -18,8 +18,8 @@ try{
 	emu->memory->LoadBinary("sample/test.bin", 0x7c00, 512);
 
 	//temporary
-	emu->reg[4].reg32 = 0x7c00;
-	emu->reg[8].reg32 = 0x7c00;
+//	emu->reg[4].reg32 = 0x7c00;
+//	emu->reg[8].reg32 = 0x7c00;
 
 	cout<<"emulation start"<<endl;
 

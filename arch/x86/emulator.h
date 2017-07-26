@@ -2,20 +2,24 @@
 #define X86_EMULATOR_H_
 
 #include "../../emulator_base.h"
+#include "register.h"
 
-#define EIP reg[8].reg32
+#define EIP pc.reg32
 #define ESP reg[4].reg32
 #define EBP reg[5].reg32
 
 namespace x86 {
 
-const int REGISTERS_COUNT = 8 + 1;
+const int REGISTERS_COUNT = 8;
 
 class Emulator : public EmulatorBase {
 public:
 	void InitInstructions();
 	void InitRegisters();
 	void InitMemory();
+
+	x86::Register pc;
+	std::vector<x86::Register> reg;
 
 	inline uint8_t GetCode8(int index)		{ return (*memory)[EIP + index]; }
 	inline int8_t GetSignCode8(int index)	{ return static_cast<int8_t>(GetCode8(index)); }
