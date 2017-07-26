@@ -53,7 +53,7 @@ public:
 					case 5:
 						return disp32;
 					default:
-						return emu->reg[rm];
+						return emu->reg[rm].reg32;
 				}
 				break;
 			case 1:
@@ -81,6 +81,7 @@ public:
 	inline uint32_t GetRM32(){
 		if(mod == 3)
 			return emu->reg[rm].reg32;
+std::cout<<"GetRM32: mem addr ="<<std::hex<<CalcMemAddr()<<std::endl;
 		return emu->memory->GetData32(CalcMemAddr());
 	}
 	inline void SetRM32(uint32_t val){

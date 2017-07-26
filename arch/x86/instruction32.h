@@ -44,6 +44,7 @@ private:
 		idata->SetRM32(emu->reg[idata->reg].reg32);
 	}
 	void mov_r32_rm32(){
+std::cout<<"mov_r32_rm32 "<<std::hex<<idata->GetRM32()<<std::endl;
 		emu->reg[idata->reg].reg32 = idata->GetRM32();
 	}
 	void mov_r32_imm32(){

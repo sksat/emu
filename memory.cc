@@ -53,7 +53,7 @@ uint8_t Memory::GetData8(uint32_t addr) {
 }
 
 uint32_t Memory::GetData32Little(uint32_t addr){
-	uint32_t ret;
+	uint32_t ret = 0;
 	for(int i=0;i<4;i++){
 		ret |= GetData8(addr + i) << (i*8);
 	}
