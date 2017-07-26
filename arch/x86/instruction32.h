@@ -51,12 +51,20 @@ std::cout<<"mov_r32_rm32 "<<std::hex<<idata->GetRM32()<<std::endl;
 		emu->reg[emu->GetCode8(0) - 0xB8].reg32 = emu->GetCode32(1);
 		emu->EIP+=5;
 	}
+	void ret32(){
+		emu->EIP = emu->pop32();
+	}
 	void mov_rm32_imm32(){
 		uint32_t val = emu->GetCode32(0);
 		std::cout<<"mov_rm32_imm32: val="<<val<<std::endl;
 		emu->EIP += 4;
 		idata->SetRM32(val);
 //		idata->SetRM32(emu->GetCode32(-4));
+	}
+	void call_rel32(){
+		int32_t diff = emu->GetSignCode32(1);
+		emu->push32(emu->EIP + 5);
+		emu->EIP += (diff + 5);
 	}
 	void code_ff(){
 		switch(idata->subopcode){

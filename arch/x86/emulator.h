@@ -4,6 +4,7 @@
 #include "../../emulator_base.h"
 
 #define EIP reg[8].reg32
+#define ESP reg[4].reg32
 
 namespace x86 {
 
@@ -24,6 +25,15 @@ public:
 		return ret;
 	}
 	inline int32_t GetSignCode32(int index)	{ return static_cast<int32_t>(GetCode32(index)); }
+
+	inline void push32(uint32_t val){
+		ESP -= 4;
+		memory->SetData32(ESP, val);
+	}
+	inline uint32_t pop32(){
+		ESP += 4;
+		return memory->GetData32(ESP-4);
+	}
 };
 
 };
