@@ -1,5 +1,5 @@
 TARGET	= test.bin
-OBJS	= startup.o
+OBJS	= startup.o main.o
 
 %.o:%.S
 	gcc -m32 -c  $< -o $@
