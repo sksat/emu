@@ -5,6 +5,7 @@
 
 #define EIP reg[8].reg32
 #define ESP reg[4].reg32
+#define EBP reg[5].reg32
 
 namespace x86 {
 

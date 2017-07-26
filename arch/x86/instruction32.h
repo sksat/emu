@@ -1,3 +1,4 @@
+#include <sstream>
 #include "instruction.h"
 
 #undef SETINSN
@@ -20,16 +21,31 @@ private:
 		emu->reg[r].reg32++;
 		emu->EIP++;
 	}
+	void push_r32(){
+		emu->push32(emu->reg[emu->GetCode8(0)].reg32);
+		emu->EIP++;
+	}
 	void code_83(){
 		switch(idata->subopcode){
+		case 0:
+			add_rm32_imm8();
+			break;
 		case 5:
 			sub_rm32_imm8();
 			break;
 		default:
-			throw "not implemented: 83 "+std::to_string((int)idata->opcode);
+			std::stringstream ss;
+			ss<<"not implemented: 83 "<<std::hex<<(uint32_t)idata->subopcode;
+			throw ss.str();
 		}
 
 	}
+		void add_rm32_imm8(){
+			uint32_t rm32 = idata->GetRM32();
+			uint32_t imm8 = (int32_t)emu->GetSignCode8(0);
+			emu->EIP++;
+			idata->SetRM32(rm32 + imm8);
+		}
 		void sub_rm32_imm8(){
 			std::cout<<"sub"<<std::endl;
 			uint32_t rm32 = idata->GetRM32();
@@ -60,6 +76,11 @@ std::cout<<"mov_r32_rm32 "<<std::hex<<idata->GetRM32()<<std::endl;
 		emu->EIP += 4;
 		idata->SetRM32(val);
 //		idata->SetRM32(emu->GetCode32(-4));
+	}
+	void leave32(){
+		emu->ESP = emu->EBP;
+		emu->EBP = emu->pop32();
+		emu->EIP++;
 	}
 	void call_rel32(){
 		int32_t diff = emu->GetSignCode32(1);
