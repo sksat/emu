@@ -22,7 +22,11 @@ private:
 		emu->EIP++;
 	}
 	void push_r32(){
-		emu->push32(emu->reg[emu->GetCode8(0)].reg32);
+		emu->push32(emu->reg[emu->GetCode8(0)-0x50].reg32);
+		emu->EIP++;
+	}
+	void pop_r32(){
+		emu->reg[emu->GetCode8(0) - 0x58].reg32 = emu->pop32();
 		emu->EIP++;
 	}
 	void code_83(){

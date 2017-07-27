@@ -8,8 +8,10 @@ void Instruction32::Init(){
 	SETINSN(0x01, add_rm32_r32,			1);
 	for(int i=0;i<8;i++)
 		SETINSN(0x40+i, inc_r32,		0);
-	for(int i=0;i<8;i++)
+	for(int i=0;i<8;i++){
 		SETINSN(0x50+i, push_r32,		0);
+		SETINSN(0x58+i, pop_r32,		0);
+	}
 	SETINSN(0x83, code_83,				1);
 	SETINSN(0x89, mov_rm32_r32,			1);
 	SETINSN(0x8B, mov_r32_rm32,			1);
