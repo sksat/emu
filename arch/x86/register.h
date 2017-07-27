@@ -1,6 +1,7 @@
 #ifndef X86_REGISTER_H_
 #define X86_REGISTER_H_
 
+#include <iomanip>
 #include <sstream>
 #include "../../register_base.h"
 
@@ -15,7 +16,7 @@ public:
 
 	std::string GetDataByString(){
 		std::stringstream ss;
-		ss<<"0x"<<std::hex<<reg32;
+		ss<<"0x"<<std::hex<<std::setw(4)<<std::setfill('0')<<reg32;
 		return ss.str();
 	}
 

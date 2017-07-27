@@ -56,7 +56,7 @@ public:
 	std::size_t GetSize() const	{ return size; }
 	void SetSize(std::size_t s)	{ size = s; }
 
-	const char* GetName() const	{ return name.c_str(); }
+	const std::string GetName() const { return name; }
 	void SetName(std::string n) { name = n; }
 	void SetName(const char* n) { name = n; }
 

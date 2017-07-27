@@ -38,10 +38,9 @@ void Emulator::InitRegisters(){
 	}
 
 // all_regへの登録
-	all_reg = std::vector<::RegisterBase*>(REGISTERS_COUNT + 1);
 	for(int i=0;i<REGISTERS_COUNT;i++)
-		all_reg[i] = &reg[i];
-	all_reg[REGISTERS_COUNT] = &pc;
+		all_reg.push_back(&reg[i]);
+	all_reg.push_back(&pc);
 
 	// EIPとESPの初期設定(ここでやるべきではない)
 	EIP = ESP = 0x7c00;
