@@ -8,7 +8,7 @@ OBJS	= startup.o main.o
 	nasm -f elf $<
 
 %.o:%.c
-	gcc -m32 -nostdlib -fno-asynchronous-unwind-tables -g -fno-stack-protector -c $< -o $@
+	clang -m32 -nostdlib -fno-asynchronous-unwind-tables -g -fno-stack-protector -c $< -o $@
 
 default:
 	make $(TARGET)
