@@ -53,21 +53,21 @@ public:
 					case 5:
 						return disp32;
 					default:
-						return emu->reg[rm].reg32;
+						return emu->reg[rm];
 				}
 				break;
 			case 1:
 				if(rm == 4){
 					throw "not implemented ModRM mod=1, rm=4";
 				}else{
-					return emu->reg[rm].reg32 + disp8;
+					return emu->reg[rm] + disp8;
 				}
 				break;
 			case 2:
 				if(rm == 4){
 					throw "not implemented ModRM mod=2, rm=4";
 				}else{
-					return emu->reg[rm].reg32 + disp32;
+					return emu->reg[rm] + disp32;
 				}
 				break;
 			case 3:
@@ -80,13 +80,13 @@ public:
 	}
 	inline uint32_t GetRM32(){
 		if(mod == 3)
-			return emu->reg[rm].reg32;
+			return emu->reg[rm];
 std::cout<<"GetRM32: mem addr ="<<std::hex<<CalcMemAddr()<<std::endl;
 		return emu->memory->GetData32(CalcMemAddr());
 	}
 	inline void SetRM32(uint32_t val){
 		if(mod == 3){
-			emu->reg[rm].reg32 = val;
+			emu->reg[rm] = val;
 			std::cout<<"SetRM32: reg="<<emu->reg[rm].GetName()<<" val="<<std::hex<<val<<std::endl;
 		}else{
 			uint32_t addr = CalcMemAddr();

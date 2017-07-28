@@ -6,7 +6,7 @@
 #include "../../register_base.h"
 
 namespace x86 {
-
+/*
 class Register : public ::RegisterBase {
 public:
 	Register() : RegisterBase(sizeof(uint32_t)) {}
@@ -14,7 +14,7 @@ public:
 	explicit Register(uint16_t r): RegisterBase(sizeof(uint16_t)), reg16(r){}
 	explicit Register(uint32_t r): RegisterBase(sizeof(uint32_t)), reg32(r){}
 
-	std::string GetDataByString(){
+	const std::string GetDataByString(){
 		std::stringstream ss;
 		ss<<"0x"<<std::hex<<std::setw(4)<<std::setfill('0')<<reg32;
 		return ss.str();
@@ -36,8 +36,174 @@ public:
 		};
 	};
 };
+*/
 
+class Register8 : public ::RegisterBase {
+public:
+	Register8() : ::RegisterBase(sizeof(uint8_t)), reg8(0x00) {}
+	explicit Register8(uint8_t r) : ::RegisterBase(sizeof(uint8_t)), reg8(r) {}
 
+	inline operator uint8_t () { return reg8; }
+	inline operator int8_t  () { return reg8; }
+
+	inline virtual Register8& operator=(const uint8_t data){
+		reg8 = data;
+		return *this;
+	}
+
+	inline virtual Register8& operator++(int){
+		reg8++;
+		return *this;
+	}
+
+	inline uint8_t Get8() const{ return reg8; }
+	inline void Set8(uint8_t r){ reg8 = r; }
+
+	virtual const std::string GetDataByString(){
+		std::stringstream ss;
+		ss << "0x"
+			<< std::hex << std::setw(2) << std::setfill('0')
+			<< static_cast<uint32_t>(reg8);
+			return ss.str();
+	}
+
+protected:
+	uint8_t reg8;
 };
+
+class Register16 : public Register8 {
+//public ::RegisterBase {
+public:
+	Register16() : high8(0x00) { SetSize(sizeof(uint16_t)); }
+	Register16(uint16_t r) : high8(r >> 8) { SetSize(sizeof(uint16_t)); Set8((uint8_t)r);}
+
+	inline operator uint16_t () { return ((high8 << 8) | reg8); }
+	inline operator int16_t  () { return ((high8 << 8) | reg8); }
+
+//	inline Register16& operator=(const uint8_t data){
+//		reg8 = data;
+//		return *this;
+//	}
+
+	inline virtual Register16& operator=(const uint16_t data) {
+		high8 = data >> 8;
+		reg8  = (uint8_t)data;
+		return *this;
+	}
+
+	inline virtual Register16& operator++(int){
+		Set16(Get16()+1);
+		return *this;
+	}
+
+	inline uint16_t Get16() const {
+		return ((high8 << 8) | reg8);
+	}
+
+	inline void Set16(uint16_t r){
+		high8 = r >> 8;
+		reg8  = (uint8_t)r;
+	}
+
+	virtual const std::string GetDataByString(){
+		std::stringstream ss;
+		ss  << "0x"
+			<< std::hex << std::setw(4) << std::setfill('0')
+			<< this->Get16();
+		return ss.str();
+	}
+
+protected:
+//	Register8 low8, high8;
+	uint8_t high8;
+};
+
+
+class Register32 : public Register16 {
+public:
+	Register32(){ SetSize(sizeof(uint32_t)); }
+	Register32(uint32_t r) : high16(r >> 16) { SetSize(sizeof(uint32_t)); Set16((uint16_t)r); }
+
+	inline operator uint32_t () { return ((high16 << 16) | Get16()); }
+
+//	inline operator Register16 () {
+//		return Register16(Get16());
+//	}
+
+	inline Register32& operator=(uint32_t r){
+		Set32(r);
+		return *this;
+	}
+
+	inline virtual Register32& operator=(const Register16 &r16){
+		Set16(r16.Get16());
+		return *this;
+	}
+
+	template<typename T>
+	inline Register32& operator+=(T diff){
+		Set32(Get32()+diff);
+		return *this;
+	}
+
+	template<typename T>
+	inline Register32& operator-=(T diff){
+		Set32(Get32()-diff);
+		return *this;
+	}
+
+	inline virtual Register32& operator++(int){
+		Set32(Get32()+1);
+		return *this;
+	}
+
+	template<typename T>
+	inline bool operator==(T val) const {
+		return Get32() == val;
+	}
+
+	inline uint32_t Get32() const {
+		return ((high16 << 16) | Get16());
+	}
+
+	inline void Set32(uint32_t r){
+		high16 = r >> 16;
+		Set16((uint16_t)r);
+	}
+
+	const std::string GetDataByString(){
+		std::stringstream ss;
+		ss << "0x"
+			<< std::hex
+			<< this->Get32();
+		return ss.str();
+	}
+protected:
+//	Register16 low16, high16;
+	uint16_t high16;
+};
+
+template<typename T>
+uint32_t operator+(Register32 reg32, T val){
+	return reg32.Get32() + val;
+}
+
+template<typename T>
+uint32_t operator+(T val, Register32 reg32){
+	return val + reg32.Get32();
+}
+
+template<typename T>
+uint32_t operator-(Register32 reg32, T val){
+	return reg32.Get32() - val;
+}
+
+template<typename T>
+uint32_t operator-(T val, Register32 reg32){
+	return val - reg32.Get32();
+}
+
+
+}
 
 #endif

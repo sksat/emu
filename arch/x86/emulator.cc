@@ -18,7 +18,7 @@ void Emulator::InitInstructions(){
 void Emulator::InitRegisters(){
 	pc.SetName("EIP");
 
-	reg = std::vector<x86::Register>(REGISTERS_COUNT);
+	reg = std::vector<x86::Register32>(REGISTERS_COUNT);
 /*
 	reg[8].name = "EIP";
 	reg[0].name = "EAX";

@@ -4,9 +4,9 @@
 #include "../../emulator_base.h"
 #include "register.h"
 
-#define EIP pc.reg32
-#define ESP reg[4].reg32
-#define EBP reg[5].reg32
+#define EIP pc
+#define ESP reg[4]
+#define EBP reg[5]
 
 namespace x86 {
 
@@ -18,8 +18,8 @@ public:
 	void InitRegisters();
 	void InitMemory();
 
-	x86::Register pc;
-	std::vector<x86::Register> reg;
+	x86::Register32 pc;
+	std::vector<x86::Register32> reg;
 
 	inline uint8_t GetCode8(int index)		{ return (*memory)[EIP + index]; }
 	inline int8_t GetSignCode8(int index)	{ return static_cast<int8_t>(GetCode8(index)); }
