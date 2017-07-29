@@ -40,11 +40,11 @@ try{
 	delete _emu;
 
 }catch(const char *msg){
-	cout<<"error:\n\t"<<msg<<endl;
+	cout<<endl<<"error:\n\t"<<msg<<endl;
 	emu->Dump();
 	delete _emu;
 }catch(string msg){
-	cout<<"error:\n\t"<<msg<<endl;
+	cout<<endl<<"error:\n\t"<<msg<<endl;
 	emu->Dump();
 	delete _emu;
 }
