@@ -20,6 +20,7 @@ void Memory::Init(int s){
 //		delete[] mem;
 	mem = new uint8_t[s];
 	virt_flg = false;
+	minfo = std::vector<MapInfo>();
 	return;
 }
 
@@ -34,6 +35,8 @@ uint8_t Memory::GetData8(uint32_t addr) {
 		throw ss.str();
 	}
 	uint8_t ret = mem[addr];
+
+//	std::cout<<"minfo num ="<<minfo.size()<<std::endl;
 
 	if(minfo.empty()) return ret;
 	for(unsigned int i=0;i<minfo.size();i++){
