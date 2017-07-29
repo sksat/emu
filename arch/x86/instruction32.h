@@ -16,6 +16,12 @@ private:
 	void add_rm32_r32(){
 		idata->SetRM32(idata->GetRM32() + emu->reg[idata->reg]);
 	}
+	void cmp_r32_rm32(){
+		uint32_t r32  = emu->reg[idata->reg];
+		uint32_t rm32 = idata->GetRM32();
+		uint64_t res  = (uint64_t)r32 - (uint64_t)rm32;
+		emu->eflags.UpdateSub(r32, rm32, res);
+	}
 	void inc_r32(){
 		uint8_t r = emu->GetCode8(0) - 0x40;
 		emu->reg[r]++;
