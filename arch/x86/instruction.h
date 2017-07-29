@@ -21,6 +21,20 @@ protected:
 	bool insn_flgs[0xff];
 
 	void not_impl_insn();
+
+#define DEFINE_JX(flag, is_flag) \
+void j ## flag(){ \
+	emu->EIP += (emu->eflags.is_flag() ? emu->GetSignCode8(1) : 0) + 2; \
+} \
+void jn ## flag(){ \
+	emu->EIP += (emu->eflags.is_flag() ? 0 : emu->GetSignCode8(1)) + 2; \
+}
+
+	DEFINE_JX(o, IsOverflow);
+	DEFINE_JX(c, IsCarry);
+	DEFINE_JX(z, IsZero);
+	DEFINE_JX(s, IsSign);
+
 	void nop(){ puts("nop"); emu->EIP++; }
 
 	void near_jump(){

@@ -13,6 +13,22 @@ void Instruction::Init(){
 	ClearInsn(256);
 	idata->opcode = 0x90;
 
+	SETINSN(0x70, jo,			0);
+	SETINSN(0x71, jno,			0);
+	SETINSN(0x72, jc,			0);	// = jb
+	SETINSN(0x73, jnc,			0); // = jnb
+	SETINSN(0x74, jz,			0);
+	SETINSN(0x75, jnz,			0);
+//	SETINSN(0x76, jbe,			0);
+//	SETINSN(0x77, ja,			0);
+	SETINSN(0x78, js,			0);
+	SETINSN(0x79, jns,			0);
+//	SETINSN(0x7a, jp,			0);
+//	SETINSN(0x7b, jnp,			0);
+//	SETINSN(0x7c, jl,			0);
+//	SETINSN(0x7d, jnl,			0);
+//	SETINSN(0x7e, jle,			0);
+//	SETINSN(0x7f, jnle,			0);
 	SETINSN(0x90, nop,			0);
 	SETINSN(0xe9, near_jump,	0);
 	SETINSN(0xeb, short_jump,	0);
