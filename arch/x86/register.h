@@ -175,6 +175,8 @@ public:
 		std::stringstream ss;
 		ss << "0x"
 			<< std::hex
+			<< std::setw(8)
+			<< std::setfill('0')
 			<< this->Get32();
 		return ss.str();
 	}
@@ -228,7 +230,7 @@ public:
 	inline void SetInterrupt(bool intr)	{ IF = intr; }
 	inline void SetDirection(bool dir)	{ DF = dir; }
 
-	void UpdateSub(uint32_t v1, uint32_t v2, uint64_t res){
+	inline void UpdateSub(uint32_t v1, uint32_t v2, uint64_t res){
 		int sign1 = v1 >> 31;
 		int sign2 = v2 >> 31;
 		int signr = (res >> 31) & 1;
