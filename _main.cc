@@ -34,7 +34,7 @@ try{
 
 	emu->Dump();
 
-	std::cout<<"time: "<<(double)std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()<<"ms"<<std::endl;
+	std::cout<<"time: "<<(double)std::chrono::duration_cast<std::chrono::seconds>(end - start).count()<<"s"<<std::endl;
 
 	cout<<"emulator deleted"<<endl;
 	delete _emu;
