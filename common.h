@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define NO_DEBUG
+
 #include "debug.h"
 
 #define KB	1024

@@ -51,7 +51,7 @@ private:
 			idata->SetRM32(rm32 + imm8);
 		}
 		void sub_rm32_imm8(){
-			std::cout<<"sub"<<std::endl;
+//			std::cout<<"sub"<<std::endl;
 			uint32_t rm32 = idata->GetRM32();
 			uint32_t imm8 = (int32_t)emu->GetSignCode8(0);
 			emu->EIP++;
@@ -64,7 +64,7 @@ private:
 		idata->SetRM32(emu->reg[idata->reg]);
 	}
 	void mov_r32_rm32(){
-std::cout<<"mov_r32_rm32 "<<std::hex<<idata->GetRM32()<<std::endl;
+		DOUT("mov_r32_rm32 "<<std::hex<<idata->GetRM32()<<std::endl);
 		emu->reg[idata->reg] = idata->GetRM32();
 	}
 	void mov_r32_imm32(){
@@ -76,7 +76,7 @@ std::cout<<"mov_r32_rm32 "<<std::hex<<idata->GetRM32()<<std::endl;
 	}
 	void mov_rm32_imm32(){
 		uint32_t val = emu->GetCode32(0);
-		std::cout<<"mov_rm32_imm32: val="<<val<<std::endl;
+		DOUT("mov_rm32_imm32: val="<<val<<std::endl);
 		emu->EIP += 4;
 		idata->SetRM32(val);
 //		idata->SetRM32(emu->GetCode32(-4));

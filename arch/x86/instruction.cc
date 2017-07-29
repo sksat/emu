@@ -41,11 +41,11 @@ void Instruction::Parse(){
 	}
 	//if modrm
 	if(insn_flgs[idata->opcode]){
-		std::cout<<"ModRM : ";
+		DOUT("ModRM : ");
 		emu->EIP++;
 		idata->SetModRM(emu->GetCode8(0));
-		std::cout<<"Mod="<<std::hex<<(uint32_t)idata->mod
-				<<" RM="<<(uint32_t)idata->rm<<std::endl;
+		DOUT("Mod="<<std::hex<<(uint32_t)idata->mod
+				<<" RM="<<(uint32_t)idata->rm<<std::endl);
 		emu->EIP++;
 		if(idata->IsSIB()){
 			idata->sib = emu->GetCode8(0);
@@ -63,7 +63,7 @@ void Instruction::Parse(){
 
 void Instruction::ExecStep(){
 	Parse();
-	std::cout<<"opcode = "<<std::hex<<(uint32_t)idata->opcode<<std::endl;
+	DOUT("opcode = "<<std::hex<<(uint32_t)idata->opcode<<std::endl);
 	insnfunc_t func = insn[idata->opcode];
 	(this->*func)();
 	if(emu->EIP == 0) emu->finish_flg=true;

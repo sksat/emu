@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <chrono>
 #include "_emulator.h"
 
 using namespace std;
@@ -23,11 +24,17 @@ try{
 
 	cout<<"emulation start"<<endl;
 
+	auto start = std::chrono::system_clock::now();
+
 	while(!emu->finish_flg){
 		emu->insn->ExecStep();
 	}
 
+	auto end = std::chrono::system_clock::now();
+
 	emu->Dump();
+
+	std::cout<<"time: "<<(double)std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()<<"ms"<<std::endl;
 
 	cout<<"emulator deleted"<<endl;
 	delete _emu;

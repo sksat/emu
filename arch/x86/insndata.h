@@ -81,17 +81,17 @@ public:
 	inline uint32_t GetRM32(){
 		if(mod == 3)
 			return emu->reg[rm];
-std::cout<<"GetRM32: mem addr ="<<std::hex<<CalcMemAddr()<<std::endl;
+		DOUT("GetRM32: mem addr ="<<std::hex<<CalcMemAddr()<<std::endl);
 		return emu->memory->GetData32(CalcMemAddr());
 	}
 	inline void SetRM32(uint32_t val){
 		if(mod == 3){
 			emu->reg[rm] = val;
-			std::cout<<"SetRM32: reg="<<emu->reg[rm].GetName()<<" val="<<std::hex<<val<<std::endl;
+			DOUT("SetRM32: reg="<<emu->reg[rm].GetName()<<" val="<<std::hex<<val<<std::endl);
 		}else{
 			uint32_t addr = CalcMemAddr();
 			emu->memory->SetData32(addr, val);
-			std::cout<<"SetRM32: addr="<<std::hex<<addr<<" val="<<val<<std::endl;
+			DOUT("SetRM32: addr="<<std::hex<<addr<<" val="<<val<<std::endl);
 		}
 	}
 };
