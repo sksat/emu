@@ -1,6 +1,11 @@
 TARGET	= test.bin
 OBJS	= startup.o main.o
 
+CFLAGS  = -m32
+CFLAGS  += -nostdlib -fno-asynchronous-unwind-tables -g -fno-stack-protector
+LDFLAGS  = -melf_i386
+LDFLAGS += --entry=start -Ttext=0x7c00
+
 %.o:%.S
 	gcc -m32 -c  $< -o $@
 
@@ -8,7 +13,7 @@ OBJS	= startup.o main.o
 	nasm -f elf $<
 
 %.o:%.c
-	clang -m32 -nostdlib -fno-asynchronous-unwind-tables -g -fno-stack-protector -c $< -o $@
+	gcc $(CFLAGS) -c $< -o $@
 
 default:
 	make $(TARGET)
@@ -16,6 +21,9 @@ default:
 clean:
 	rm -f $(TARGET) *.o
 
-$(TARGET):$(OBJS)
-	ld -melf_i386 --entry=start --oformat=binary -Ttext 0x7c00 -o $@ $^
+tmp.elf:$(OBJS)
+	ld $(LDFLAGS) $^ -o $@
 
+$(TARGET):tmp.elf
+	objcopy -O binary tmp.elf $@
+	rm $<
