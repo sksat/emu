@@ -17,6 +17,7 @@ void Emulator::InitInstructions(){
 
 void Emulator::InitRegisters(){
 	pc.SetName("EIP");
+	eflags.SetName("EFLAGS");
 
 	reg = std::vector<x86::Register32>(REGISTERS_COUNT);
 /*
@@ -41,6 +42,7 @@ void Emulator::InitRegisters(){
 	for(int i=0;i<REGISTERS_COUNT;i++)
 		all_reg.push_back(&reg[i]);
 	all_reg.push_back(&pc);
+	all_reg.push_back(&eflags);
 
 	// EIPとESPの初期設定(ここでやるべきではない)
 	EIP = ESP = 0x7c00;

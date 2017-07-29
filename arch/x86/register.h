@@ -183,6 +183,71 @@ protected:
 	uint16_t high16;
 };
 
+class EFLAGS : public ::RegisterBase {
+public:
+	struct {
+		bool CF : 1;
+		bool    : 1;
+		bool PF : 1;
+		bool    : 1;
+		bool AF : 1;
+		bool    : 1;
+		bool ZF : 1;
+		bool SF : 1;
+		bool TF : 1;
+		bool IF : 1;
+		bool DF : 1;
+		bool OF : 1;
+		bool IOPL1 : 1;
+		bool IOPL2 : 1;
+		bool NT : 1;
+		bool    : 1;
+		bool RF : 1;
+		bool VM : 1;
+		bool AC : 1;
+		bool VIF: 1;
+		bool VIP: 1;
+		bool ID : 1;
+	};
+public:
+	EFLAGS() : RegisterBase(sizeof(uint32_t)) {}
+
+	inline bool IsCarry()		{ return CF; }
+	inline bool IsParity()		{ return PF; }
+	inline bool IsZero()		{ return ZF; }
+	inline bool IsSign()		{ return SF; }
+	inline bool IsOverflow()	{ return OF; }
+	inline bool IsInterrupt()	{ return IF; }
+	inline bool IsDirection()	{ return DF; }
+
+	inline void SetCarry(bool carry)	{ CF = carry; }
+	inline void SetParity(bool parity)	{ PF = parity; }
+	inline void SetZero(bool zero)		{ ZF = zero; }
+	inline void SetSign(bool sign)		{ SF = sign; }
+	inline void SetOverflow(bool of)	{ OF = of; }
+	inline void SetInterrupt(bool intr)	{ IF = intr; }
+	inline void SetDirection(bool dir)	{ DF = dir; }
+
+	void UpdateSub(uint32_t v1, uint32_t v2, uint64_t res){
+		int sign1 = v1 >> 31;
+		int sign2 = v2 >> 31;
+		int signr = (res >> 31) & 1;
+
+		SetCarry(res >> 32);
+		SetZero(res == 0);
+		SetSign(signr);
+		SetOverflow(sign1 != sign2 && sign1 != signr);
+	}
+
+	const std::string GetDataByString(){
+		std::stringstream ss;
+		ss << "not implemented.";
+//			<< std::hex
+//			<< reg32;
+		return ss.str();
+	}
+};
+
 template<typename T>
 uint32_t operator+(Register32 reg32, T val){
 	return reg32.Get32() + val;

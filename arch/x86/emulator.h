@@ -19,6 +19,7 @@ public:
 	void InitMemory();
 
 	x86::Register32 pc;
+	x86::EFLAGS		eflags;
 	std::vector<x86::Register32> reg;
 
 	inline uint8_t GetCode8(int index)		{ return (*memory)[EIP + index]; }
