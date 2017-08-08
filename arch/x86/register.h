@@ -241,11 +241,36 @@ public:
 		SetOverflow(sign1 != sign2 && sign1 != signr);
 	}
 
+	const uint32_t GetData32(){
+		uint32_t ret = 0x00;
+		ret |= CF;
+		ret |= PF	<< 2;
+		ret |= AF	<< 4;
+		ret |= ZF	<< 6;
+		ret |= SF	<< 7;
+		ret |= TF	<< 8;
+		ret |= IF	<< 9;
+		ret |= DF	<< 10;
+		ret |= OF	<< 11;
+		ret |= IOPL1<< 12;
+		ret |= IOPL2<< 13;
+		ret |= NT	<< 14;
+		ret |= RF	<< 16;
+		ret |= VM	<< 17;
+		ret |= AC	<< 18;
+		ret |= VIF	<< 19;
+		ret |= VIP	<< 20;
+		ret |= ID	<< 21;
+		return ret;
+	}
+
 	const std::string GetDataByString(){
 		std::stringstream ss;
-		ss << "not implemented.";
-//			<< std::hex
-//			<< reg32;
+		ss	<< "0x"
+			<< std::hex
+			<< std::setw(8)
+			<< std::setfill('0')
+			<< GetData32();
 		return ss.str();
 	}
 };
