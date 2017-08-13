@@ -16,7 +16,7 @@ try{
 
 	emu->insn->Init();
 	emu->memory->Init(DEFAULT_MEMORY_SIZE);
-	emu->memory->LoadBinary("sample/test.bin", 0x7c00, 512);
+	emu->memory->LoadBinary("sample/harib27f.img", 0x7c00, 512);
 
 	//temporary
 //	emu->reg[4].reg32 = 0x7c00;

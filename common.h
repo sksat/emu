@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define NO_DEBUG
+//#define NO_DEBUG
 
 #include "debug.h"
 

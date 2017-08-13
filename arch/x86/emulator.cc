@@ -12,7 +12,10 @@ namespace x86{
 
 void Emulator::InitInstructions(){
 //	throw "x86::Emulator::InitInstructions() is not implemented";
-	insn = new Instruction32(this);
+//	insn = new Instruction32(this);
+
+	// 起動時は16bitリアルモード
+	insn = new Instruction16(this);
 }
 
 void Emulator::InitRegisters(){

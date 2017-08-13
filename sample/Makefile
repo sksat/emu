@@ -1,4 +1,4 @@
-TARGET	= test.bin
+TARGET	= harib27f.img
 OBJS	= startup.o main.o
 
 HARIB27F_APP = bball
@@ -26,7 +26,7 @@ clean:
 tmp.elf:$(OBJS)
 	ld $(LDFLAGS) $^ -o $@
 
-$(TARGET):tmp.elf
+test.bin:tmp.elf
 	objcopy -O binary tmp.elf $@
 	rm $<
 
