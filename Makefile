@@ -2,7 +2,7 @@ TARGET	:= emu
 OBJS	:= _main.o emulator_base.o _emulator.o register_base.o memory.o
 #OBJS	+= instruction.o instruction16.o instruction32.o
 OBJS	+= device/device.a
-OBJS	+= font/font.a
+OBJS	+= font/font.o
 #OBJS	+= shell/shell.a
 OBJS	+= gui/gui.a
 OBJS	+= arch/arch.a
@@ -64,7 +64,7 @@ $(EMU_BIN):
 device/device.a:
 	make -C device
 
-font/font.a:
+font/font.o:
 	make -C font
 
 shell/shell.a:
