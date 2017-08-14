@@ -1,23 +1,19 @@
 DEPTH  := ../../../
 include ../com_mak.txt
 
-FONT_LIB := font.a
-FONT_OBJS:= hankaku.o
+MAKEFONT		:= makefont
+MAKEFONT_OBJS	:= makefont.o
+FONT_OBJ		:= font.o
 
-BFD_TARGET:= elf64-x86-64
-
-%.o : %.bin
-	objcopy -I binary $< -O $(BFD_TARGET) -B i386 $@
-	# objcopy -I elf32-x86-64 $@ --redefine-sym binary_hankaku=hankaku $@
-
-%.bin : %.txt
-	$(MAKEFONT) $< $@
+%.bin : %.txt $(MAKEFONT)
+	./$(MAKEFONT) $< $@
 
 default:
-	make $(FONT_LIB)
+	make $(FONT_OBJ)
+	make hankaku.bin
 
 clean:
-	rm -f *.a *.o *.obj *.bin
+	rm -f *.o *.bin $(MAKEFONT)
 
-$(FONT_LIB) : $(FONT_OBJS)
-	ar rcs $@ $^
+$(MAKEFONT):$(MAKEFONT_OBJS)
+	$(CC) $^ -o $@

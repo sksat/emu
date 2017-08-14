@@ -1,6 +1,3 @@
 TOLSET	:= $(DEPTH)tolset/
 Z_TOOLS	:= $(TOLSET)z_tools/
-
-MAKEFONT:= $(Z_TOOLS)makefont
 BIN2OBJ := $(Z_TOOLS)bin2obj
-
