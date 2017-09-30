@@ -4,11 +4,6 @@
 #include <sksat/cmdline.hpp>
 #include "_emulator.h"
 
-struct Setting {
-	bool flg_junk_bios;
-	unsigned int memsize;
-};
-
 EmulatorCtrl::Setting set;
 EmulatorCtrl emu;
 
@@ -18,7 +13,7 @@ using std::endl;
 using std::string;
 try{
 	set.arch = ARCH::x86;
-	set.memsize = DEFAULT_MEMORY_SIZE;
+	set.memsize = 1; // 1MB
 
 	sksat::optparse o;
 	string arch_str;

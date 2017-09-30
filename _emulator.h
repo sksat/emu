@@ -7,9 +7,7 @@
 #include "emulator_base.h"
 #include "memory.h"
 
-#define DEFAULT_MEMORY_SIZE	1 * MB
-
-//#define CASE(a) case (static_cast<int>(a))
+#define DEFAULT_MEMORY_SIZE	1 // MB
 
 class EmulatorCtrl {
 public:
