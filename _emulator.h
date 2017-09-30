@@ -9,12 +9,29 @@
 
 #define DEFAULT_MEMORY_SIZE	1 * MB
 
-#define CASE(a) case (static_cast<int>(a))
+//#define CASE(a) case (static_cast<int>(a))
 
-class Emulator {
+class EmulatorCtrl {
 public:
-	Emulator(ARCH arch){ SetArch(static_cast<int>(arch)); }
-	Emulator(int arch){  SetArch(arch); }
+	struct Setting {
+		ARCH arch;
+		size_t memsize; //MB
+		bool junk_bios;
+		bool gui;
+		bool fullscreen;
+	};
+
+	EmulatorCtrl(){
+		set = {
+			.arch = ARCH::x86,
+			.memsize = DEFAULT_MEMORY_SIZE,
+			.junk_bios = true,
+			.gui = true,
+			.fullscreen = false
+		};
+	}
+//	Emulator(ARCH arch){ SetArch(static_cast<int>(arch)); }
+//	Emulator(int arch){  SetArch(arch); }
 
 	EmulatorBase* operator->(){
 		return emu;
@@ -23,18 +40,22 @@ public:
 //	EmulatorBase* operator->*(EmulatorBase* U::*) const noexcept ;
 
 	void Init(){
-		emu->Init();
+		Init(this->set);
 	}
 
-	void SetArch(int arch){
-		delete emu;
+	void Init(EmulatorCtrl::Setting set){
+		SetArch(set.arch);
+		this->set = set;
+	}
+
+	void SetArch(ARCH arch){
+//		delete emu;
+		this->set.arch = arch;
 		switch(arch){
-		CASE(ARCH::x86):
-			this->arch = ARCH::x86;
+		case ARCH::x86:
 			emu = new x86::Emulator();
 			break;
-		CASE(ARCH::osecpu):
-			this->arch = ARCH::osecpu;
+		case ARCH::osecpu:
 			emu = new osecpu::Emulator();
 			break;
 		default:
@@ -42,11 +63,9 @@ public:
 			throw "error: Emulator: unkown arch";
 		}
 		emu->Init();
-		emu->InitInstructions();
 	}
-
 private:
-	ARCH arch;
+	EmulatorCtrl::Setting set;
 	EmulatorBase *emu;
 };
 

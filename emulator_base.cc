@@ -6,6 +6,7 @@ EmulatorBase::EmulatorBase(){
 }
 
 EmulatorBase::~EmulatorBase(){
+	delete insn;
 	delete memory;
 }
 

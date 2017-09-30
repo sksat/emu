@@ -7,15 +7,20 @@ OBJS	+= font/font.o
 OBJS	+= gui/gui.a
 OBJS	+= arch/arch.a
 
+GIT_COMMIT_ID  := $(shell git log -1 --format='%H')
+GIT_COMMIT_DATE:= $(shell git log -1 --format='%ad')
+
 CC	:= gcc
 CXX	:= g++
 
-CFLAGS	:= -g
-CXXFLAGS:= -std=c++11 -g -Wall
-LDFLAGS	:= -pthread -lglfw -lGL
+CFLAGS	 = -g
+CXXFLAGS = -std=c++14 -g -Wall
+CXXFLAGS += -DGIT_COMMIT_ID="\"$(GIT_COMMIT_ID)\""
+CXXFLAGS += -DGIT_COMMIT_DATE="\"$(GIT_COMMIT_DATE)\""
+LDFLAGS	 = -pthread -lglfw -lGL
 
 EMU_BIN	:= sample/test.bin
-RUNFLAGS:=
+RUNFLAGS:= --arch x86 --junk-bios --memory-size 1
 
 export
 

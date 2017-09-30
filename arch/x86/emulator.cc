@@ -16,6 +16,7 @@ void Emulator::InitInstructions(){
 
 	// 起動時は16bitリアルモード
 	insn = new Instruction16(this);
+	insn->Init();
 }
 
 void Emulator::InitRegisters(){
@@ -48,7 +49,7 @@ void Emulator::InitRegisters(){
 	all_reg.push_back(&eflags);
 
 	// EIPとESPの初期設定(ここでやるべきではない)
-	EIP = ESP = 0x7c00;
+//	EIP = ESP = 0x7c00;
 }
 
 void Emulator::InitMemory(){

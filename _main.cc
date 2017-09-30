@@ -1,26 +1,60 @@
 #include <iostream>
 #include <string>
 #include <chrono>
+#include <sksat/cmdline.hpp>
 #include "_emulator.h"
 
-using namespace std;
+struct Setting {
+	bool flg_junk_bios;
+	unsigned int memsize;
+};
 
-#define emu (*_emu)
-
-Emulator *_emu;
+EmulatorCtrl::Setting set;
+EmulatorCtrl emu;
 
 int main(int argc, char **argv){
-
+using std::cout;
+using std::endl;
+using std::string;
 try{
-	_emu = new Emulator(ARCH::x86);
+	set.arch = ARCH::x86;
+	set.memsize = DEFAULT_MEMORY_SIZE;
 
-	emu->insn->Init();
-	emu->memory->Init(DEFAULT_MEMORY_SIZE);
-	emu->memory->LoadBinary("sample/harib27f.img", 0x7c00, 512);
+	sksat::optparse o;
+	string arch_str;
 
-	//temporary
-//	emu->reg[4].reg32 = 0x7c00;
-//	emu->reg[8].reg32 = 0x7c00;
+	o.add_opt(arch_str, 'a', "arch", "architecture");
+	o.add_opt(set.junk_bios, "junk-bios", "enable junk BIOS");
+	o.add_opt(set.memsize, 'm', "memory-size", "memory size(MB)");
+
+	if(!o.parse(argc, argv)){
+		cout	<<"simple x86 emulator by sksat"<<endl
+			<<"repo:   https://github.com/sk2sat/emu"<<endl
+			<<"commit: " << GIT_COMMIT_ID <<endl
+			<<"date:   " << GIT_COMMIT_DATE <<endl<<endl;
+		o.print_help();
+		return -1;
+	}
+
+	if(arch_str == "x86"){
+		set.arch = ARCH::x86;
+	}else if(arch_str == "osecpu"){
+		set.arch = ARCH::osecpu;
+	}else if(arch_str.empty()){
+	}else{
+		throw "unknown arch: "+arch_str;
+	}
+
+	emu.Init(set);
+
+	emu->memory->Init(set.memsize * MB);
+//	emu->memory->LoadBinary("sample/harib27f.img", 0x7c00, 512);
+
+	cout<<"memory size: "<<set.memsize<<"MB"<<endl;
+
+	if(set.junk_bios){
+		throw "not implemented: junk BIOS";
+	}
 
 	cout<<"emulation start"<<endl;
 
@@ -37,16 +71,12 @@ try{
 	std::cout<<"time: "<<(double)std::chrono::duration_cast<std::chrono::seconds>(end - start).count()<<"s"<<std::endl;
 
 	cout<<"emulator deleted"<<endl;
-	delete _emu;
-
 }catch(const char *msg){
 	cout<<endl<<"error:\n\t"<<msg<<endl;
 	emu->Dump();
-	delete _emu;
 }catch(string msg){
 	cout<<endl<<"error:\n\t"<<msg<<endl;
 	emu->Dump();
-	delete _emu;
 }
 
 }
