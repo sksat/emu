@@ -1,5 +1,12 @@
-TARGET	= test.bin
-OBJS	= startup.o
+TARGET	= harib27f.img
+OBJS	= startup.o main.o
+
+HARIB27F_APP = bball
+
+CFLAGS  = -m32
+CFLAGS  += -nostdlib -fno-asynchronous-unwind-tables -g -fno-stack-protector
+LDFLAGS  = -melf_i386
+LDFLAGS += --entry=start -Ttext=0x7c00
 
 %.o:%.S
 	gcc -m32 -c  $< -o $@
@@ -8,7 +15,7 @@ OBJS	= startup.o
 	nasm -f elf $<
 
 %.o:%.c
-	gcc -m32 -nostdlib -fno-asynchronous-unwind-tables -g -fno-stack-protector -c $< -o $@
+	gcc $(CFLAGS) -c $< -o $@
 
 default:
 	make $(TARGET)
@@ -16,6 +23,21 @@ default:
 clean:
 	rm -f $(TARGET) *.o
 
-$(TARGET):$(OBJS)
-	ld -melf_i386 --entry=start --oformat=binary -Ttext 0x7c00 -o $@ $^
+tmp.elf:$(OBJS)
+	ld $(LDFLAGS) $^ -o $@
 
+test.bin:tmp.elf
+	objcopy -O binary tmp.elf $@
+	rm $<
+
+z_tools:
+	git clone https://github.com/HariboteOS/z_tools_linux.git
+	mv z_tools_linux $@
+
+harib27f:z_tools
+	git clone https://github.com/HariboteOS/harib27f.git
+
+harib27f.img: harib27f
+	cd $< && make -C apilib && make -C haribote
+	cd $< && make -C $(HARIB27F_APP) haribote.img
+	cp $</$(HARIB27F_APP)/haribote.img $@

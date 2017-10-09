@@ -5,7 +5,7 @@
 
 using namespace std;
 
-Memory::Memory(){
+Memory::Memory():size(0x00){
 	mem = nullptr;
 	virt_flg = false;
 }
@@ -14,12 +14,13 @@ Memory::~Memory(){
 	delete[] mem;
 }
 
-void Memory::Init(int size){
-	this->size = size;
-	if(mem == nullptr)
-		delete[] mem;
-	mem = new uint8_t[size];
+void Memory::Init(int s){
+	this->size = s;
+//	if(mem == nullptr)
+//		delete[] mem;
+	mem = new uint8_t[s];
 	virt_flg = false;
+	minfo = std::vector<MapInfo>();
 	return;
 }
 
@@ -27,16 +28,18 @@ int Memory::GetSize(){
 	return size;
 }
 
-uint8_t Memory::operator [] (uint32_t addr) {
-	if(addr > size){
+uint8_t Memory::GetData8(uint32_t addr) {
+	if(addr > static_cast<uint32_t>(size)){
 		stringstream ss;
-		ss<<"memory: out of range address ("<<addr<<")";
+		ss<<"memory: out of range address ("<<hex<<showbase<<addr<<")";
 		throw ss.str();
 	}
 	uint8_t ret = mem[addr];
 
+//	std::cout<<"minfo num ="<<minfo.size()<<std::endl;
+
 	if(minfo.empty()) return ret;
-	for(int i=0;i<minfo.size();i++){
+	for(unsigned int i=0;i<minfo.size();i++){
 		if(addr < minfo[i].addr)	continue;
 		if(addr > minfo[i].end_addr)	continue;
 		if(minfo[i].mem != nullptr){
@@ -50,6 +53,30 @@ uint8_t Memory::operator [] (uint32_t addr) {
 	}
 
 	return ret;
+}
+
+uint32_t Memory::GetData32Little(uint32_t addr){
+	uint32_t ret = 0;
+	for(int i=0;i<4;i++){
+		ret |= GetData8(addr + i) << (i*8);
+	}
+	return ret;
+}
+
+/*
+uint32_t Memory::operator[](uint32_t addr){
+	if(endian == ENDIAN::LITTLE){
+		return GetData32Little(addr);
+	}else{
+		throw "big endian";
+	}
+}
+*/
+
+void Memory::SetData32Little(uint32_t addr, uint32_t val){
+	for(int i=0;i<4;i++)
+		SetData8(addr+i, val>>(i*8));
+	return;
 }
 
 void Memory::MapDevice(Device *dev, uint32_t addr, unsigned int size){
@@ -75,7 +102,7 @@ void Memory::MapMemory(uint8_t *mem, uint32_t addr, unsigned int size){
 void Memory::LoadBinary(const char *fname, uint32_t addr, unsigned int size){
 	FILE *fp;
 
-	uint8_t test = this->operator[](addr+size);
+//	uint8_t test = this->operator[](addr+size);
 
 	cout<<"loading binary: "<<fname<<endl;
 
