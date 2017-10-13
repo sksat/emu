@@ -1,6 +1,5 @@
 TARGET	:= emu
-OBJS	:= _main.o emulator_base.o _emulator.o register_base.o memory.o
-#OBJS	+= instruction.o instruction16.o instruction32.o
+OBJS	:= main.o emulator_base.o emulator.o register_base.o memory.o
 OBJS	+= device/device.a
 OBJS	+= font/font.o
 #OBJS	+= shell/shell.a
