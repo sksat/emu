@@ -6,6 +6,7 @@
 #include "insn_base.h"
 #include "emulator_base.h"
 #include "memory.h"
+#include "device/floppy.h"
 
 #define DEFAULT_MEMORY_SIZE	1 // MB
 

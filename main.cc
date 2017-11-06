@@ -17,10 +17,12 @@ try{
 
 	sksat::optparse o;
 	string arch_str;
+	string fda_file; // A drive (floppy)
 
 	o.add_opt(arch_str, 'a', "arch", "architecture");
 	o.add_opt(set.junk_bios, "junk-bios", "enable junk BIOS");
 	o.add_opt(set.memsize, 'm', "memory-size", "memory size(MB)");
+	o.add_opt(fda_file, "fda", "floppy disk image file");
 
 	if(!o.parse(argc, argv)){
 		cout	<<"simple x86 emulator by sksat"<<endl
@@ -46,6 +48,10 @@ try{
 //	emu->memory->LoadBinary("sample/harib27f.img", 0x7c00, 512);
 
 	cout<<"memory size: "<<set.memsize<<"MB"<<endl;
+
+	if(fda_file.empty())
+		throw "no boot device.";
+	Floppy fda(fda_file.c_str());
 
 	if(set.junk_bios){
 		throw "not implemented: junk BIOS";

@@ -8,7 +8,7 @@
 
 #define hankaku _binary_hankaku_bin_start 
 
-extern char hankaku[4096];	// /font/hankaku.txt
+extern char hankaku[4096];	// /font/hankaku.txt フォントのバイナリをロードするべき
 
 class Display : public Device {
 public:

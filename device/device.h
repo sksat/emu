@@ -9,17 +9,19 @@ class Memory;
 
 class Device {
 public:
-	virtual void MemoryMappedProc(Memory *memory, uint32_t addr) = 0;
+	Device() : dev_name("unknown device") {}
+
+	virtual void MemoryMappedProc(Memory *memory, uint32_t addr){}
 	const char* GetDevName(){ return dev_name; }
 protected:
-	void InitDevice() { InitDevName(); InitDevIRQ(); InitDevPort(); }
-	void InitDevName(){ dev_name	= (const char*)"unknown device"; }
+	virtual void InitDevice() { InitDevName(); InitDevIRQ(); InitDevPort(); }
+	virtual void InitDevName() = 0;
 	void InitDevIRQ() { irq		= std::vector<int>(); }
 	void InitDevPort(){ io_port	= std::vector<int>(); }
 	void SetDevName(const char *name){ dev_name = name; }
 	void AddDevIRQ(int irq){ this->irq.push_back(irq); }
 	void AddDevPort(int port){ io_port.push_back(port); }
-private:
+
 	const char *dev_name;
 	std::vector<int> irq;
 	std::vector<int> io_port;
