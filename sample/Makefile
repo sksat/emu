@@ -38,6 +38,10 @@ haribote-os:
 	git clone https://github.com/sk2sat/haribote-os.git
 	cd $@ && ./install.sh
 
+helloos.img:haribote-os
+	cd $</src && ./asm.sh
+	mv $</src/$@ ./$@
+
 haribote.img: haribote-os
 	cd $< && make
 
@@ -47,4 +51,4 @@ harib27f:z_tools
 harib27f.img: harib27f
 	cd $< && make -C apilib && make -C haribote
 	cd $< && make -C $(HARIB27F_APP) haribote.img
-	cp $</$(HARIB27F_APP)/haribote.img $@
+	cp $</$(HARIB27F_APP)/haribote.img ./$@

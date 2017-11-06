@@ -18,8 +18,8 @@ CXXFLAGS += -DGIT_COMMIT_ID="\"$(GIT_COMMIT_ID)\""
 CXXFLAGS += -DGIT_COMMIT_DATE="\"$(GIT_COMMIT_DATE)\""
 LDFLAGS	 = -pthread -lglfw -lGL
 
-EMU_BIN	:= sample/test.bin
-RUNFLAGS:= --arch x86 --junk-bios --memory-size 1
+EMU_BIN	:= sample/helloos.img
+RUNFLAGS:= --arch x86 --junk-bios --memory-size 1 --fda $(EMU_BIN)
 
 export
 
