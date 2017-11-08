@@ -51,7 +51,7 @@ try{
 
 	if(fda_file.empty())
 		throw "no boot device.";
-	Floppy fda(fda_file.c_str());
+	Device::Floppy fda(fda_file.c_str());
 
 	if(set.junk_bios){
 		throw "not implemented: junk BIOS";

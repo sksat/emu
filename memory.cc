@@ -79,7 +79,7 @@ void Memory::SetData32Little(uint32_t addr, uint32_t val){
 	return;
 }
 
-void Memory::MapDevice(Device *dev, uint32_t addr, unsigned int size){
+void Memory::MapDevice(Device::Base *dev, uint32_t addr, unsigned int size){
 //	throw "Memory: MapDevice() not implemented.";
 	MapInfo mi;
 	mi.dev  = dev;

@@ -7,9 +7,11 @@
 
 class Memory;
 
-class Device {
+namespace Device {
+
+class Base {
 public:
-	Device() : dev_name("unknown device") {}
+	Base() : dev_name("unknown device") {}
 
 	virtual void MemoryMappedProc(Memory *memory, uint32_t addr){}
 	const char* GetDevName(){ return dev_name; }
@@ -25,6 +27,8 @@ protected:
 	const char *dev_name;
 	std::vector<int> irq;
 	std::vector<int> io_port;
+};
+
 };
 
 #endif

@@ -6,7 +6,9 @@
 
 #include "device.h"
 
-class Floppy : public Device { // block deviceのクラスを作った方が良い？
+namespace Device {
+
+class Floppy : public Device::Base { // block deviceのクラスを作った方が良い？
 public:
 	Floppy() : fp(nullptr) {}
 	Floppy(const char *fname) : fp(nullptr) { SetFile(fname); }
@@ -33,5 +35,7 @@ public:
 private:
 	FILE *fp;
 };
+
+}
 
 #endif

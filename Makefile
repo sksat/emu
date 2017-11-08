@@ -3,7 +3,7 @@ OBJS	:= main.o emulator_base.o emulator.o register_base.o memory.o
 OBJS	+= device/device.a
 OBJS	+= font/font.o
 #OBJS	+= shell/shell.a
-OBJS	+= gui/gui.a
+#OBJS	+= gui/gui.a
 OBJS	+= arch/arch.a
 
 GIT_COMMIT_ID  := $(shell git log -1 --format='%H')
@@ -30,12 +30,6 @@ export
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
 default:
-	make -C gui
-	#make -C shell
-	make -C font
-	make -C device
-	make -C sample
-	make -C arch
 	make $(TARGET)
 
 run: $(TARGET) $(EMU_BIN)
