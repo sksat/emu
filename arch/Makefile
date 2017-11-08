@@ -1,12 +1,22 @@
-LIBARCH := arch.a
+include ../common.mk
 
-X86	:= x86/emulator.o x86/register.o x86/instruction.o x86/instruction16.o x86/instruction32.o x86/insndata.o
-OSECPU	:= osecpu/emulator.o osecpu/instruction.o
+LIBARCH  := arch.a
+ARCH_LIBS:= x86/x86.a osecpu/osecpu.a
 
-all:$(COMMON)
-	make $(X86)
-	make $(OSECPU)
-	ar rcs $(LIBARCH) */*.o
+all: 
+	make $(LIBARCH)
+
+$(LIBARCH): $(ARCH_LIBS)
+	rm -f $@
+	ar cqT $@ $^
+	echo "create $@\naddlib $@\nsave\nend" | ar -M
 
 clean:
-	rm */*.o
+	make -C x86 clean
+	make -C osecpu clean
+
+x86/x86.a:
+	make -C x86
+
+osecpu/osecpu.a:
+	make -C osecpu
