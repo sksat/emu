@@ -17,6 +17,11 @@ void EmulatorBase::Init(){
 	InitMemory();
 }
 
+void EmulatorBase::ConnectDevice(Device::Base *dev){
+	if(dev == nullptr) throw "null device!";
+	this->dev.push_back(dev);
+}
+
 void EmulatorBase::Dump(){
 	DumpRegisters();
 	DumpMemory();

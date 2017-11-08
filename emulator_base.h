@@ -7,6 +7,7 @@
 #include "insn_base.h"
 #include "register_base.h"
 #include "memory.h"
+#include "device/device.h"
 
 class EmulatorBase {
 public:
@@ -16,6 +17,8 @@ public:
 	virtual void InitInstructions() = 0;
 	virtual void InitRegisters() = 0;
 	virtual void InitMemory() = 0;
+
+	virtual void ConnectDevice(Device::Base* dev);
 	virtual void Dump();
 	virtual void DumpRegisters();
 	virtual void DumpMemory();
@@ -24,6 +27,7 @@ public:
 
 	InstructionBase *insn;
 	std::vector<RegisterBase*> all_reg;
+	std::vector<Device::Base*> dev;
 	Memory *memory;
 };
 
