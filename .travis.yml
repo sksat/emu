@@ -3,6 +3,9 @@ language: cpp
 compiler:
 - g++
 - clang++
+install:
+- sed -i -e "s/gcc/gcc-5/g" common.mk
+- sed -i -e "s/g++/g++-5/g" common.mk
 addons:
   apt:
     sources:
