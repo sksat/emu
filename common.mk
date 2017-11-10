@@ -7,8 +7,8 @@ CXX	:= g++
 INCFLAGS = -I./libsksat
 LDFLAGS  = 
 
-CFLAGS   = -g -Wall
-CXXFLAGS = -g -std=c++14 -Wall
+CFLAGS   = $(INCFLAGS) -Wall -g
+CXXFLAGS = $(INCFLAGS) -std=c++14 -Wall -g
 CXXFLAGS += -DGIT_COMMIT_ID="\"$(GIT_COMMIT_ID)\"" -DGIT_COMMIT_DATE="\"$(GIT_COMMIT_DATE)\""
 
 %.o:%.c
