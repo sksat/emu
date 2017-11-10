@@ -15,12 +15,6 @@ RUNFLAGS:= --arch x86 --junk-bios --memory-size 1 --fda $(EMU_BIN)
 
 export
 
-%.o:%.c
-	$(CC) -c -o $@ $< $(CFLAGS)
-
-%.o:%.cc
-	$(CXX) -c -o $@ $< $(CXXFLAGS)
-
 default:
 	make $(TARGET)
 
