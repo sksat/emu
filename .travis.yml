@@ -4,6 +4,7 @@ compiler:
 - g++
 - clang++
 install:
+- make -C libsksat
 - sed -i -e "s/gcc/gcc-5/g" common.mk
 - sed -i -e "s/g++/g++-5/g" common.mk
 addons:
