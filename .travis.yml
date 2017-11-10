@@ -1,7 +1,7 @@
 sudo: false
 language: cpp
 git:
-- submodules: false
+  submodules: false
 compiler:
 - g++
 - clang++
