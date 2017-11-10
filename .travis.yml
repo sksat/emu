@@ -1,6 +1,18 @@
 sudo: false
 language: cpp
+compiler:
+- g++
+- clang++
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    - llvm-toolchain-precise-3.7
+    - llvm-toolchain-precise
+    packages:
+    - gcc-5
+    - g++-5
+    - clang-3.7
 script:
 - g++ --version
 - make full
-
