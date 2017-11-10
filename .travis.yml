@@ -1,9 +1,12 @@
 sudo: false
 language: cpp
+git:
+- submodules: false
 compiler:
 - g++
 - clang++
 install:
+- git submodule update --init
 - make -C libsksat
 - sed -i -e "s/gcc/gcc-5/g" common.mk
 - sed -i -e "s/g++/g++-5/g" common.mk
