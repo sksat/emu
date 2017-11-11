@@ -35,6 +35,7 @@ public:
 //	Emulator(int arch){  SetArch(arch); }
 
 	EmulatorBase* operator->(){
+		if(emu == nullptr) exit(-1);
 		return emu;
 	}
 
