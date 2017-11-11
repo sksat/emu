@@ -1,5 +1,5 @@
 TARGET	:= device.a
-OBJS	:= device.o display.o
+OBJS	:= display.o floppy.o
 
 CC	:= gcc
 CXX	:= g++

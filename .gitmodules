@@ -1,0 +1,3 @@
+[submodule "libsksat"]
+	path = libsksat
+	url = https://github.com/sk2sat/libsksat.git

@@ -79,7 +79,7 @@ void Memory::SetData32Little(uint32_t addr, uint32_t val){
 	return;
 }
 
-void Memory::MapDevice(Device *dev, uint32_t addr, unsigned int size){
+void Memory::MapDevice(Device::Base *dev, uint32_t addr, unsigned int size){
 //	throw "Memory: MapDevice() not implemented.";
 	MapInfo mi;
 	mi.dev  = dev;
@@ -99,16 +99,21 @@ void Memory::MapMemory(uint8_t *mem, uint32_t addr, unsigned int size){
 	minfo.push_back(mi);
 }
 
+void Memory::LoadBinary(FILE *fp, uint32_t addr, size_t size){
+	if(fp == nullptr) throw "FILE* is nullptr";
+	fread(mem + addr, 1, size, fp);
+}
+
 void Memory::LoadBinary(const char *fname, uint32_t addr, unsigned int size){
 	FILE *fp;
 
 //	uint8_t test = this->operator[](addr+size);
 
-	cout<<"loading binary: "<<fname<<endl;
+	cout<<"loading binary from file: \""<<fname<<"\""<<endl;
 
 	fp = fopen(fname, "rb");
-	if(fp == NULL) throw "memory: LoadBinary: can't open file";
-	fread(mem + addr, 1, size, fp);
+	if(fp == nullptr) throw "memory: LoadBinary: can't open file";
+	LoadBinary(fp, addr, size);
 	fclose(fp);
 }
 

@@ -1,18 +1,21 @@
 #ifndef MEMORY_H_
 #define MEMORY_H_
 
+#include <cstdio>
 #include <stdint.h>
 #include <vector>
 #include "device/device.h"
 
 enum class ENDIAN { BIG, LITTLE, };
 
-class Device;
+namespace Device {
+	class Base;
+}
 
 struct MapInfo {
 	uint32_t addr;
 	uint32_t end_addr;
-	Device *dev;
+	Device::Base *dev;
 	uint8_t *mem;
 };
 
@@ -63,9 +66,10 @@ public:
 		return;
 	}
 
-	void MapDevice(Device *dev, uint32_t addr, unsigned int size);
+	void MapDevice(Device::Base *dev, uint32_t addr, unsigned int size);
 	void MapMemory(uint8_t *mem, uint32_t addr, unsigned int size);
 
+	void LoadBinary(FILE *fp, uint32_t addr, size_t size);
 	void LoadBinary(const char *fname, uint32_t addr, unsigned int size);
 
 	void Dump(const char *fname, uint32_t addr, unsigned int size);

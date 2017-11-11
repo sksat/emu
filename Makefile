@@ -1,45 +1,24 @@
 TARGET	:= emu
-OBJS	:= _main.o emulator_base.o _emulator.o register_base.o memory.o
-#OBJS	+= instruction.o instruction16.o instruction32.o
+OBJS	:= main.o emulator_base.o emulator.o register_base.o memory.o
 OBJS	+= device/device.a
 OBJS	+= font/font.o
 #OBJS	+= shell/shell.a
-OBJS	+= gui/gui.a
+#OBJS	+= gui/gui.a
 OBJS	+= arch/arch.a
 
-GIT_COMMIT_ID  := $(shell git log -1 --format='%H')
-GIT_COMMIT_DATE:= $(shell git log -1 --format='%ad')
+include common.mk
 
-CC	:= gcc
-CXX	:= g++
+LDFLAGS	+= -pthread -lglfw -lGL
 
-CFLAGS	 = -g
-CXXFLAGS = -std=c++14 -g -Wall
-CXXFLAGS += -DGIT_COMMIT_ID="\"$(GIT_COMMIT_ID)\""
-CXXFLAGS += -DGIT_COMMIT_DATE="\"$(GIT_COMMIT_DATE)\""
-LDFLAGS	 = -pthread -lglfw -lGL
-
-EMU_BIN	:= sample/test.bin
-RUNFLAGS:= --arch x86 --junk-bios --memory-size 1
+EMU_BIN	:= helloos.img
+RUNFLAGS:= --arch x86 --junk-bios --memory-size 1 --fda sample/$(EMU_BIN)
 
 export
 
-%.o:%.c
-	$(CC) -c -o $@ $< $(CFLAGS)
-
-%.o:%.cc
-	$(CXX) -c -o $@ $< $(CXXFLAGS)
-
 default:
-	make -C gui
-	#make -C shell
-	make -C font
-	make -C device
-	make -C sample
-	make -C arch
 	make $(TARGET)
 
-run: $(TARGET) $(EMU_BIN)
+run: $(TARGET) sample/$(EMU_BIN)
 	make
 	./$(TARGET) $(RUNFLAGS)
 
@@ -63,8 +42,8 @@ full_run :
 $(TARGET) : $(OBJS)
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
-$(EMU_BIN):
-	make -C sample
+sample/$(EMU_BIN):
+	make -C sample $(EMU_BIN)
 
 device/device.a:
 	make -C device

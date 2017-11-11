@@ -1,5 +1,7 @@
 #include "display.h"
 
+using namespace Device;
+
 Display::Display(){
 	InitDevice();
 	img = nullptr;

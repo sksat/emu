@@ -34,10 +34,21 @@ z_tools:
 	git clone https://github.com/HariboteOS/z_tools_linux.git
 	mv z_tools_linux $@
 
+haribote-os:
+	git clone https://github.com/sk2sat/haribote-os.git
+	cd $@ && ./install.sh
+
+helloos.img:haribote-os
+	cd $</src && ./asm.sh
+	mv $</src/$@ ./$@
+
+haribote.img: haribote-os
+	cd $< && make
+
 harib27f:z_tools
 	git clone https://github.com/HariboteOS/harib27f.git
 
 harib27f.img: harib27f
 	cd $< && make -C apilib && make -C haribote
 	cd $< && make -C $(HARIB27F_APP) haribote.img
-	cp $</$(HARIB27F_APP)/haribote.img $@
+	cp $</$(HARIB27F_APP)/haribote.img ./$@

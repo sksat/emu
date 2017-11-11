@@ -8,9 +8,11 @@
 
 #define hankaku _binary_hankaku_bin_start 
 
-extern char hankaku[4096];	// /font/hankaku.txt
+extern char hankaku[4096];	// /font/hankaku.txt フォントのバイナリをロードするべき
 
-class Display : public Device {
+namespace Device {
+
+class Display : public Device::Base {
 public:
 	Display();
 	~Display();
@@ -38,5 +40,7 @@ private:
 	char *font;
 	unsigned int font_xsiz, font_ysiz;
 };
+
+}
 
 #endif

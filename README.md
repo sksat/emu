@@ -1,3 +1,8 @@
+# emu
+
+master: [![Build Status](https://api.travis-ci.org/sk2sat/emu.svg?branch=master)](https://travis-ci.org/sk2sat/emu)
+develop: [![Build Status](https://api.travis-ci.org/sk2sat/emu.svg?branch=develop)](https://travis-ci.org/sk2sat/emu)
+
 https://github.com/sk2sat/vm の設計とか色々見直して新しく作っているx86エミュレータ
 
 # ビルド・実行

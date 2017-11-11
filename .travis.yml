@@ -1,0 +1,26 @@
+sudo: false
+language: cpp
+git:
+  submodules: false
+compiler:
+- g++
+- clang++
+install:
+- if [ "$CXX" = "g++" ]; then export CXX="g++-5"; fi
+- if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.7"; fi
+
+- git submodule update --init
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    - llvm-toolchain-precise-3.7
+    - llvm-toolchain-precise
+    packages:
+    - gcc-5
+    - g++-5
+    - clang-3.7
+    - libglfw-dev
+script:
+- g++ --version
+- make CC=$CC CXX=$CXX full
