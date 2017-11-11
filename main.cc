@@ -53,6 +53,7 @@ try{
 	if(fda_file.empty())
 		throw "no boot device.";
 	Device::Floppy fda(fda_file.c_str());
+	emu->ConnectDevice(fda);
 
 	if(set.junk_bios){
 		cout<<"setup junk BIOS..."<<endl;

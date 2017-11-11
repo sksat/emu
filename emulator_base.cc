@@ -22,9 +22,8 @@ void EmulatorBase::SetBios(BIOS::Base *bios){
 	this->bios = bios;
 }
 
-void EmulatorBase::ConnectDevice(Device::Base *dev){
-	if(dev == nullptr) throw "null device!";
-	this->dev.push_back(dev);
+void EmulatorBase::ConnectDevice(Device::Base &dev){
+	this->dev.push_back(&dev);
 }
 
 void EmulatorBase::Dump(){

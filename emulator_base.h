@@ -20,7 +20,7 @@ public:
 	virtual void InitRegisters() = 0;
 	virtual void InitMemory() = 0;
 
-	virtual void ConnectDevice(Device::Base* dev);
+	virtual void ConnectDevice(Device::Base &dev);
 	virtual void Dump();
 	virtual void DumpRegisters();
 	virtual void DumpMemory();

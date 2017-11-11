@@ -1,10 +1,11 @@
 #ifndef DEVICE_FLOPPY_H_
 #define DEVICE_FLOPPY_H_
 
-#include <stdio.h>
+#include <cstdio>
 #include <sys/stat.h>
 
 #include "device.h"
+#include "../memory.h"
 
 namespace Device {
 
@@ -31,6 +32,10 @@ public:
 		fp = fopen(fname, "rb");
 		if(fp == nullptr)
 			throw "could not open image file.";
+	}
+
+	void Load(Memory *mem, uint32_t addr, size_t size){
+		mem->LoadBinary(fp, addr, size);
 	}
 private:
 	FILE *fp;

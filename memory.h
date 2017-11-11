@@ -1,6 +1,7 @@
 #ifndef MEMORY_H_
 #define MEMORY_H_
 
+#include <cstdio>
 #include <stdint.h>
 #include <vector>
 #include "device/device.h"
@@ -68,6 +69,7 @@ public:
 	void MapDevice(Device::Base *dev, uint32_t addr, unsigned int size);
 	void MapMemory(uint8_t *mem, uint32_t addr, unsigned int size);
 
+	void LoadBinary(FILE *fp, uint32_t addr, size_t size);
 	void LoadBinary(const char *fname, uint32_t addr, unsigned int size);
 
 	void Dump(const char *fname, uint32_t addr, unsigned int size);
