@@ -8,12 +8,14 @@
 #include "register_base.h"
 #include "memory.h"
 #include "device/device.h"
+#include "bios/base.h"
 
 class EmulatorBase {
 public:
 	EmulatorBase();
 	~EmulatorBase();
 	void Init();
+	void SetBios(BIOS::Base *bios);
 	virtual void InitInstructions() = 0;
 	virtual void InitRegisters() = 0;
 	virtual void InitMemory() = 0;
@@ -29,6 +31,7 @@ public:
 	std::vector<RegisterBase*> all_reg;
 	std::vector<Device::Base*> dev;
 	Memory *memory;
+	BIOS::Base *bios;
 };
 
 #endif

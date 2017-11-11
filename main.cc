@@ -38,6 +38,7 @@ try{
 	}else if(arch_str == "osecpu"){
 		set.arch = ARCH::osecpu;
 	}else if(arch_str.empty()){
+		set.arch = ARCH::x86;
 	}else{
 		throw "unknown arch: "+arch_str;
 	}
@@ -54,7 +55,17 @@ try{
 	Device::Floppy fda(fda_file.c_str());
 
 	if(set.junk_bios){
-		throw "not implemented: junk BIOS";
+		cout<<"setup junk BIOS..."<<endl;
+		switch(set.arch){
+		case ARCH::x86:
+//			auto e = new BIOS::Junk::x86(emu.GetRaw());
+			emu->SetBios(new BIOS::Junk::x86(emu.GetRaw()));
+			break;
+		default:
+			throw "not implemented junk BIOS for this arch.";
+			break;
+		}
+		emu->bios->Boot();
 	}
 
 	cout<<"emulation start"<<endl;

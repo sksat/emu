@@ -17,6 +17,11 @@ void EmulatorBase::Init(){
 	InitMemory();
 }
 
+void EmulatorBase::SetBios(BIOS::Base *bios){
+	if(bios == nullptr) throw "BIOS";
+	this->bios = bios;
+}
+
 void EmulatorBase::ConnectDevice(Device::Base *dev){
 	if(dev == nullptr) throw "null device!";
 	this->dev.push_back(dev);

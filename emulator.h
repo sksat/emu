@@ -7,6 +7,8 @@
 #include "emulator_base.h"
 #include "memory.h"
 #include "device/floppy.h"
+#include "bios/base.h"
+#include "bios/junk_x86.h"
 
 #define DEFAULT_MEMORY_SIZE	1 // MB
 
@@ -24,7 +26,7 @@ public:
 		set = {
 			.arch = ARCH::x86,
 			.memsize = DEFAULT_MEMORY_SIZE,
-			.junk_bios = true,
+			.junk_bios = false,
 			.gui = true,
 			.fullscreen = false
 		};
@@ -48,7 +50,6 @@ public:
 	}
 
 	void SetArch(ARCH arch){
-//		delete emu;
 		this->set.arch = arch;
 		switch(arch){
 		case ARCH::x86:
@@ -63,6 +64,9 @@ public:
 		}
 		emu->Init();
 	}
+
+	EmulatorBase* GetRaw(){ return emu; }
+
 private:
 	EmulatorCtrl::Setting set;
 	EmulatorBase *emu;
