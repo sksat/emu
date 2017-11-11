@@ -10,15 +10,15 @@ include common.mk
 
 LDFLAGS	+= -pthread -lglfw -lGL
 
-EMU_BIN	:= sample/helloos.img
-RUNFLAGS:= --arch x86 --junk-bios --memory-size 1 --fda $(EMU_BIN)
+EMU_BIN	:= helloos.img
+RUNFLAGS:= --arch x86 --junk-bios --memory-size 1 --fda sample/$(EMU_BIN)
 
 export
 
 default:
 	make $(TARGET)
 
-run: $(TARGET) $(EMU_BIN)
+run: $(TARGET) sample/$(EMU_BIN)
 	make
 	./$(TARGET) $(RUNFLAGS)
 
@@ -42,8 +42,8 @@ full_run :
 $(TARGET) : $(OBJS)
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
-$(EMU_BIN):
-	make -C sample
+sample/$(EMU_BIN):
+	make -C sample $(EMU_BIN)
 
 device/device.a:
 	make -C device
