@@ -1,11 +1,11 @@
 #include <iostream>
 #include <string>
 #include <chrono>
-#include <sksat/cmdline.hpp>
+#include <sksat/cmdline.hpp> // https://github.com/sk2sat/libsksat
 #include "emulator.h"
 
 EmulatorCtrl::Setting set;
-EmulatorCtrl emu;
+EmulatorCtrl emuctrl;
 
 int main(int argc, char **argv){
 using std::cout;
@@ -43,7 +43,9 @@ try{
 		throw "unknown arch: "+arch_str;
 	}
 
-	emu.Init(set);
+	emuctrl.Init(set);
+
+	auto emu = emuctrl.GetRaw();
 
 	emu->memory->Init(set.memsize * MB);
 //	emu->memory->LoadBinary("sample/harib27f.img", 0x7c00, 512);
@@ -60,7 +62,7 @@ try{
 		switch(set.arch){
 		case ARCH::x86:
 //			auto e = new BIOS::Junk::x86(emu.GetRaw());
-			emu->SetBios(new BIOS::Junk::x86(emu.GetRaw()));
+			emu->SetBios(new BIOS::Junk::x86(emu));
 			break;
 		default:
 			throw "not implemented junk BIOS for this arch.";
@@ -86,10 +88,10 @@ try{
 	cout<<"emulator deleted"<<endl;
 }catch(const char *msg){
 	cout<<endl<<"error:\n\t"<<msg<<endl;
-	emu->Dump();
+	emuctrl.GetRaw()->Dump();
 }catch(string msg){
 	cout<<endl<<"error:\n\t"<<msg<<endl;
-	emu->Dump();
+	emuctrl.GetRaw()->Dump();
 }
 
 }

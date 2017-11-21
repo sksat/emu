@@ -31,33 +31,24 @@ public:
 			.fullscreen = false
 		};
 	}
-//	Emulator(ARCH arch){ SetArch(static_cast<int>(arch)); }
-//	Emulator(int arch){  SetArch(arch); }
-
-	EmulatorBase* operator->(){
-		if(emu == nullptr) exit(-1);
-		return emu;
-	}
-
-//	EmulatorBase* operator->*(EmulatorBase* U::*) const noexcept ;
 
 	void Init(){
 		Init(this->set);
 	}
 
-	void Init(EmulatorCtrl::Setting set){
+	void Init(const EmulatorCtrl::Setting set){
 		SetArch(set.arch);
 		this->set = set;
 	}
 
-	void SetArch(ARCH arch){
+	void SetArch(const ARCH arch){
 		this->set.arch = arch;
 		switch(arch){
 		case ARCH::x86:
-			emu = new x86::Emulator();
+			emu = std::make_unique<x86::Emulator>();
 			break;
 		case ARCH::osecpu:
-			emu = new osecpu::Emulator();
+			emu = std::make_unique<osecpu::Emulator>();
 			break;
 		default:
 			// unkown arch
@@ -66,11 +57,11 @@ public:
 		emu->Init();
 	}
 
-	EmulatorBase* GetRaw(){ return emu; }
+	EmulatorBase* GetRaw(){ return emu.get(); }
 
 private:
 	EmulatorCtrl::Setting set;
-	EmulatorBase *emu;
+	std::unique_ptr<EmulatorBase> emu;
 };
 
 #endif
