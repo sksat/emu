@@ -36,12 +36,12 @@ public:
 		Init(this->set);
 	}
 
-	void Init(const EmulatorCtrl::Setting set){
+	void Init(const EmulatorCtrl::Setting &set){
 		SetArch(set.arch);
 		this->set = set;
 	}
 
-	void SetArch(const ARCH arch){
+	void SetArch(const ARCH &arch){
 		this->set.arch = arch;
 		switch(arch){
 		case ARCH::x86:
