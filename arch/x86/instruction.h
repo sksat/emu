@@ -18,7 +18,7 @@ public:
 protected:
 	x86::Emulator *emu;
 	x86::InsnData *idata;
-	bool insn_flgs[0xff];
+	bool insn_flgs[256];
 
 	void not_impl_insn();
 
