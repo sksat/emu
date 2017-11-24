@@ -5,8 +5,7 @@
 //#include "_emulator.h"
 #include "common.h"
 
-#define SETINSN(op,func,insn_flg) {insn[op] = (insnfunc_t)&Instruction::func;\
-								insn_flgs[op] = insn_flg;}
+//#define SETINSN(op,func,insn_flg) {insn[op] = (insnfunc_t)&Instruction::func; insn_flgs[op] = insn_flg;}
 
 class EmulatorBase;
 class InstructionBase;
@@ -21,7 +20,7 @@ public:
 	//InstructionBase(EmulatorBase *e) : emu(e) {}
 
 	//void SetEmu(EmulatorBase *emu){ this->emu=emu; }
-	void ClearInsn(size_t num){ insn = std::vector<insnfunc_t>(num, (insnfunc_t)&InstructionBase::not_impl_insn); }
+	void ClearInsn(size_t num){ insn.resize(num, (insnfunc_t)&InstructionBase::not_impl_insn); }
 	virtual void Init() = 0;
 	virtual void Parse() = 0;
 	virtual void ExecStep() = 0;

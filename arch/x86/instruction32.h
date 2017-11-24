@@ -1,9 +1,7 @@
+#ifndef X86_INSTRUCTION32_H_
+#define X86_INSTRUCTION32_H_
 #include <sstream>
 #include "instruction.h"
-
-#undef SETINSN
-#define SETINSN(op,func,flg) {insn[op] = (insnfunc_t)&Instruction32::func;\
-						insn_flgs[op] = flg;}
 
 namespace x86 {
 
@@ -113,3 +111,4 @@ private:
 
 };
 
+#endif

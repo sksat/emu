@@ -1,3 +1,6 @@
+#ifndef X86_INSTRUCTION16_H_
+#define X86_INSTRUCTION16_H_
+
 #include "instruction.h"
 
 namespace x86 {
@@ -10,3 +13,5 @@ public:
 };
 
 };
+
+#endif

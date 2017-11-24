@@ -1,5 +1,7 @@
 #include "instruction.h"
 
+#define SETINSN(op,func,insn_flg) {insn[op] = (insnfunc_t)&osecpu::Instruction::func; insn_flgs[op] = insn_flg;}
+
 namespace osecpu {
 
 void Instruction::Init(){

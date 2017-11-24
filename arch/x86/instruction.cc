@@ -2,6 +2,8 @@
 #include "instruction.h"
 #include "emulator.h"
 
+#define SETINSN(op,func,insn_flg) {insn[op] = (insnfunc_t)&x86::Instruction::func; insn_flgs[op] = insn_flg;}
+
 namespace x86 {
 
 Instruction::Instruction(x86::Emulator *e) : emu(e) {
