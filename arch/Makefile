@@ -9,7 +9,7 @@ all:
 $(LIBARCH): $(ARCH_LIBS)
 	rm -f $@
 	ar cqT $@ $^
-	echo "create $@\naddlib $@\nsave\nend" | ar -M
+	echo -e "create $@\naddlib $@\nsave\nend" | ar -M
 
 clean:
 	make -C x86 clean
