@@ -18,6 +18,7 @@ public:
 		//insn = std::vector<insnfunc_t>(0xff, (insnfunc_t)&InstructionBase::not_impl_insn);
 	}
 	//InstructionBase(EmulatorBase *e) : emu(e) {}
+	virtual ~InstructionBase(){}
 
 	//void SetEmu(EmulatorBase *emu){ this->emu=emu; }
 	void ClearInsn(size_t num){ insn.resize(num, (insnfunc_t)&InstructionBase::not_impl_insn); }

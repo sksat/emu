@@ -35,7 +35,7 @@ void EmulatorBase::DumpRegisters(){
 	std::cout
 		<< "---- dump registers ----"
 		<< std::endl;
-	for(auto i=0;i<all_reg.size();i++){
+	for(size_t i=0;i<all_reg.size();i++){
 		if(all_reg[i] == nullptr)
 			throw "error";
 		std::cout
