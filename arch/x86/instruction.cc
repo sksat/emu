@@ -2,12 +2,13 @@
 #include "instruction.h"
 #include "emulator.h"
 
-#define SETINSN(op,func,insn_flg) {insn[op] = (insnfunc_t)&x86::Instruction::func; insn_flgs[op] = insn_flg;}
+#define SETINSN(op,func,insn_flg) {insn[op] = (insnfunc_t)&x86::Instruction::func; insn_name[op] = #func; insn_flgs[op] = insn_flg;}
 
 namespace x86 {
 
 Instruction::Instruction(x86::Emulator *e) : emu(e) {
 	idata = new InsnData(e);
+	insn_name.resize(256);
 }
 
 void Instruction::Init(){
@@ -81,7 +82,7 @@ void Instruction::Parse(){
 
 void Instruction::ExecStep(){
 	Parse();
-	DOUT("opcode = "<<std::hex<<(uint32_t)idata->opcode<<std::endl);
+	DOUT("opcode = "<<std::hex<<(uint32_t)idata->opcode<<"("<<insn_name[idata->opcode]<<")"<<std::endl);
 	insnfunc_t func = insn[idata->opcode];
 	(this->*func)();
 	if(emu->EIP == 0) emu->finish_flg=true;

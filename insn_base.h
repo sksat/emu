@@ -2,10 +2,7 @@
 #define INSN_BASE_H_
 
 #include <vector>
-//#include "_emulator.h"
 #include "common.h"
-
-//#define SETINSN(op,func,insn_flg) {insn[op] = (insnfunc_t)&Instruction::func; insn_flgs[op] = insn_flg;}
 
 class EmulatorBase;
 class InstructionBase;
@@ -29,6 +26,7 @@ protected:
 	//EmulatorBase *emu;
 //	typedef void (InstructionBase::*insnfunc_t)();
 	std::vector<insnfunc_t> insn;
+	std::vector<std::string> insn_name;
 	virtual void not_impl_insn() = 0;
 };
 
