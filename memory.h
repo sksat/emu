@@ -30,11 +30,11 @@ public:
 	void Init(int size);
 	int GetSize();
 
-	bool IsVirt() { return virt_flg; }
+	bool IsVirt() const { return virt_flg; }
 	void EnableVirt(){ virt_flg=true; }
 	void UnableVirt(){ virt_flg=false; }
 
-	Memory* operator->(){ return this; }
+//	Memory* operator->(){ return this; }
 
 	// little endianでのuint32_tの読み込み処理はEmulatorクラスから持ってくる
 	uint8_t operator [] (uint32_t addr){
@@ -70,11 +70,11 @@ public:
 	void MapMemory(uint8_t *mem, uint32_t addr, unsigned int size);
 
 	void LoadBinary(FILE *fp, uint32_t addr, size_t size);
-	void LoadBinary(const char *fname, uint32_t addr, unsigned int size);
+	void LoadBinary(const char *fname, uint32_t addr, size_t size);
 
 	void Dump(const char *fname, uint32_t addr, unsigned int size);
 private:
-	uint8_t *mem;
+	std::vector<uint8_t> mem;
 	std::vector<MapInfo> minfo;
 	int minfo_num;
 	bool virt_flg;
