@@ -10,7 +10,8 @@
 
 namespace x86 {
 
-const int REGISTERS_COUNT = 8;
+const size_t REG_COUNT = 8;
+const size_t SREG_COUNT= 6;
 
 class Emulator : public EmulatorBase {
 public:
@@ -19,8 +20,9 @@ public:
 	void InitMemory();
 
 	x86::Register32 pc;
-	x86::EFLAGS		eflags;
+	x86::EFLAGS	eflags;
 	std::vector<x86::Register32> reg;
+	std::vector<x86::Register16> sreg;
 
 	inline uint8_t GetCode8(int index)		{ return (*memory)[EIP + index]; }
 	inline int8_t GetSignCode8(int index)	{ return static_cast<int8_t>(GetCode8(index)); }

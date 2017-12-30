@@ -1,4 +1,12 @@
-特権レベル(IA32_Arch_Dev Vol1 p169)
+# レジスタ
+- 汎用データレジスタ
+- セグメント・レジスタ
+- EFLAGS
+
+## セグメント・レジスタ
+
+
+特権レベル(IA32 Arch Dev Vol1 p169)
 Level 0		OS Kernel
 Level 1		OS Service (ex: device driver)
 Level 2		OS Service (ex: device driver)
