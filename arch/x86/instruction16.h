@@ -10,6 +10,12 @@ public:
 	Instruction16(x86::Emulator *e) : x86::Instruction(e) {}
 	void Init();
 	void Parse();
+
+	void mov_r16_imm16(){
+		uint8_t r = idata->opcode & ((1<<3)-1);
+		emu->reg[r] = idata->imm16;
+		emu->pc += 2;
+	}
 };
 
 };

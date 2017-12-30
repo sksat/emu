@@ -14,14 +14,23 @@ private:
 public:
 	uint8_t prefix, opcode;
 	uint8_t mod,rm;
+	
 	union {
 		uint8_t reg;
 		uint8_t subopcode;
 	};
+	
 	uint8_t sib;
+
 	union {
 		int8_t disp8;
 		uint32_t disp32;
+	};
+
+	union {
+		int8_t  imm8;
+		int16_t imm16;
+		int32_t imm32;
 	};
 public:
 	InsnData(x86::Emulator *e);

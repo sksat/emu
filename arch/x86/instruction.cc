@@ -39,7 +39,7 @@ void Instruction::Init(){
 
 void Instruction::Parse(){
 	idata->prefix = idata->opcode = (*emu->memory)[emu->EIP];
-	std::stringstream ss;
+//	std::stringstream ss;
 	switch(idata->prefix){
 		case 0xf0:
 		case 0xf2:
@@ -52,8 +52,11 @@ void Instruction::Parse(){
 		case 0x65:
 		case 0x66:
 		case 0x67:
-			ss<<"not implemented prefix:"<<std::hex<<std::showbase<<(uint32_t)idata->prefix<<std::endl;
-			throw ss.str();
+			{
+				std::stringstream ss;
+				ss<<"not implemented prefix:"<<std::hex<<std::showbase<<(uint32_t)idata->prefix<<std::endl;
+				throw ss.str();
+			}
 			break;
 		default:
 			break;
@@ -82,7 +85,7 @@ void Instruction::Parse(){
 
 void Instruction::ExecStep(){
 	Parse();
-	DOUT("opcode = "<<std::hex<<(uint32_t)idata->opcode<<"("<<insn_name[idata->opcode]<<")"<<std::endl);
+	DOUT("opcode = 0x"<<std::hex<<(uint32_t)idata->opcode<<"("<<insn_name[idata->opcode]<<")"<<std::endl);
 	insnfunc_t func = insn[idata->opcode];
 	(this->*func)();
 	if(emu->EIP == 0) emu->finish_flg=true;
