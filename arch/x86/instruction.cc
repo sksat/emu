@@ -85,7 +85,12 @@ void Instruction::Parse(){
 
 void Instruction::ExecStep(){
 	Parse();
-	DOUT("opcode = 0x"<<std::hex<<(uint32_t)idata->opcode<<"("<<insn_name[idata->opcode]<<")"<<std::endl);
+	DOUT("opcode = 0x"
+		<< std::setw(2) << std::setfill('0')<< std::hex
+		<< (uint32_t)idata->opcode
+		<< ": " << insn_name[idata->opcode]
+		<<std::endl
+	);
 	insnfunc_t func = insn[idata->opcode];
 	(this->*func)();
 	if(emu->EIP == 0) emu->finish_flg=true;
@@ -93,7 +98,9 @@ void Instruction::ExecStep(){
 
 void Instruction::not_impl_insn(){
 	std::stringstream ss;
-	ss<<"x86: not implemented insn : "<<std::hex<<std::showbase<<static_cast<uint32_t>(idata->opcode);
+	ss << "x86: not implemented insn : 0x" 
+		<< std::setw(2) << std::setfill('0') << std::hex
+		<< static_cast<uint32_t>(idata->opcode);
 	throw ss.str();
 }
 

@@ -40,7 +40,7 @@ void EmulatorBase::DumpRegisters(){
 			throw "error";
 		std::cout
 			<< all_reg[i]->GetName()
-			<< " : "
+			<< "\t: "
 //			<< "0x"
 		//	<< std::showbase	// <- if 0, dosen't work
 //			<< std::hex
