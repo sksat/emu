@@ -1,22 +1,12 @@
 TARGET	:= device.a
 OBJS	:= display.o floppy.o
 
-CC	:= gcc
-CXX	:= g++
-
-CFLAGS	:= -g
-CXXFLAGS:= -std=c++11 -g
-
-%.o:%.c
-	$(CC) -c $< $(CFLAGS)
-%.o:%.cc
-	$(CXX) -c $< $(CXXFLAGS)
-
 default:
 	make $(TARGET)
 
-clean:
-	rm -f $(TARGET) $(OBJS)
+include ../common.mk
+
+clean: _clean
 
 $(TARGET):$(OBJS)
 	ar rcs $@ $^

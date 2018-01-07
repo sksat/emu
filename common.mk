@@ -7,13 +7,21 @@ CXX	:= g++
 INCFLAGS = -I./libsksat
 LDFLAGS  = 
 
-CFLAGS   = $(INCFLAGS) -Wall -g
-CXXFLAGS = $(INCFLAGS) -std=c++14 -Wall -g
+CFLAGS   = $(INCFLAGS) -MD -Wall -g
+CXXFLAGS = $(INCFLAGS) -MD -std=c++14 -Wall -g
 CXXFLAGS += -DGIT_COMMIT_ID="\"$(GIT_COMMIT_ID)\"" -DGIT_COMMIT_DATE="\"$(GIT_COMMIT_DATE)\""
 CXXFLAGS += -DDEBUG
 
-%.o:%.c
+%.o:%.c $(HEAD)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-%.o:%.cc
+%.o:%.cc $(HEADXX)
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
+
+DUMMY:
+.PHONE: DUMMY
+
+_clean: DUMMY
+	rm -f *.o *.a *.d
+
+-include *.d

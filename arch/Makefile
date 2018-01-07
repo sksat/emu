@@ -1,22 +1,22 @@
-include ../common.mk
-
 LIBARCH  := arch.a
 ARCH_LIBS:= x86/x86.a osecpu/osecpu.a
 
 all: 
 	make $(LIBARCH)
 
+include ../common.mk
+
 $(LIBARCH): $(ARCH_LIBS)
 	rm -f $@
 	ar cqT $@ $^
 	printf "create $@\naddlib $@\nsave\nend" | ar -M
 
-clean:
+clean: _clean
 	make -C x86 clean
 	make -C osecpu clean
 
-x86/x86.a:
+x86/x86.a: DUMMY
 	make -C x86
 
-osecpu/osecpu.a:
+osecpu/osecpu.a: DUMMY
 	make -C osecpu
