@@ -62,7 +62,7 @@ void Instruction::Parse(){
 			break;
 	}
 	//if modrm
-	if(insn_flgs[idata->opcode]){
+	if(insn_flgs[idata->opcode] & Flag::modrm){
 		DOUT("ModRM : ");
 		emu->EIP++;
 		idata->SetModRM(emu->GetCode8(0));
