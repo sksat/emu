@@ -117,7 +117,7 @@ void Memory::LoadBinary(const char *fname, uint32_t addr, size_t size){
 }
 
 void Memory::Dump(const char *fname, uint32_t addr, unsigned int size){
-	uint8_t test = this->operator[](addr+size);
+//	uint8_t test = this->operator[](addr+size);
 	FILE *fp;
 	fp = fopen(fname, "wb");
 	if(fp == NULL) throw "memory: Dump: can't open file.";

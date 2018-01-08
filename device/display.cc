@@ -19,7 +19,7 @@ void Display::Init(){
 	ChangeMode(DEFAULT_SCRNX, DEFAULT_SCRNY);
 }
 
-void Display::ChangeMode(unsigned int scrnx, unsigned int scrny, bool txtmode_flg){
+void Display::ChangeMode(size_t scrnx, size_t scrny, bool txtmode_flg){
 	if(img != nullptr) delete[] img;
 	img = new unsigned char[scrnx*scrny*3];
 	this->scrnx = scrnx;
@@ -28,15 +28,15 @@ void Display::ChangeMode(unsigned int scrnx, unsigned int scrny, bool txtmode_fl
 
 void Display::FlushImage(){
 	if(txtmode_flg){
-		unsigned int char_xnum = 0xffff * font_xsiz / scrnx;
-		int x=0, y=0;
+//		unsigned int char_xnum = 0xffff * font_xsiz / scrnx;
+		size_t x=0, y=0;
 		for(unsigned int i=0;i<0xffff;i++){
 			char c = vram[i];
 			char *font_data = font+c*font_ysiz;
-			for(int j=0;j<font_ysiz;j++){
+			for(size_t j=0;j<font_ysiz;j++){
 				char d = font_data[j];
 				unsigned int l = 0x80;
-				for(int k=0;k<font_xsiz;k++){
+				for(size_t k=0;k<font_xsiz;k++){
 					if((d & l) != 0){
 						int addr = x+k+(y+j)*scrnx;
 						img[addr*3] = 0xff;

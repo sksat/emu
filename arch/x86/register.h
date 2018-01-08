@@ -159,7 +159,7 @@ public:
 
 	template<typename T>
 	inline bool operator==(T val) const {
-		return Get32() == val;
+		return Get32() == static_cast<uint32_t>(val);
 	}
 
 	inline uint32_t Get32() const {

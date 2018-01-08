@@ -38,9 +38,11 @@ void Instruction::Init(){
 }
 
 void Instruction::Parse(){
-	idata->prefix = idata->opcode = (*emu->memory)[emu->EIP];
-//	std::stringstream ss;
-	switch(idata->prefix){
+//	idata->prefix = idata->opcode = (*emu->memory)[emu->EIP];
+	idata->opcode = emu->GetCode8(0);
+
+	// parse prefix
+	switch(idata->opcode){
 		case 0xf0:
 		case 0xf2:
 		case 0xf3:
@@ -52,15 +54,19 @@ void Instruction::Parse(){
 		case 0x65:
 		case 0x66:
 		case 0x67:
-			{
-				std::stringstream ss;
-				ss<<"not implemented prefix:"<<std::hex<<std::showbase<<(uint32_t)idata->prefix<<std::endl;
-				throw ss.str();
-			}
+		{
+			std::stringstream ss;
+			ss << "not implemented prefix:"
+				<< std::hex << std::showbase
+				<< (uint32_t)idata->prefix
+				<<std::endl;
+			throw ss.str();
+		}
 			break;
 		default:
 			break;
 	}
+
 	//if modrm
 	if(insn_flgs[idata->opcode] & Flag::modrm){
 		DOUT("ModRM : ");
