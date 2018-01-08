@@ -36,7 +36,7 @@ Mod:	2bit
 reg/op:	3bit
 R/M:	3bit
 
-## disp
+## SIB
 | scale | index | base |
 
 scale:	2bit
