@@ -13,7 +13,7 @@ public:
 	Instruction(x86::Emulator *e);
 	~Instruction(){ delete idata; }
 	virtual void Init();
-	virtual void Parse() = 0;
+	void Parse();
 	void ExecStep();
 protected:
 	x86::Emulator *emu;

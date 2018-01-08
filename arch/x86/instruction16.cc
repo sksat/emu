@@ -11,8 +11,4 @@ void Instruction16::Init(){
 		SETINSN(0xb8+i, mov_r16_imm16, 0);
 }
 
-void Instruction16::Parse(){
-	Instruction::Parse();
-}
-
 };

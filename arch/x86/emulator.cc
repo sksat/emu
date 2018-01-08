@@ -14,6 +14,7 @@ void Emulator::InitInstructions(){
 	// 起動時は16bitリアルモード
 	insn = new Instruction16(this);
 	insn->Init();
+	mode = 16;
 }
 
 void Emulator::InitRegisters(){

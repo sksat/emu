@@ -38,11 +38,10 @@ void Instruction::Init(){
 }
 
 void Instruction::Parse(){
-//	idata->prefix = idata->opcode = (*emu->memory)[emu->EIP];
-	idata->opcode = emu->GetCode8(0);
+	idata->prefix = idata->opcode = emu->GetCode8(0);
 
 	// parse prefix
-	switch(idata->opcode){
+	switch(idata->prefix){
 		case 0xf0:
 		case 0xf2:
 		case 0xf3:
@@ -64,17 +63,25 @@ void Instruction::Parse(){
 		}
 			break;
 		default:
+			idata->prefix = 0x00;
+			emu->EIP++;
 			break;
 	}
 
 	//if modrm
 	if(insn_flgs[idata->opcode] & Flag::modrm){
-		DOUT("ModRM : ");
+		idata->_modrm = emu->GetCode8(0);
+		DOUT("ModRM: Mod=0x" << std::hex
+				<< (uint32_t)idata->modrm.mod
+				<< " RM=0x"
+				<< (uint32_t)idata->modrm.rm
+				<< std::endl);
 		emu->EIP++;
-		idata->SetModRM(emu->GetCode8(0));
-		DOUT("Mod="<<std::hex<<(uint32_t)idata->mod
-				<<" RM="<<(uint32_t)idata->rm<<std::endl);
-		emu->EIP++;
+		if(emu->IsMode16()) // 16bit mode
+			idata->ParseModRM16();
+		else // 32bit mode
+			idata->ParseModRM32();
+/*
 		if(idata->IsSIB()){
 			idata->sib = emu->GetCode8(0);
 			emu->EIP++;
@@ -86,7 +93,9 @@ void Instruction::Parse(){
 			idata->disp8 = emu->GetSignCode8(0);
 			emu->EIP++;
 		}
+*/
 	}
+
 }
 
 void Instruction::ExecStep(){

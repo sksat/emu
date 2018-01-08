@@ -27,8 +27,4 @@ void Instruction32::Init(){
 	SETINSN(0xFF, code_ff,				1);
 }
 
-void Instruction32::Parse(){
-	Instruction::Parse();
-}
-
 };

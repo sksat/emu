@@ -9,7 +9,6 @@ class Instruction32 : public x86::Instruction {
 public:
 	Instruction32(x86::Emulator *e) : Instruction(e) {}
 	void Init();
-	void Parse();
 private:
 	void add_rm32_r32(){
 		idata->SetRM32(idata->GetRM32() + emu->reg[idata->reg]);

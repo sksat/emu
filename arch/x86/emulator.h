@@ -18,13 +18,18 @@ public:
 	void InitInstructions();
 	void InitRegisters();
 	void InitMemory();
-
+private:
+	size_t mode;
+public:
 	x86::Register32 pc;
 	x86::EFLAGS	eflags;
 	std::vector<x86::Register32> reg;
 	std::vector<x86::Register16> sreg;
 
-	inline uint8_t GetCode8(int index)		{ return (*memory)[EIP + index]; }
+	inline bool IsMode16(){ return (mode == 16); }
+	inline bool IsMode32(){ return (mode == 32); }
+
+	inline uint8_t GetCode8(int index)	{ return (*memory)[EIP + index]; }
 	inline int8_t GetSignCode8(int index)	{ return static_cast<int8_t>(GetCode8(index)); }
 	inline uint32_t GetCode32(int index)	{
 		uint32_t ret = 0;
