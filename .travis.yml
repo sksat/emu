@@ -8,7 +8,6 @@ compiler:
 install:
 - if [ "$CXX" = "g++" ]; then export CXX="g++-5"; fi
 - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.7"; fi
-
 - git submodule update --init
 addons:
   apt:
@@ -24,3 +23,6 @@ addons:
 script:
 - g++ --version
 - make CC=$CC CXX=$CXX full
+notifications:
+  slack:
+    secure: pzxYsGiMg8632aYlAl4EtK9P491X4BY6d3V207VhzXr+gADnW278/9R2t6+YLi1EPRj+qQraVsA/wXuFFHGhqdYHS3kbaB7jcyICilaK7kaMbnnuIVcG/+LBcchxL9aMQVJv7DpZ4cQYWvoHGb2JjSomkdY6PAGsRdfp3z69c+tQghuUiZ1RCjn6QYV/qA/UViC/8BLjo4sdjqKvlteyWgfn33Gv03JHo/vZPX7m+6N1j7cyqZYyBRrvNW43HD3HJFw0RA+WShJeK+uXnVi1sNLKB1iBgVLQRW4Qp4wwrSLqRi+tgkIkIgGQ+Mtl8MFN2M/7CUFK9BEDWN46+mhSo0+GMGUJchCSX0ZlGiC+l5T1xGX7cFaO9pUfytcKZ7FIeqnXsdsNMAQVnn/szlvgwaUz4YcrvkiPLfnNKJSUthb3XqxcTcqNAxamGLGcSrx+ItGQHb3YBkKuq3n05S0ZYDNnYw8dd0AqWzTHS/6qQpU8QvZMkaCqXxCC1e8Cf6xFP1UR/fJ9GWQ5vo6cEnpwZ9COKhj+5jsggkpe0yHdAXhR/Rwqc74Nqpa915xMFrMGOGRCVxk1SxUfNpXrlxxNX6FunTH/WHiaw0snJtGAm5tJm6P080s3YQVpA6DRkjX6fLJdaeFtmY2XZUYzodKEToKgKorVyceuRsElHmlwe/4=
