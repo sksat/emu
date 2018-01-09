@@ -19,7 +19,8 @@ protected:
 	x86::Emulator *emu;
 	x86::InsnData *idata;
 	struct Flag {
-		static const uint8_t modrm = 0b0001;
+		static const uint8_t None	= 0b0000;
+		static const uint8_t ModRM	= 0b0001;
 	};
 	uint8_t insn_flgs[256];
 
@@ -27,10 +28,10 @@ protected:
 
 #define DEFINE_JX(flag, is_flag) \
 void j ## flag(){ \
-	emu->EIP += (emu->eflags.is_flag() ? emu->GetSignCode8(1) : 0) + 2; \
+	EIP += (emu->eflags.is_flag() ? emu->GetSignCode8(1) : 0) + 1; \
 } \
 void jn ## flag(){ \
-	emu->EIP += (emu->eflags.is_flag() ? 0 : emu->GetSignCode8(1)) + 2; \
+	EIP += (emu->eflags.is_flag() ? 0 : emu->GetSignCode8(1)) + 1; \
 }
 
 	DEFINE_JX(o, IsOverflow);
@@ -38,16 +39,16 @@ void jn ## flag(){ \
 	DEFINE_JX(z, IsZero);
 	DEFINE_JX(s, IsSign);
 
-	void nop(){ puts("nop"); emu->EIP++; }
+	void nop(){ DOUT("nop"); }
 
 	void near_jump(){
 		int32_t diff = emu->GetCode32(1);
-		emu->EIP += (diff + 5);
+		EIP += (diff + 4);
 	}
 
 	void short_jump(){
-		uint8_t diff = (*emu->memory)[emu->EIP + 1];
-		emu->EIP += (static_cast<int8_t>(diff) + 2);
+		uint8_t diff = (*emu->memory)[EIP ];
+		EIP += (static_cast<int8_t>(diff) + 1);
 	}
 };
 
