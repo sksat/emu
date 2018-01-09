@@ -78,7 +78,9 @@ public:
 	Register16(uint16_t r) : high8(r >> 8) { SetSize(sizeof(uint16_t)); Set8((uint8_t)r);}
 
 	inline operator uint16_t () { return ((high8 << 8) | reg8); }
-	inline operator int16_t  () { return ((high8 << 8) | reg8); }
+	inline operator  int16_t () { return ((high8 << 8) | reg8); }
+	inline operator uint32_t () { return static_cast<uint32_t>(static_cast<uint16_t>(*this)); }
+	inline operator  int32_t () { return static_cast< int32_t>(static_cast<uint16_t>(*this)); }
 
 //	inline Register16& operator=(const uint8_t data){
 //		reg8 = data;

@@ -4,9 +4,25 @@
 #include "../../emulator_base.h"
 #include "register.h"
 
-#define EIP pc
-#define ESP reg[4]
-#define EBP reg[5]
+#define EIP emu->pc
+#define EAX emu->reg[0]
+#define EBX emu->reg[1]
+#define ECX emu->reg[2]
+#define EDX emu->reg[3]
+#define ESI emu->reg[4]
+#define EDI emu->reg[5]
+#define EBP emu->reg[6]
+#define ESP emu->reg[7]
+
+#define IP static_cast<Register16>(emu->pc)
+#define AX static_cast<Register16>(emu->reg[0])
+#define BX static_cast<Register16>(emu->reg[1])
+#define CX static_cast<Register16>(emu->reg[2])
+#define DX static_cast<Register16>(emu->reg[3])
+#define BP static_cast<Register16>(emu->reg[4])
+#define SI static_cast<Register16>(emu->reg[5])
+#define DI static_cast<Register16>(emu->reg[6])
+#define SP static_cast<Register16>(emu->reg[7])
 
 namespace x86 {
 
@@ -18,8 +34,9 @@ public:
 	void InitInstructions();
 	void InitRegisters();
 	void InitMemory();
-private:
+protected:
 	size_t mode;
+	Emulator *emu = this;
 public:
 	x86::Register32 pc;
 	x86::EFLAGS	eflags;

@@ -16,6 +16,7 @@ void Instruction::Init(){
 	ClearInsn(256);
 	idata->opcode = 0x90;
 
+//	SETINSN(0x00, add_rm8_r8,		Flag::ModRM);
 	SETINSN(0x70, jo,			0);
 	SETINSN(0x71, jno,			0);
 	SETINSN(0x72, jc,			0);	// = jb
@@ -64,19 +65,19 @@ void Instruction::Parse(){
 			break;
 		default:
 			idata->prefix = 0x00;
-			emu->EIP++;
+			EIP++;
 			break;
 	}
 
-	//if modrm
-	if(insn_flgs[idata->opcode] & Flag::modrm){
+	//if ModR/M
+	if(insn_flgs[idata->opcode] & Flag::ModRM){
 		idata->_modrm = emu->GetCode8(0);
 		DOUT("ModRM: Mod=0x" << std::hex
 				<< (uint32_t)idata->modrm.mod
 				<< " RM=0x"
 				<< (uint32_t)idata->modrm.rm
 				<< std::endl);
-		emu->EIP++;
+		EIP++;
 		if(emu->IsMode16()) // 16bit mode
 			idata->ParseModRM16();
 		else // 32bit mode
@@ -108,7 +109,7 @@ void Instruction::ExecStep(){
 	);
 	insnfunc_t func = insn[idata->opcode];
 	(this->*func)();
-	if(emu->EIP == 0) emu->finish_flg=true;
+	if(EIP == 0x00) emu->finish_flg=true;
 }
 
 void Instruction::not_impl_insn(){

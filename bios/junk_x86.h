@@ -24,8 +24,8 @@ public:
 
 		LoadIPL();
 
-		emu->EIP = 0x7c00;
-		emu->ESP = 0x7c00;
+		EIP = 0x7c00;
+		ESP = 0x7c00;
 	}
 
 	Device::Base* GetBootDevice(){

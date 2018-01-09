@@ -22,15 +22,15 @@ private:
 	void inc_r32(){
 		uint8_t r = emu->GetCode8(0) - 0x40;
 		emu->reg[r]++;
-		emu->EIP++;
+		EIP++;
 	}
 	void push_r32(){
 		emu->push32(emu->reg[emu->GetCode8(0)-0x50]);
-		emu->EIP++;
+		EIP++;
 	}
 	void pop_r32(){
 		emu->reg[emu->GetCode8(0) - 0x58] = emu->pop32();
-		emu->EIP++;
+		EIP++;
 	}
 	void code_83(){
 		switch(idata->subopcode){
@@ -50,14 +50,14 @@ private:
 		void add_rm32_imm8(){
 			uint32_t rm32 = idata->GetRM32();
 			uint32_t imm8 = (int32_t)emu->GetSignCode8(0);
-			emu->EIP++;
+			EIP++;
 			idata->SetRM32(rm32 + imm8);
 		}
 		void sub_rm32_imm8(){
 //			std::cout<<"sub"<<std::endl;
 			uint32_t rm32 = idata->GetRM32();
 			uint32_t imm8 = (int32_t)emu->GetSignCode8(0);
-			emu->EIP++;
+			EIP++;
 			idata->SetRM32(rm32 - imm8);
 			
 //			emu->EIP++;
@@ -72,27 +72,27 @@ private:
 	}
 	void mov_r32_imm32(){
 		emu->reg[emu->GetCode8(0) - 0xB8] = emu->GetCode32(1);
-		emu->EIP+=5;
+		EIP+=5;
 	}
 	void ret32(){
-		emu->EIP = emu->pop32();
+		EIP = emu->pop32();
 	}
 	void mov_rm32_imm32(){
 		uint32_t val = emu->GetCode32(0);
 		DOUT("mov_rm32_imm32: val="<<val<<std::endl);
-		emu->EIP += 4;
+		EIP += 4;
 		idata->SetRM32(val);
 //		idata->SetRM32(emu->GetCode32(-4));
 	}
 	void leave32(){
-		emu->ESP = emu->EBP;
-		emu->EBP = emu->pop32();
-		emu->EIP++;
+		ESP = EBP;
+		EBP = emu->pop32();
+		EIP++;
 	}
 	void call_rel32(){
 		int32_t diff = emu->GetSignCode32(1);
-		emu->push32(emu->EIP + 5);
-		emu->EIP += (diff + 5);
+		emu->push32(EIP + 5);
+		EIP += (diff + 5);
 	}
 	void code_ff(){
 		switch(idata->subopcode){
