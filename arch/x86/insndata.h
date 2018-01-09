@@ -73,12 +73,12 @@ public:
 			break;
 get_disp8:
 	disp8 = static_cast<int8_t>(emu->GetCode8(0));
-	emu->EIP++;
+	EIP++;
 	DOUT("disp8: 0x"<<std::hex<<static_cast<uint32_t>(disp8)<<std::endl);
 	break;
 get_disp16:
 	disp16 = static_cast<int16_t>(emu->GetCode32(0));
-	emu->EIP+=2;
+	EIP+=2;
 	DOUT("disp16: 0x"<<std::hex<<disp16<<std::endl);
 	break;
 		}
@@ -88,7 +88,7 @@ get_disp16:
 		// SIB
 		if(MOD != 0b11 && RM == 0b100){
 			_sib = emu->GetCode8(0);
-			emu->EIP++;
+			EIP++;
 			DOUT("SIB: scale=0x"<<std::hex
 					<< static_cast<uint32_t>(sib.scale)
 					<< ", index=0x"
@@ -112,12 +112,12 @@ get_disp16:
 			break;
 get_disp8:
 	disp8 = static_cast<int8_t>(emu->GetCode8(0));
-	emu->EIP++;
+	EIP++;
 	DOUT("disp8");
 	break;
 get_disp32:
 	disp32 = emu->GetSignCode32(0);
-	emu->EIP+=4;
+	EIP+=4;
 	DOUT("disp32");
 	break;
 		}
@@ -130,42 +130,73 @@ get_disp32:
 		else
 			return CalcMemAddr32();
 	}
-	inline uint32_t CalcMemAddr16(){
-		throw "not implemented: CalcMemAddr16";
+	inline uint32_t CalcMemAddr16(){ // p35
+		uint32_t addr = 0x00;
+		switch(MOD){
+		case 0b00:
+			if(RM == 0b110)
+				return disp16;
+			break;
+		case 0b01:
+			addr = static_cast<uint32_t>(disp8);
+			break;
+		case 0b10:
+			addr = static_cast<uint32_t>(disp16);
+			break;
+		}
+
+		switch(RM){
+		case 0b000:
+		case 0b001:
+		case 0b111:
+			addr += static_cast<uint32_t>(BX);
+			break;
+		case 0b010:
+		case 0b011:
+		case 0b110:
+			addr += static_cast<uint32_t>(BP);
+			throw "not implemented: sreg=SS";
+			// TODO: segment register: SS
+			break;
+		}
+
+		if(RM < 0b110){
+			if(RM %2)
+				addr += static_cast<uint32_t>(DI);
+			else
+				addr += static_cast<uint32_t>(SI);
+		}
+
+		return addr;
 	}
 	inline uint32_t CalcMemAddr32(){
 		switch(MOD){
-			case 0:
+			case 0b00:
 				switch(RM){
-					case 4:
-						throw "not implemented ModRM mod=0, rm=4";
-					case 5:
+					case 0b100: // SIB
+						break;
+					case 0b101:
 						return disp32;
 					default:
 						return emu->reg[RM];
 				}
-				break;
-			case 1:
-				if(RM == 4){
-					throw "not implemented ModRM mod=1, rm=4";
-				}else{
+			case 0b01:
+				if(RM == 0b100) // SIB
+					break;
+				else
 					return emu->reg[RM] + disp8;
-				}
-				break;
-			case 2:
-				if(RM == 4){
-					throw "not implemented ModRM mod=2, rm=4";
-				}else{
+			case 0b10:
+				if(RM == 0b100) // SIB
+					break;
+				else
 					return emu->reg[modrm.rm] + disp32;
-				}
-				break;
-			case 3:
-				throw "not implemented ModRM mod=3";
-				break;
-			default:
-				throw "ModRM error";
+			case 0b11:
 				break;
 		}
+		std::stringstream ss;
+		ss << "not implemented ModRM: Mod="<<static_cast<uint32_t>(MOD)
+			<< ", R/M="<<static_cast<uint32_t>(RM);
+		throw ss.str();
 	}
 
 	// get register
@@ -208,7 +239,7 @@ get_disp32:
 	}
 	inline uint32_t GetRM32(){
 		if(MOD == 3)
-			return emu->reg[modrm.rm];
+			return emu->reg[RM];
 		auto addr = CalcMemAddr();
 		DOUT("GetRM32: addr=0x"<<std::hex<<addr<<std::endl);
 		return emu->memory->GetData32(addr);
