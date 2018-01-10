@@ -8,7 +8,7 @@ void Instruction16::Init(){
 	Instruction::Init();
 	
 	for(auto i=0;i<8;i++)
-		SETINSN(0xb8+i, mov_r16_imm16, 0);
+		SETINSN(0xb8+i, mov_r16_imm16, Flag::Imm16);
 }
 
 };

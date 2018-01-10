@@ -11,9 +11,10 @@ public:
 	void Init();
 
 	void mov_r16_imm16(){
-		uint8_t r = idata->opcode & ((1<<3)-1);
-		emu->reg[r] = idata->imm16;
-		emu->pc += 2;
+		uint8_t num = idata->opcode & ((1<<3)-1);
+		auto& reg = emu->reg[num];
+		static_cast<Register16>(reg) = idata->imm16;
+		DOUT(std::endl<<"\t"<<reg.GetName()<<"=0x"<<idata->imm16);
 	}
 };
 
