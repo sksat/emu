@@ -14,15 +14,15 @@
 #define ESI emu->reg[6]
 #define EDI emu->reg[7]
 
-#define IP static_cast<Register16>(emu->pc)
-#define AX static_cast<Register16>(emu->reg[0])
-#define CX static_cast<Register16>(emu->reg[1])
-#define DX static_cast<Register16>(emu->reg[2])
-#define BX static_cast<Register16>(emu->reg[3])
-#define SP static_cast<Register16>(emu->reg[4])
-#define BP static_cast<Register16>(emu->reg[5])
-#define SI static_cast<Register16>(emu->reg[6])
-#define DI static_cast<Register16>(emu->reg[7])
+#define IP static_cast<Register16&>(emu->pc)
+#define AX static_cast<Register16&>(emu->reg[0])
+#define CX static_cast<Register16&>(emu->reg[1])
+#define DX static_cast<Register16&>(emu->reg[2])
+#define BX static_cast<Register16&>(emu->reg[3])
+#define SP static_cast<Register16&>(emu->reg[4])
+#define BP static_cast<Register16&>(emu->reg[5])
+#define SI static_cast<Register16&>(emu->reg[6])
+#define DI static_cast<Register16&>(emu->reg[7])
 
 namespace x86 {
 
