@@ -46,10 +46,18 @@ public:
 	inline bool IsMode16(){ return (mode == 16); }
 	inline bool IsMode32(){ return (mode == 32); }
 
+	// memoryの関数を使うべき
 	inline uint8_t GetCode8(int index)	{ return (*memory)[EIP + index]; }
 	inline int8_t GetSignCode8(int index)	{ return static_cast<int8_t>(GetCode8(index)); }
-	inline uint32_t GetCode32(int index)	{
-		uint32_t ret = 0;
+	inline uint16_t GetCode16(int index){
+		uint16_t ret = 0x00;
+		for(int i=0;i<2;i++)
+			ret |= GetCode8(index + i) << (i * 8);
+		return ret;
+	}
+	inline int16_t GetSignCode16(int index)	{ return static_cast<int16_t>(GetCode16(index)); }
+	inline uint32_t GetCode32(int index){
+		uint32_t ret = 0x00;
 		for(int i=0;i<4;i++)
 			ret |= GetCode8(index + i) << (i * 8);
 		return ret;

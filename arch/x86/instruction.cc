@@ -69,8 +69,9 @@ void Instruction::Parse(){
 			break;
 	}
 
+	auto& flgs = insn_flgs[idata->opcode];
 	//if ModR/M
-	if(insn_flgs[idata->opcode] & Flag::ModRM){
+	if(flgs & Flag::ModRM){
 		idata->_modrm = emu->GetCode8(0);
 		DOUT("ModRM: Mod=0x" << std::hex
 				<< (uint32_t)idata->modrm.mod
@@ -82,19 +83,23 @@ void Instruction::Parse(){
 			idata->ParseModRM16();
 		else // 32bit mode
 			idata->ParseModRM32();
-/*
-		if(idata->IsSIB()){
-			idata->sib = emu->GetCode8(0);
-			emu->EIP++;
-		}
-		if(idata->IsDisp32()){
-			idata->disp32 = emu->GetSignCode32(0);
-			emu->EIP+=4;
-		}else if(idata->mod == 1){
-			idata->disp8 = emu->GetSignCode8(0);
-			emu->EIP++;
-		}
-*/
+	}
+
+	// imm
+	if(flgs & Flag::Imm8){
+		idata->imm8 = emu->GetSignCode8(0);
+		EIP++;
+		DOUT("imm8 : "<<std::hex<<static_cast<uint32_t>(idata->imm8)<<std::endl);
+	}
+	if(flgs & Flag::Imm16){
+		idata->imm16 = emu->GetSignCode16(0);
+		EIP+=2;
+		DOUT("imm16: "<<std::hex<<idata->imm16<<std::endl);
+	}
+	if(flgs % Flag::Imm32){
+		idata->imm32 = emu->GetSignCode32(0);
+		EIP+=4;
+		DOUT("imm32: "<<std::hex<<idata->imm32<<std::endl);
 	}
 
 }

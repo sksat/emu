@@ -21,6 +21,9 @@ protected:
 	struct Flag {
 		static const uint8_t None	= 0b0000;
 		static const uint8_t ModRM	= 0b0001;
+		static const uint8_t Imm8	= 0b0010;
+		static const uint8_t Imm16	= 0b0100;
+		static const uint8_t Imm32	= 0b1000;
 	};
 	uint8_t insn_flgs[256];
 
