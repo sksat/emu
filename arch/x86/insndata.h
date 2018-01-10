@@ -35,11 +35,6 @@ public:
 	};
 	
 	union {
-		uint8_t reg;
-		uint8_t subopcode;
-	};
-
-	union {
 		uint8_t _sib;
 		struct SIB sib;
 	};
