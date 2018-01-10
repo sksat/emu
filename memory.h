@@ -45,25 +45,40 @@ public:
 
 	uint8_t  GetData8(uint32_t addr);
 
-	uint32_t GetData32Big(uint32_t addr){ throw "big endian"; }
-	uint32_t GetData32Little(uint32_t addr);
-	uint32_t GetData32(uint32_t addr){
-		if(endian == ENDIAN::BIG)	return GetData32Big(addr);
+	uint16_t GetData16Big(uint32_t addr){ throw "not implemented: big endian"; }
+	uint16_t GetData16Little(uint32_t addr);
+	inline uint32_t GetData16(uint32_t addr){
+		if(endian == ENDIAN::BIG) return GetData32Big(addr);
 		return GetData32Little(addr);
 	}
 
-	void SetData8(uint32_t addr, uint32_t val){
+	uint32_t GetData32Big(uint32_t addr){ throw "not implemented: big endian"; }
+	uint32_t GetData32Little(uint32_t addr);
+	inline uint32_t GetData32(uint32_t addr){
+		if(endian == ENDIAN::BIG) return GetData32Big(addr);
+		return GetData32Little(addr);
+	}
+
+	void SetData8(uint32_t addr, uint8_t val){
 		mem[addr] = val;
 	}
-	void SetData32Big(uint32_t addr, uint32_t val){ throw "big endian"; }
+
+	void SetData16Big(uint32_t addr, uint16_t val){ throw "not implemented: big endian"; }
+	void SetData16Little(uint32_t addr, uint16_t val);
+	inline void SetData16(uint32_t addr, uint16_t val){
+		if(endian == ENDIAN::BIG)
+			SetData16Big(addr,val);
+		else
+			SetData16Little(addr,val);
+	}
+
+	void SetData32Big(uint32_t addr, uint32_t val){ throw "not implemented: big endian"; }
 	void SetData32Little(uint32_t addr, uint32_t val);
-	void SetData32(uint32_t addr, uint32_t val){
-		if(endian == ENDIAN::BIG){
+	inline void SetData32(uint32_t addr, uint32_t val){
+		if(endian == ENDIAN::BIG)
 			SetData32Big(addr, val);
-		}else{
+		else
 			SetData32Little(addr, val);
-		}
-		return;
 	}
 
 	void MapDevice(Device::Base *dev, uint32_t addr, unsigned int size);

@@ -69,12 +69,12 @@ public:
 get_disp8:
 	disp8 = static_cast<int8_t>(emu->GetCode8(0));
 	EIP++;
-	DOUT("disp8: 0x"<<std::hex<<static_cast<uint32_t>(disp8)<<std::endl);
+	DOUT("disp8: 0x"<<std::hex<<static_cast<uint32_t>(disp8));
 	break;
 get_disp16:
 	disp16 = static_cast<int16_t>(emu->GetCode32(0));
 	EIP+=2;
-	DOUT("disp16: 0x"<<std::hex<<disp16<<std::endl);
+	DOUT("disp16: 0x"<<std::hex<<disp16);
 	break;
 		}
 	}
@@ -116,7 +116,7 @@ get_disp32:
 	DOUT("disp32");
 	break;
 		}
-		DOUT(": 0x"<<std::hex<<disp32<<std::endl);
+		DOUT(": 0x"<<std::hex<<disp32);
 	}
 
 	inline uint32_t CalcMemAddr(){
@@ -229,8 +229,7 @@ get_disp32:
 			return emu->reg[RM];
 		auto addr = CalcMemAddr();
 		DOUT("GetRM16: addr=0x"<<std::hex<<addr<<std::endl);
-//		return emu->memory->GetData16(addr);
-		throw "not implemented: memory::GetData16";
+		return emu->memory->GetData16(addr);
 	}
 	inline uint32_t GetRM32(){
 		if(MOD == 3)
@@ -260,10 +259,9 @@ get_disp32:
 			return;
 		}
 		auto addr = CalcMemAddr();
-//		emu->memory->SetData16(addr, val);
+		emu->memory->SetData16(addr, val);
 		DOUT("SetRM16: [0x"<<std::hex<<addr
 				<<"] = 0x"<<val<<std::endl);
-		throw "not implemented: memory::SetData16";
 	}
 	inline void SetRM32(uint32_t val){
 		if(modrm.mod == 3){

@@ -52,11 +52,17 @@ uint8_t Memory::GetData8(uint32_t addr) {
 	return ret;
 }
 
-uint32_t Memory::GetData32Little(uint32_t addr){
-	uint32_t ret = 0;
-	for(int i=0;i<4;i++){
+uint16_t Memory::GetData16Little(uint32_t addr){
+	uint32_t ret = 0x00;
+	for(auto i=0;i<2;i++)
 		ret |= GetData8(addr + i) << (i*8);
-	}
+	return ret;
+}
+
+uint32_t Memory::GetData32Little(uint32_t addr){
+	uint32_t ret = 0x00;
+	for(int i=0;i<4;i++)
+		ret |= GetData8(addr + i) << (i*8);
 	return ret;
 }
 
@@ -69,6 +75,11 @@ uint32_t Memory::operator[](uint32_t addr){
 	}
 }
 */
+
+void Memory::SetData16Little(uint32_t addr, uint16_t val){
+	for(auto i=0;i<2;i++)
+		SetData8(addr+i, val>>(i*8));
+}
 
 void Memory::SetData32Little(uint32_t addr, uint32_t val){
 	for(int i=0;i<4;i++)
