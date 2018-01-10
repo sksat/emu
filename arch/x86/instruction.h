@@ -42,6 +42,13 @@ void jn ## flag(){ \
 	DEFINE_JX(z, IsZero);
 	DEFINE_JX(s, IsSign);
 
+	void mov_sreg_rm16(){
+		auto rm16 = idata->GetRM16();
+		auto& sreg = emu->sreg[idata->modrm.reg];
+		sreg = rm16;
+		DOUT(std::endl<<"\t"<<sreg.GetName()<<"=0x"<<std::hex<<rm16);
+	}
+
 	void nop(){}
 
 /* TODO: this is 32bit op

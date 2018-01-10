@@ -33,6 +33,7 @@ void Instruction::Init(){
 //	SETINSN(0x7d, jnl,			0);
 //	SETINSN(0x7e, jle,			0);
 //	SETINSN(0x7f, jnle,			0);
+	SETINSN(0x8e, mov_sreg_rm16,		Flag::ModRM);
 	SETINSN(0x90, nop,			Flag::None);
 //	SETINSN(0xe9, near_jump,	0); // TODO: 32bitだったので32bitの方に移す
 	SETINSN(0xeb, short_jump,		Flag::Imm8);
@@ -83,8 +84,7 @@ void Instruction::Parse(){
 		DOUT("ModRM: Mod=0x" << std::hex
 				<< (uint32_t)idata->modrm.mod
 				<< " RM=0x"
-				<< (uint32_t)idata->modrm.rm
-				<< std::endl);
+				<< (uint32_t)idata->modrm.rm);
 		EIP++;
 		if(emu->IsMode16()) // 16bit mode
 			idata->ParseModRM16();
