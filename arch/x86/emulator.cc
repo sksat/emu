@@ -31,7 +31,7 @@ void Emulator::InitRegisters(){
 
 	sreg = std::vector<x86::Register16>(SREG_COUNT);
 	const char* sreg_name[SREG_COUNT] = {
-		"CS", "DS", "SS", "ES", "FS", "GS",
+		"ES", "CS", "SS", "DS", "FS", "GS",
 	};
 	for(size_t i=0;i<SREG_COUNT;i++)
 		sreg[i].SetName(sreg_name[i]);
