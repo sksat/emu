@@ -13,7 +13,7 @@ public:
 	void mov_r16_imm16(){
 		uint8_t num = idata->opcode & ((1<<3)-1);
 		auto& reg = emu->reg[num];
-		static_cast<Register16>(reg) = idata->imm16;
+		reg = idata->imm16;
 		DOUT(std::endl<<"\t"<<reg.GetName()<<"=0x"<<idata->imm16);
 	}
 };

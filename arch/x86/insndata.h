@@ -156,10 +156,10 @@ get_disp32:
 		}
 
 		if(RM < 0b110){
-			if(RM %2)
-				addr += static_cast<uint32_t>(DI);
-			else
+			if(RM%2 == 0b00)
 				addr += static_cast<uint32_t>(SI);
+			else
+				addr += static_cast<uint32_t>(DI);
 		}
 
 		return addr;
@@ -221,21 +221,21 @@ get_disp32:
 		if(MOD == 3)
 			return emu->reg[RM];
 		auto addr = CalcMemAddr();
-		DOUT("GetRM8: addr=0x"<<std::hex<<addr<<std::endl);
+		DOUT("GetRM8: addr=0x"<<std::hex<<addr);
 		return emu->memory->GetData8(addr);
 	}
 	inline uint16_t GetRM16(){
 		if(MOD == 3)
 			return emu->reg[RM];
 		auto addr = CalcMemAddr();
-		DOUT("GetRM16: addr=0x"<<std::hex<<addr<<std::endl);
+		DOUT("GetRM16: addr=0x"<<std::hex<<addr);
 		return emu->memory->GetData16(addr);
 	}
 	inline uint32_t GetRM32(){
 		if(MOD == 3)
 			return emu->reg[RM];
 		auto addr = CalcMemAddr();
-		DOUT("GetRM32: addr=0x"<<std::hex<<addr<<std::endl);
+		DOUT("GetRM32: addr=0x"<<std::hex<<addr);
 		return emu->memory->GetData32(addr);
 	}
 
