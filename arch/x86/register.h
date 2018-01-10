@@ -93,6 +93,12 @@ public:
 		return *this;
 	}
 
+	template<typename T>
+        inline Register16& operator+=(T diff){
+		Set16(Get16()+diff);
+		return *this;
+	}
+
 	inline virtual Register16& operator++(int){
 		Set16(Get16()+1);
 		return *this;

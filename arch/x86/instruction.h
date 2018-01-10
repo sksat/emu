@@ -42,16 +42,16 @@ void jn ## flag(){ \
 	DEFINE_JX(z, IsZero);
 	DEFINE_JX(s, IsSign);
 
-	void nop(){ DOUT("nop"); }
+	void nop(){}
 
+/* TODO: this is 32bit op
 	void near_jump(){
 		int32_t diff = emu->GetCode32(1);
 		EIP += (diff + 4);
 	}
-
+*/
 	void short_jump(){
-		uint8_t diff = (*emu->memory)[EIP ];
-		EIP += (static_cast<int8_t>(diff) + 1);
+		IP += static_cast<uint16_t>(idata->imm8);
 	}
 };
 
