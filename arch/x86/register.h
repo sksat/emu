@@ -265,6 +265,12 @@ public:
 	}
 
 	template<typename T>
+	inline void Cmp(T v1, uint32_t v2){
+		uint64_t result = static_cast<uint64_t>(v1) - static_cast<uint64_t>(v2);
+		UpdateSub(v1, v2, result);
+	}
+
+	template<typename T>
 	inline void UpdateAdd(T v1, uint32_t v2, uint64_t result){
 		UpdateSub(v1, v2, result);
 	}

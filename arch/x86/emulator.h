@@ -4,6 +4,7 @@
 #include "../../emulator_base.h"
 #include "register.h"
 
+// 32bit registers
 #define EFLAGS emu->eflags
 #define EIP emu->pc
 #define EAX emu->reg[0]
@@ -15,6 +16,7 @@
 #define ESI emu->reg[6]
 #define EDI emu->reg[7]
 
+// 16bit registers
 #define IP static_cast<Register16&>(emu->pc)
 #define AX static_cast<Register16&>(emu->reg[0])
 #define CX static_cast<Register16&>(emu->reg[1])
@@ -24,6 +26,12 @@
 #define BP static_cast<Register16&>(emu->reg[5])
 #define SI static_cast<Register16&>(emu->reg[6])
 #define DI static_cast<Register16&>(emu->reg[7])
+
+// 8bit registers
+#define AL static_cast<Register8&>(AX)
+#define BL static_cast<Register8&>(BX)
+#define CL static_cast<Register8&>(CX)
+#define DL static_cast<Register8&>(DX)
 
 namespace x86 {
 
