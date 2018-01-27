@@ -29,12 +29,17 @@ protected:
 
 	void not_impl_insn();
 
+	void cmp_al_imm8(){
+		uint8_t al = AL;
+		EFLAGS.Cmp(al, idata->imm8);
+	}
+
 #define DEFINE_JX(flag, is_flag) \
 void j ## flag(){ \
-	EIP += (emu->eflags.is_flag() ? emu->GetSignCode8(1) : 0) + 1; \
+	if(emu->eflags.is_flag()) EIP += static_cast<int8_t>(idata->imm8); \
 } \
 void jn ## flag(){ \
-	EIP += (emu->eflags.is_flag() ? 0 : emu->GetSignCode8(1)) + 1; \
+	if(!emu->eflags.is_flag()) EIP += static_cast<int8_t>(idata->imm8); \
 }
 
 	DEFINE_JX(o, IsOverflow);
