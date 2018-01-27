@@ -4,6 +4,7 @@
 #include "../../emulator_base.h"
 #include "register.h"
 
+#define EFLAGS emu->eflags
 #define EIP emu->pc
 #define EAX emu->reg[0]
 #define ECX emu->reg[1]
@@ -39,7 +40,7 @@ protected:
 	Emulator *emu = this;
 public:
 	x86::Register32 pc;
-	x86::EFLAGS	eflags;
+	x86::Eflags	eflags;
 	std::vector<x86::Register32> reg;
 	std::vector<x86::Register16> sreg;
 

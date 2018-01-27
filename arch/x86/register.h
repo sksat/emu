@@ -193,7 +193,7 @@ protected:
 	uint16_t high16;
 };
 
-class EFLAGS : public ::RegisterBase {
+class Eflags : public ::RegisterBase {
 public:
 	struct {
 		bool CF : 1;
@@ -220,7 +220,7 @@ public:
 		bool ID : 1;
 	};
 public:
-	EFLAGS() : RegisterBase(sizeof(uint32_t)) {}
+	Eflags() : RegisterBase(sizeof(uint32_t)) {}
 
 	inline bool IsCarry()		{ return CF; }
 	inline bool IsParity()		{ return PF; }
@@ -238,6 +238,7 @@ public:
 	inline void SetInterrupt(bool intr)	{ IF = intr; }
 	inline void SetDirection(bool dir)	{ DF = dir; }
 
+	/*
 	inline void UpdateSub(uint32_t v1, uint32_t v2, uint64_t res){
 		int sign1 = v1 >> 31;
 		int sign2 = v2 >> 31;
@@ -247,6 +248,25 @@ public:
 		SetZero(res == 0);
 		SetSign(signr);
 		SetOverflow(sign1 != sign2 && sign1 != signr);
+	}
+*/
+
+	template<typename T>
+	inline void UpdateSub(T v1, uint32_t v2, uint64_t result){
+		auto size = sizeof(T)*8; // bit数
+		bool sign1 = v1 >> (size-1);
+		bool sign2 = v2 >> (size-1);
+		bool signr = (result >> (size -1)) & 1; // (res >> 31) & 1;
+
+		SetCarry(result >> size);
+		SetZero(result == 0);
+		SetSign(signr);
+		SetOverflow(sign1 != sign2 && sign1 != signr);
+	}
+
+	template<typename T>
+	inline void UpdateAdd(T v1, uint32_t v2, uint64_t result){
+		UpdateSub(v1, v2, result);
 	}
 
 	const uint32_t GetData32(){
