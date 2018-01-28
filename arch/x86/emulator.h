@@ -6,32 +6,38 @@
 
 // 32bit registers
 #define EFLAGS emu->eflags
-#define EIP emu->pc
-#define EAX emu->reg[0]
-#define ECX emu->reg[1]
-#define EDX emu->reg[2]
-#define EBX emu->reg[3]
-#define ESP emu->reg[4]
-#define EBP emu->reg[5]
-#define ESI emu->reg[6]
-#define EDI emu->reg[7]
+#define EIP emu->pc.reg32
+#define EAX emu->reg[0].reg32
+#define ECX emu->reg[1].reg32
+#define EDX emu->reg[2].reg32
+#define EBX emu->reg[3].reg32
+#define ESP emu->reg[4].reg32
+#define EBP emu->reg[5].reg32
+#define ESI emu->reg[6].reg32
+#define EDI emu->reg[7].reg32
 
 // 16bit registers
-#define IP static_cast<Register16&>(emu->pc)
-#define AX static_cast<Register16&>(emu->reg[0])
-#define CX static_cast<Register16&>(emu->reg[1])
-#define DX static_cast<Register16&>(emu->reg[2])
-#define BX static_cast<Register16&>(emu->reg[3])
-#define SP static_cast<Register16&>(emu->reg[4])
-#define BP static_cast<Register16&>(emu->reg[5])
-#define SI static_cast<Register16&>(emu->reg[6])
-#define DI static_cast<Register16&>(emu->reg[7])
+#define IP emu->pc.reg16
+#define AX emu->reg[0].reg16
+#define CX emu->reg[1].reg16
+#define DX emu->reg[2].reg16
+#define BX emu->reg[3].reg16
+#define SP emu->reg[4].reg16
+#define BP emu->reg[5].reg16
+#define SI emu->reg[6].reg16
+#define DI emu->reg[7].reg16
 
 // 8bit registers
-#define AL static_cast<Register8&>(AX)
-#define BL static_cast<Register8&>(BX)
-#define CL static_cast<Register8&>(CX)
-#define DL static_cast<Register8&>(DX)
+#define AL emu->reg[0].low8
+#define CL emu->reg[1].low8
+#define DL emu->reg[2].low8
+#define BL emu->reg[3].low8
+#define AH emu->reg[0].high8
+#define CH emu->reg[1].high8
+#define DH emu->reg[2].high8
+#define BH emu->reg[3].high8
+
+#define SET_REG8(num, val) (num<4 ? (emu->reg[num]=val) : (emu->reg[num-4]=val))
 
 namespace x86 {
 
@@ -50,7 +56,7 @@ public:
 	x86::Register32 pc;
 	x86::Eflags	eflags;
 	std::vector<x86::Register32> reg;
-	std::vector<x86::Register16> sreg;
+	std::vector<x86::SRegister> sreg;
 
 	inline bool IsMode16(){ return (mode == 16); }
 	inline bool IsMode32(){ return (mode == 32); }

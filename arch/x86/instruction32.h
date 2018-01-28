@@ -11,25 +11,25 @@ public:
 	void Init();
 private:
 	void add_rm32_r32(){
-		idata->SetRM32(idata->GetRM32() + emu->reg[idata->modrm.reg]);
+		idata->SetRM32(idata->GetRM32() + emu->reg[idata->modrm.reg].reg32);
 	}
 	void cmp_r32_rm32(){
-		uint32_t r32  = emu->reg[idata->modrm.reg];
+		uint32_t r32  = emu->reg[idata->modrm.reg].reg32;
 		uint32_t rm32 = idata->GetRM32();
 		uint64_t res  = (uint64_t)r32 - (uint64_t)rm32;
 		emu->eflags.UpdateSub(r32, rm32, res);
 	}
 	void inc_r32(){
 		uint8_t r = emu->GetCode8(0) - 0x40;
-		emu->reg[r]++;
+		emu->reg[r].reg32++;
 		EIP++;
 	}
 	void push_r32(){
-		emu->push32(emu->reg[emu->GetCode8(0)-0x50]);
+		emu->push32(emu->reg[emu->GetCode8(0)-0x50].reg32);
 		EIP++;
 	}
 	void pop_r32(){
-		emu->reg[emu->GetCode8(0) - 0x58] = emu->pop32();
+		emu->reg[emu->GetCode8(0) - 0x58].reg32 = emu->pop32();
 		EIP++;
 	}
 	void code_83(){
@@ -64,14 +64,14 @@ private:
 //			idata->SetRM32(idata->GetRM32() - (int32_t)emu->GetSignCode8(-1));
 		}
 	void mov_rm32_r32(){
-		idata->SetRM32(emu->reg[idata->modrm.reg]);
+		idata->SetRM32(emu->reg[idata->modrm.reg].reg32);
 	}
 	void mov_r32_rm32(){
 		DOUT("mov_r32_rm32 "<<std::hex<<idata->GetRM32()<<std::endl);
-		emu->reg[idata->modrm.reg] = idata->GetRM32();
+		emu->reg[idata->modrm.reg].reg32 = idata->GetRM32();
 	}
 	void mov_r32_imm32(){
-		emu->reg[emu->GetCode8(0) - 0xB8] = emu->GetCode32(1);
+		emu->reg[emu->GetCode8(0) - 0xB8].reg32 = emu->GetCode32(1);
 		EIP+=5;
 	}
 	void ret32(){

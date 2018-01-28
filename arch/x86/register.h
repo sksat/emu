@@ -6,38 +6,61 @@
 #include "../../register_base.h"
 
 namespace x86 {
-/*
-class Register : public ::RegisterBase {
+
+class Register32 : public ::RegisterBase {
 public:
-	Register() : RegisterBase(sizeof(uint32_t)) {}
-	explicit Register(uint8_t r) : RegisterBase(sizeof(uint8_t)), low8(r) {}
-	explicit Register(uint16_t r): RegisterBase(sizeof(uint16_t)), reg16(r){}
-	explicit Register(uint32_t r): RegisterBase(sizeof(uint32_t)), reg32(r){}
+	Register32() : ::RegisterBase(sizeof(uint32_t)), reg32(0x00) {}
+	explicit Register32(uint32_t val) : ::RegisterBase(sizeof(uint32_t)), reg32(val) {}
+	union {
+		uint32_t reg32;
+		struct {
+			union {
+				uint16_t reg16;
+				uint16_t low16;
+				struct {
+					union {
+						uint8_t reg8;
+						uint8_t low8;
+					};
+					uint8_t high8;
+				};
+			};
+			uint16_t high16;
+		};
+	};
+
+//	inline operator uint32_t () { return reg32; }
+//	inline operator uint16_t () { return reg16; }
+//	inline operator uint8_t  () { return reg8;  }
+
+	inline Register32& operator=(const uint32_t val){ reg32 = val; return *this; }
 
 	const std::string GetDataByString(){
 		std::stringstream ss;
-		ss<<"0x"<<std::hex<<std::setw(4)<<std::setfill('0')<<reg32;
-		return ss.str();
+		ss << "0x"
+			<< std::hex << std::setw(8) << std::setfill('0')
+			<< static_cast<uint32_t>(reg32);
+			return ss.str();
 	}
-
-	operator uint8_t () { return low8;			}
-	operator int8_t  () { return (int8_t)low8;	}
-	operator uint16_t() { return reg16;			}
-	operator int16_t () { return (int16_t)reg16;}
-	operator uint32_t() { return reg32;			}
-	operator int32_t () { return (int32_t)reg32;}
-
-	union {
-		uint32_t reg32;
-		uint16_t reg16;
-		struct {
-			uint8_t low8;
-			uint8_t high8;
-		};
-	};
 };
-*/
 
+class SRegister : public ::RegisterBase {
+public:
+	SRegister() : ::RegisterBase(sizeof(uint16_t)), reg16(0x00) {}
+	uint16_t reg16;
+
+	inline SRegister& operator=(const uint16_t val){ reg16 = val; return *this; }
+
+	const std::string GetDataByString(){
+		std::stringstream ss;
+		ss << "0x"
+			<< std::hex << std::setw(4) << std::setfill('0')
+			<< static_cast<uint32_t>(reg16);
+			return ss.str();
+	}
+};
+
+/*
 class Register8 : public ::RegisterBase {
 public:
 	Register8() : ::RegisterBase(sizeof(uint8_t)), reg8(0x00) {}
@@ -193,6 +216,8 @@ protected:
 	uint16_t high16;
 };
 
+*/
+
 class Eflags : public ::RegisterBase {
 public:
 	struct {
@@ -309,9 +334,10 @@ public:
 	}
 };
 
+/*
 template<typename T>
-uint32_t operator+(Register32 reg32, T val){
-	return reg32.Get32() + val;
+uint32_t operator+(const Register32 &reg, const T &val){
+	return reg.reg32. + val;
 }
 
 template<typename T>
@@ -328,7 +354,7 @@ template<typename T>
 uint32_t operator-(T val, Register32 reg32){
 	return val - reg32.Get32();
 }
-
+*/
 
 }
 

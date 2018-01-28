@@ -173,18 +173,18 @@ get_disp32:
 					case 0b101:
 						return disp32;
 					default:
-						return emu->reg[RM];
+						return emu->reg[RM].reg32;
 				}
 			case 0b01:
 				if(RM == 0b100) // SIB
 					break;
 				else
-					return emu->reg[RM] + disp8;
+					return emu->reg[RM].reg32 + disp8;
 			case 0b10:
 				if(RM == 0b100) // SIB
 					break;
 				else
-					return emu->reg[modrm.rm] + disp32;
+					return emu->reg[RM].reg32 + disp32;
 			case 0b11:
 				break;
 		}
@@ -196,44 +196,44 @@ get_disp32:
 
 	// get register
 	inline uint8_t GetR8(){
-		return emu->reg[modrm.reg];
+		return emu->reg[modrm.reg].reg8;
 	}
 	inline uint16_t GetR16(){
-		return emu->reg[modrm.reg];
+		return emu->reg[modrm.reg].reg16;
 	}
 	inline uint32_t GetR32(){
-		return emu->reg[modrm.reg];
+		return emu->reg[modrm.reg].reg32;
 	}
 
 	// set register
 	inline void SetR8(uint8_t val){
-		emu->reg[modrm.reg] = val;
+		emu->reg[modrm.reg].reg8 = val;
 	}
 	inline void SetR16(uint16_t val){
-		emu->reg[modrm.reg] = val;
+		emu->reg[modrm.reg].reg16 = val;
 	}
 	inline void SetR32(uint32_t val){
-		emu->reg[modrm.reg] = val;
+		emu->reg[modrm.reg].reg32 = val;
 	}
 
 	// get rm
 	inline uint8_t GetRM8(){
 		if(MOD == 3)
-			return emu->reg[RM];
+			return emu->reg[RM].reg8;
 		auto addr = CalcMemAddr();
 		DOUT("GetRM8: addr=0x"<<std::hex<<addr);
 		return emu->memory->GetData8(addr);
 	}
 	inline uint16_t GetRM16(){
 		if(MOD == 3)
-			return emu->reg[RM];
+			return emu->reg[RM].reg16;
 		auto addr = CalcMemAddr();
 		DOUT("GetRM16: addr=0x"<<std::hex<<addr);
 		return emu->memory->GetData16(addr);
 	}
 	inline uint32_t GetRM32(){
 		if(MOD == 3)
-			return emu->reg[RM];
+			return emu->reg[RM].reg32;
 		auto addr = CalcMemAddr();
 		DOUT("GetRM32: addr=0x"<<std::hex<<addr);
 		return emu->memory->GetData32(addr);
@@ -242,7 +242,7 @@ get_disp32:
 	// set rm
 	inline void SetRM8(uint8_t val){
 		if(MOD == 3){
-			emu->reg[RM] = val;
+			emu->reg[RM].reg8 = val;
 			DOUT("SetRM8: "<<emu->reg[RM].GetName()
 					<<" = 0x"<<std::hex<<static_cast<uint32_t>(val)<<std::endl);
 			return;
@@ -254,7 +254,7 @@ get_disp32:
 	}
 	inline void SetRM16(uint16_t val){
 		if(MOD == 3){
-			emu->reg[RM] = val;
+			emu->reg[RM].reg16 = val;
 			DOUT("SetRM16: "<<emu->reg[RM].GetName()<<" = 0x"<<std::hex<<val<<std::endl);
 			return;
 		}
@@ -265,7 +265,7 @@ get_disp32:
 	}
 	inline void SetRM32(uint32_t val){
 		if(modrm.mod == 3){
-			emu->reg[RM] = val;
+			emu->reg[RM].reg32 = val;
 			DOUT("SetRM32: reg="<<emu->reg[RM].GetName()<<" val="<<std::hex<<val<<std::endl);
 			return;
 		}
