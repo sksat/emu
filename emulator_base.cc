@@ -33,14 +33,15 @@ void EmulatorBase::Dump(){
 
 void EmulatorBase::DumpRegisters(){
 	std::cout
+		<< std::endl
 		<< "---- dump registers ----"
 		<< std::endl;
-	for(auto i=0;i<all_reg.size();i++){
+	for(size_t i=0;i<all_reg.size();i++){
 		if(all_reg[i] == nullptr)
 			throw "error";
 		std::cout
 			<< all_reg[i]->GetName()
-			<< " : "
+			<< "\t: "
 //			<< "0x"
 		//	<< std::showbase	// <- if 0, dosen't work
 //			<< std::hex

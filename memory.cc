@@ -6,21 +6,18 @@
 using namespace std;
 
 Memory::Memory():size(0x00){
-	mem = nullptr;
 	virt_flg = false;
 }
 
-Memory::~Memory(){
-	delete[] mem;
-}
+Memory::~Memory(){}
 
-void Memory::Init(int s){
-	this->size = s;
-//	if(mem == nullptr)
-//		delete[] mem;
-	mem = new uint8_t[s];
+void Memory::Init(int size){
+	this->size = size;
+	if(mem.size() == 0)
+		mem.clear();
+	mem.resize(size);
 	virt_flg = false;
-	minfo = std::vector<MapInfo>();
+	minfo.clear();
 	return;
 }
 
@@ -55,11 +52,17 @@ uint8_t Memory::GetData8(uint32_t addr) {
 	return ret;
 }
 
-uint32_t Memory::GetData32Little(uint32_t addr){
-	uint32_t ret = 0;
-	for(int i=0;i<4;i++){
+uint16_t Memory::GetData16Little(uint32_t addr){
+	uint32_t ret = 0x00;
+	for(auto i=0;i<2;i++)
 		ret |= GetData8(addr + i) << (i*8);
-	}
+	return ret;
+}
+
+uint32_t Memory::GetData32Little(uint32_t addr){
+	uint32_t ret = 0x00;
+	for(int i=0;i<4;i++)
+		ret |= GetData8(addr + i) << (i*8);
 	return ret;
 }
 
@@ -72,6 +75,11 @@ uint32_t Memory::operator[](uint32_t addr){
 	}
 }
 */
+
+void Memory::SetData16Little(uint32_t addr, uint16_t val){
+	for(auto i=0;i<2;i++)
+		SetData8(addr+i, val>>(i*8));
+}
 
 void Memory::SetData32Little(uint32_t addr, uint32_t val){
 	for(int i=0;i<4;i++)
@@ -101,10 +109,12 @@ void Memory::MapMemory(uint8_t *mem, uint32_t addr, unsigned int size){
 
 void Memory::LoadBinary(FILE *fp, uint32_t addr, size_t size){
 	if(fp == nullptr) throw "FILE* is nullptr";
-	fread(mem + addr, 1, size, fp);
+//	fread(mem + addr, 1, size, fp);
+	cout<<"fread: "<<"size: "<<size<<std::endl;
+	fread(&mem[addr], sizeof(uint8_t), size, fp);
 }
 
-void Memory::LoadBinary(const char *fname, uint32_t addr, unsigned int size){
+void Memory::LoadBinary(const char *fname, uint32_t addr, size_t size){
 	FILE *fp;
 
 //	uint8_t test = this->operator[](addr+size);
@@ -118,11 +128,11 @@ void Memory::LoadBinary(const char *fname, uint32_t addr, unsigned int size){
 }
 
 void Memory::Dump(const char *fname, uint32_t addr, unsigned int size){
-	uint8_t test = this->operator[](addr+size);
+//	uint8_t test = this->operator[](addr+size);
 	FILE *fp;
 	fp = fopen(fname, "wb");
 	if(fp == NULL) throw "memory: Dump: can't open file.";
-	fwrite(mem+addr, sizeof(uint8_t), size, fp);
+	fwrite(&mem[addr], sizeof(uint8_t), size, fp);
 	fclose(fp);
 }
 

@@ -6,30 +6,29 @@ OBJS	+= font/font.o
 #OBJS	+= gui/gui.a
 OBJS	+= arch/arch.a
 
-include common.mk
-
 LDFLAGS	+= -pthread -lglfw -lGL
 
 EMU_BIN	:= helloos.img
 RUNFLAGS:= --arch x86 --junk-bios --memory-size 1 --fda sample/$(EMU_BIN)
 
-export
-
 default:
 	make $(TARGET)
+
+include common.mk
+export
 
 run: $(TARGET) sample/$(EMU_BIN)
 	make
 	./$(TARGET) $(RUNFLAGS)
 
-clean :
+clean : _clean
 	make -C gui clean
 	#make -C shell clean
 	make -C font clean
 	make -C device clean
 	make -C sample clean
 	make -C arch clean
-	rm -f $(TARGET) $(OBJS)
+	rm -f $(TARGET)
 
 full :
 	make clean
@@ -42,20 +41,20 @@ full_run :
 $(TARGET) : $(OBJS)
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
-sample/$(EMU_BIN):
+sample/$(EMU_BIN): DUMMY
 	make -C sample $(EMU_BIN)
 
-device/device.a:
+device/device.a: DUMMY
 	make -C device
 
-font/font.o:
+font/font.o: DUMMY
 	make -C font
 
-shell/shell.a:
+shell/shell.a: DUMMY
 	make -C shell
 
-gui/gui.a:
+gui/gui.a: DUMMY
 	make -C gui
 
-arch/arch.a:
+arch/arch.a: DUMMY
 	make -C arch

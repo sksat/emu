@@ -22,7 +22,7 @@ bool Font::LoadFile(const char *fname){
 
 	printf("font size: %dx%d\n", xsize, ysize);
 
-	int size = (xsize * ysize)/8;
+	size_t size = (xsize * ysize)/8;
 
 	char *tmp;
 	tmp = new char[size];
@@ -31,7 +31,7 @@ bool Font::LoadFile(const char *fname){
 	do {
 		if(fread(tmp, size, 1, fp) < 1) break;
 		if(data.size() < size*num) data.reserve(size*num);
-		for(auto i=0;i<(size);i++){
+		for(size_t i=0;i<(size);i++){
 			data[num*(size) + i] = tmp[i];
 		}
 		num++;

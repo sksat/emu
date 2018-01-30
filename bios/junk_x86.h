@@ -7,6 +7,8 @@
 #include "../arch/x86/emulator.h"
 #include "../device/floppy.h"
 
+// http://oswiki.osask.jp/?(AT)BIOS
+
 namespace BIOS {
 namespace Junk {
 
@@ -24,8 +26,8 @@ public:
 
 		LoadIPL();
 
-		emu->EIP = 0x7c00;
-		emu->ESP = 0x7c00;
+		EIP = 0x7c00;
+		ESP = 0x7c00;
 	}
 
 	Device::Base* GetBootDevice(){
@@ -44,6 +46,42 @@ public:
 			f->Load(emu->memory, 0x7c00, 256);
 		}else{
 			throw "unknown bootable device.";
+		}
+	}
+
+	void Function(size_t num){
+		DOUT("\n\tBIOS function called: num = 0x"<<std::hex<<num<<std::endl);
+		switch(num){
+		case 0x10:
+			video_func();
+			break;
+		default:
+			throw "not implemented: BIOS function";
+			break;
+		}
+	}
+
+	void video_func(){
+		DOUT("\tvideo function  ");
+		DOUT("AH = 0x"<<std::hex<<static_cast<uint32_t>(AH)<<std::endl);
+		switch(AH){
+		case 0x00:
+			std::cerr<<"warning: not implemented video mode"<<std::endl;
+			break;
+		case 0x0e:
+			std::cout
+#ifdef DEBUG
+			<<"BIOS function putchar: ";
+#endif
+			<<AL
+#ifdef DEBUG
+			<<std::endl
+#endif
+			;
+			break;
+		default:
+			throw "not implemented: video_func(junk BIOS)";
+			break;
 		}
 	}
 private:

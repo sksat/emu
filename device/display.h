@@ -21,8 +21,8 @@ public:
 
 	void MemoryMappedProc(Memory *memory, uint32_t addr){ throw "display: MemoryMappedProc"; }
 
-	void ChangeMode(unsigned int scrnx, unsigned int scrny, bool txtmode_flg);
-	void ChangeMode(unsigned int scrnx, unsigned int scrny){ ChangeMode(scrnx, scrny, txtmode_flg); }
+	void ChangeMode(size_t scrnx, size_t scrny, bool txtmode_flg);
+	void ChangeMode(size_t scrnx, size_t scrny){ ChangeMode(scrnx, scrny, txtmode_flg); }
 
 	unsigned char* GetImage(){ return img; }
 	void FlushImage();
@@ -34,11 +34,11 @@ private:
 	bool txtmode_flg;
 	unsigned char pallete[0xff * 3]; // パレット
 	unsigned char *img;		// ウィンドウに実際に渡すイメージ
-	unsigned int scrnx, scrny;	// 縦、横サイズ
+	size_t scrnx, scrny;	// 縦、横サイズ
 
 	// text mode
 	char *font;
-	unsigned int font_xsiz, font_ysiz;
+	size_t font_xsiz, font_ysiz;
 };
 
 }

@@ -7,8 +7,8 @@
 
 #include "debug.h"
 
-#define KB	1024
-#define MB	(1024 * KB)
-#define GB	(1024 * MB)
+const int KB = 1024;
+const int MB = (1024 * KB);
+const int GB = (1024 * MB);
 
 #endif

@@ -1,4 +1,26 @@
-特権レベル(IA32_Arch_Dev Vol1 p169)
+# レジスタ
+- 汎用データレジスタ
+- セグメント・レジスタ
+- EFLAGS
+
+## 汎用データ・レジスタ
+
+* Vol2A 3.1.1.1
+| 番号 | 8bit | 16bit | 32bit |
+|------|------|-------|-------|
+|0|AL|AX|EAX|
+|1|CL|CX|ECX|
+|2|DL|DX|EDX|
+|3|BL|BX|EBX|
+|4|AH|SP|ESP|
+|5|CH|BP|EBP|
+|6|DH|SI|ESI|
+|7|BH|DI|EDI|
+
+## セグメント・レジスタ
+
+
+特権レベル(IA32 Arch Dev Vol1 p169)
 Level 0		OS Kernel
 Level 1		OS Service (ex: device driver)
 Level 2		OS Service (ex: device driver)

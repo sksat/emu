@@ -1,5 +1,7 @@
 #include "instruction32.h"
 
+#define SETINSN(op,func,flg) {insn[op] = (insnfunc_t)&x86::Instruction32::func; insn_flgs[op] = flg;}
+
 namespace x86 {
 
 void Instruction32::Init(){
@@ -23,10 +25,6 @@ void Instruction32::Init(){
 	SETINSN(0xC9, leave32,				0);
 	SETINSN(0xE8, call_rel32,			0);
 	SETINSN(0xFF, code_ff,				1);
-}
-
-void Instruction32::Parse(){
-	Instruction::Parse();
 }
 
 };

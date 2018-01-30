@@ -13,7 +13,7 @@
 class EmulatorBase {
 public:
 	EmulatorBase();
-	~EmulatorBase();
+	virtual ~EmulatorBase(); // 継承前提のクラスのデストラクタはvirtual
 	void Init();
 	void SetBios(BIOS::Base *bios);
 	virtual void InitInstructions() = 0;
