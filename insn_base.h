@@ -1,6 +1,7 @@
 #ifndef INSN_BASE_H_
 #define INSN_BASE_H_
 
+#include <string>
 #include <vector>
 #include "common.h"
 
