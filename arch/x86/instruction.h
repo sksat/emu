@@ -76,7 +76,7 @@ void jn ## flag(){ \
 
 	void int_imm8(){
 		DOUT(std::endl<<"\tint "<<static_cast<uint32_t>(idata->imm8));
-		emu->bios->Function(idata->imm8);
+		emu->bios->Function(static_cast<int>(idata->imm8));
 	}
 
 	void short_jump(){

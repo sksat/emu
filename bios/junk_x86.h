@@ -7,6 +7,8 @@
 #include "../arch/x86/emulator.h"
 #include "../device/floppy.h"
 
+// http://oswiki.osask.jp/?(AT)BIOS
+
 namespace BIOS {
 namespace Junk {
 
@@ -48,8 +50,31 @@ public:
 	}
 
 	void Function(size_t num){
-		std::cout<<"\n\tBIOS function called: num="<<static_cast<int>(num)<<std::endl;
-		throw "not implemented: BIOS function";
+		DOUT("\n\tBIOS function called: num = 0x"<<std::hex<<num<<std::endl);
+		switch(num){
+		case 0x10:
+			video_func();
+			break;
+		default:
+			throw "not implemented: BIOS function";
+			break;
+		}
+	}
+
+	void video_func(){
+		DOUT("\tvideo function  ");
+		DOUT("AH = 0x"<<std::hex<<static_cast<uint32_t>(AH)<<std::endl);
+		switch(AH){
+		case 0x00:
+			std::cerr<<"warning: not implemented video mode"<<std::endl;
+			break;
+		case 0x0e:
+			std::cout<<"BIOS function putchar: "<<AL<<std::endl;
+			break;
+		default:
+			throw "not implemented: video_func(junk BIOS)";
+			break;
+		}
 	}
 private:
 	::x86::Emulator *emu;
