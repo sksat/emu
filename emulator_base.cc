@@ -33,6 +33,7 @@ void EmulatorBase::Dump(){
 
 void EmulatorBase::DumpRegisters(){
 	std::cout
+		<< std::endl
 		<< "---- dump registers ----"
 		<< std::endl;
 	for(size_t i=0;i<all_reg.size();i++){

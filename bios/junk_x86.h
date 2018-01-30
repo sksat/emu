@@ -69,7 +69,15 @@ public:
 			std::cerr<<"warning: not implemented video mode"<<std::endl;
 			break;
 		case 0x0e:
-			std::cout<<"BIOS function putchar: "<<AL<<std::endl;
+			std::cout
+#ifdef DEBUG
+			<<"BIOS function putchar: ";
+#endif
+			<<AL
+#ifdef DEBUG
+			<<std::endl
+#endif
+			;
 			break;
 		default:
 			throw "not implemented: video_func(junk BIOS)";

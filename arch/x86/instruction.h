@@ -82,6 +82,11 @@ void jn ## flag(){ \
 	void short_jump(){
 		IP += static_cast<uint16_t>(idata->imm8);
 	}
+
+	void hlt(){
+		DOUT("hlt"<<std::endl);
+		emu->finish_flg = true;
+	}
 };
 
 };
