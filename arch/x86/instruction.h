@@ -69,6 +69,16 @@ void jn ## flag(){ \
 		EIP += (diff + 4);
 	}
 */
+	void mov_r8_imm8(){
+		uint8_t reg8 = idata->opcode - 0xb0;
+		SET_REG8(reg8, idata->imm8);
+	}
+
+	void int_imm8(){
+		DOUT(std::endl<<"\tint "<<static_cast<uint32_t>(idata->imm8));
+		emu->bios->Function(idata->imm8);
+	}
+
 	void short_jump(){
 		IP += static_cast<uint16_t>(idata->imm8);
 	}

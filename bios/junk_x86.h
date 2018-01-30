@@ -46,6 +46,11 @@ public:
 			throw "unknown bootable device.";
 		}
 	}
+
+	void Function(size_t num){
+		std::cout<<"\n\tBIOS function called: num="<<static_cast<int>(num)<<std::endl;
+		throw "not implemented: BIOS function";
+	}
 private:
 	::x86::Emulator *emu;
 };
