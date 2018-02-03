@@ -13,8 +13,7 @@ Display::Display() : memory(nullptr), img(nullptr), scrnx(default_scrnx), scrny(
 }
 
 Display::~Display(){
-	if(img == nullptr) throw;
-	delete[] img;
+	if(img != nullptr) delete[] img;
 }
 
 void Display::Init(){
@@ -49,7 +48,7 @@ void Display::ChangeMode(size_t scrnx, size_t scrny, bool txtmode_flg){
 
 #define POS(x, y) (((y)*scrnx + x)*3)
 #define SET_RGB(x, y, r, g, b) { img[POS(x,y)]=r; img[POS(x,y)+1]=g; img[POS(x,y)+2]=b; }
-#define FONT_DATA(c,y) (font[c*font_ysiz + y+4])
+#define FONT_DATA(c,y) (font[c*font_ysiz + y+5])
 #define GET_VRAM(addr) (memory->GetData8(vram_start+addr))
 #define SET_VRAM(addr, val) { memory->SetData8(vram_start+addr, val); }
 
