@@ -6,6 +6,7 @@
 #include "junk_base.h"
 #include "../arch/x86/emulator.h"
 #include "../device/floppy.h"
+#include "../device/display.h"
 
 // http://oswiki.osask.jp/?(AT)BIOS
 
@@ -19,6 +20,8 @@ public:
 			throw "emulator is not for x86";
 		emu = dynamic_cast<::x86::Emulator*>(e);
 	}
+
+	void SetDisplay(Device::Display &disp){ this->disp = &disp; }
 
 	void Boot() {
 		using namespace std;
@@ -78,6 +81,8 @@ public:
 			<<std::endl
 #endif
 			;
+			if(disp == nullptr) throw "BIOS: Display is null";
+			disp->Print(static_cast<char>(AL));
 			break;
 		default:
 			throw "not implemented: video_func(junk BIOS)";
@@ -86,6 +91,7 @@ public:
 	}
 private:
 	::x86::Emulator *emu;
+	Device::Display *disp;
 };
 
 }

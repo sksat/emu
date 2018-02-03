@@ -30,6 +30,8 @@ public:
 
 	void PutFont(size_t x, size_t y, char c, uint8_t r, uint8_t g, uint8_t b);
 	void PutFont(size_t x, size_t y, char c){ PutFont(x, y, c, 0xff, 0xff, 0xff); }
+
+	void Print(char c);
 	void Print(const std::string &str);
 
 	void TestDraw();
@@ -51,6 +53,7 @@ private:
 	// text mode
 	std::vector<uint8_t> font;
 	size_t font_xsiz, font_ysiz;
+	size_t print_x=0, print_y=0;
 };
 
 }

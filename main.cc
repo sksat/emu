@@ -82,6 +82,7 @@ try{
 		disp.RegisterVRAM(emu->memory, 0xa0000, 0xffff);
 //		disp.TestDraw();
 		emu->ConnectDevice(disp);
+		if(set.junk_bios) emu->bios->SetDisplay(disp);
 
 		gui = std::make_unique<Gui>();
 		gui->onExit = [&](){ emu->finish_flg = true; };

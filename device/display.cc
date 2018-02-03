@@ -13,7 +13,8 @@ Display::Display() : memory(nullptr), img(nullptr), scrnx(default_scrnx), scrny(
 }
 
 Display::~Display(){
-	if(img != nullptr) delete[] img;
+	if(img == nullptr) throw;
+	delete[] img;
 }
 
 void Display::Init(){
@@ -91,31 +92,33 @@ void Display::PutFont(size_t x, size_t y, char c, uint8_t r, uint8_t g, uint8_t 
 	}
 }
 
+
+void Display::Print(char c){
+	switch(c){
+	case '\n':
+		print_x = 0;
+		print_y += font_ysiz;
+		return;
+	case '\t':
+		print_x += 4*font_xsiz;
+		return;
+	default:
+		PutFont(print_x, print_y, c);
+		break;
+	}
+
+	print_x += font_xsiz;
+	if(print_x > scrnx){
+		print_x = 0;
+		print_y += font_ysiz;
+	}
+	if(print_y > scrny) print_y = 0;
+}
+
 void Display::Print(const std::string &str){
-	static size_t x = 0;
-	static size_t y = 0;
-	std::cout<<"x:"<<x<<" y:"<<y<<std::endl;
 	for(size_t i=0;i<str.size();i++){
 		char c = str[i];
-		switch(c){
-		case '\n':
-			x = 0;
-			y += font_ysiz;
-			continue;
-		case '\t':
-			x += 4*font_xsiz;
-			continue;
-		default:
-			PutFont(x, y, c);
-			break;
-		}
-
-		x += font_xsiz;
-		if(x > scrnx){
-			x = 0;
-			y += font_ysiz;
-		}
-		if(y > scrny) y = 0;
+		Print(c);
 	}
 }
 
