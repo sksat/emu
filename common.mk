@@ -4,11 +4,11 @@ GIT_COMMIT_DATE:= $(shell git log -1 --format='%ad')
 CC	:= gcc
 CXX	:= g++
 
-INCFLAGS = -I./libsksat
-LDFLAGS  = 
+INCFLAGS += -I./libsksat
+LDFLAGS  += 
 
-CFLAGS   = $(INCFLAGS) -MD -Wall -g
-CXXFLAGS = $(INCFLAGS) -MD -std=c++14 -Wall -g
+CFLAGS   += $(INCFLAGS) -MD -Wall -g
+CXXFLAGS += $(INCFLAGS) -MD -std=c++14 -Wall -g
 CXXFLAGS += -DGIT_COMMIT_ID="\"$(GIT_COMMIT_ID)\"" -DGIT_COMMIT_DATE="\"$(GIT_COMMIT_DATE)\""
 #CXXFLAGS += -DDEBUG
 CXXFLAGS += -DNO_DEBUG

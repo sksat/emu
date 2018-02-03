@@ -20,7 +20,7 @@ public:
 	}
 
 	void InitDevName(){
-		dev_name = (const char*)"floppy";
+		name = "floppy";
 	}
 
 	void SetFile(const char *fname){

@@ -6,9 +6,9 @@
 #define DEFAULT_SCRNX	320
 #define DEFAULT_SCRNY	200
 
-#define hankaku _binary_hankaku_bin_start 
+//#define hankaku _binary_hankaku_bin_start 
 
-extern char hankaku[4096];	// /font/hankaku.txt フォントのバイナリをロードするべき
+//extern char hankaku[4096];	// /font/hankaku.txt フォントのバイナリをロードするべき
 
 namespace Device {
 
@@ -18,6 +18,7 @@ public:
 	~Display();
 
 	void Init();
+	void InitDevName(){ name = "display"; }
 
 	void MemoryMappedProc(Memory *memory, uint32_t addr){ throw "display: MemoryMappedProc"; }
 

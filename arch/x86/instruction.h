@@ -85,6 +85,7 @@ void jn ## flag(){ \
 
 	void hlt(){
 		DOUT("hlt"<<std::endl);
+	//	for(;;){}
 		emu->finish_flg = true;
 	}
 };

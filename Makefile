@@ -4,12 +4,13 @@ OBJS	+= device/device.a
 OBJS	+= font/font.o
 #OBJS	+= shell/shell.a
 #OBJS	+= gui/gui.a
+OBJS	+= gui.o
 OBJS	+= arch/arch.a
 
 LDFLAGS	+= -pthread -lglfw -lGL
 
 EMU_BIN	:= helloos.img
-RUNFLAGS:= --arch x86 --junk-bios --memory-size 1 --fda sample/$(EMU_BIN)
+RUNFLAGS:= --arch x86 --junk-bios --memory-size 1 --gui --fda sample/$(EMU_BIN)
 
 default:
 	make $(TARGET)

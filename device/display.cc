@@ -13,7 +13,7 @@ Display::~Display(){
 
 void Display::Init(){
 	txtmode_flg = true;
-	font = hankaku;
+//	font = hankaku;
 	font_xsiz = 8;
 	font_ysiz = 16;
 	ChangeMode(DEFAULT_SCRNX, DEFAULT_SCRNY);

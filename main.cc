@@ -3,6 +3,7 @@
 #include <chrono>
 #include <sksat/cmdline.hpp> // https://github.com/sk2sat/libsksat
 #include "emulator.h"
+#include "gui.h"
 
 EmulatorCtrl::Setting set;
 EmulatorCtrl emuctrl;
@@ -22,6 +23,7 @@ try{
 	o.add_opt(arch_str, 'a', "arch", "architecture");
 	o.add_opt(set.junk_bios, "junk-bios", "enable junk BIOS");
 	o.add_opt(set.memsize, 'm', "memory-size", "memory size(MB)");
+	o.add_opt(set.gui, "gui", "with GUI");
 	o.add_opt(fda_file, "fda", "floppy disk image file");
 
 	if(!o.parse(argc, argv)){
@@ -69,6 +71,14 @@ try{
 			break;
 		}
 		emu->bios->Boot();
+	}
+
+	std::unique_ptr<Gui> gui;
+	Device::Display disp;
+	if(set.gui){
+		emu->ConnectDevice(disp);
+		gui = std::make_unique<Gui>();
+		gui->Start(disp);
 	}
 
 	cout<<"emulation start"<<endl;
