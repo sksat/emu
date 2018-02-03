@@ -21,10 +21,18 @@ public:
 	virtual void InitMemory() = 0;
 
 	virtual void ConnectDevice(Device::Base &dev);
+
+	virtual void Run(){
+		while(!finish_flg){
+			if(!halt_flg) insn->ExecStep();
+		}
+	}
+
 	virtual void Dump();
 	virtual void DumpRegisters();
 	virtual void DumpMemory();
 
+	bool halt_flg	= false;
 	bool finish_flg = false;
 
 	InstructionBase *insn;

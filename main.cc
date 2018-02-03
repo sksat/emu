@@ -78,6 +78,7 @@ try{
 	if(set.gui){
 		emu->ConnectDevice(disp);
 		gui = std::make_unique<Gui>();
+		gui->onExit = [&](){ emu->finish_flg = true; };
 		gui->Start(disp);
 	}
 
@@ -85,13 +86,12 @@ try{
 
 	auto start = std::chrono::system_clock::now();
 
-	while(!emu->finish_flg){
-		emu->insn->ExecStep();
-	}
+	emu->Run();
 
 	auto end = std::chrono::system_clock::now();
 
 	emu->Dump();
+	if(set.gui) gui->End();
 
 	std::cout<<"time: "<<(double)std::chrono::duration_cast<std::chrono::seconds>(end - start).count()<<"s"<<std::endl;
 

@@ -19,7 +19,8 @@ void Gui::Start(){
 
 void Gui::End(){
 	flg = false;
-	th.join();
+	if(th.joinable())
+		th.join();
 }
 
 void Gui::proc(){
@@ -37,4 +38,5 @@ void Gui::proc(){
 	}
 
 	glfwDestroyWindow(win);
+	onExit();
 }

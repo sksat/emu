@@ -2,6 +2,7 @@
 #define GUI_H_
 
 #include <thread>
+#include <functional>
 #include "device/display.h"
 
 class Gui {
@@ -17,6 +18,8 @@ public:
 		Start();
 	}
 	void End();
+
+	std::function<void(void)> onExit;
 private:
 	void proc();
 	bool flg;
