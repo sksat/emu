@@ -25,6 +25,7 @@ private:
 	bool flg;
 	std::thread th;
 	Device::Display *disp;
+	std::vector<uint8_t> font;
 };
 
 #endif

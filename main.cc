@@ -19,12 +19,14 @@ try{
 	sksat::optparse o;
 	string arch_str;
 	string fda_file; // A drive (floppy)
+	string font_file = "./font/hankaku.bin";
 
 	o.add_opt(arch_str, 'a', "arch", "architecture");
 	o.add_opt(set.junk_bios, "junk-bios", "enable junk BIOS");
 	o.add_opt(set.memsize, 'm', "memory-size", "memory size(MB)");
 	o.add_opt(set.gui, "gui", "with GUI");
 	o.add_opt(fda_file, "fda", "floppy disk image file");
+	o.add_opt(font_file, "font", "font file");
 
 	if(!o.parse(argc, argv)){
 		cout	<<"simple x86 emulator by sksat"<<endl
@@ -76,7 +78,10 @@ try{
 	std::unique_ptr<Gui> gui;
 	Device::Display disp;
 	if(set.gui){
+//		disp.TestDraw();
+		disp.LoadFont(font_file);
 		emu->ConnectDevice(disp);
+
 		gui = std::make_unique<Gui>();
 		gui->onExit = [&](){ emu->finish_flg = true; };
 		gui->Start(disp);

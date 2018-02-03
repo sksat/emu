@@ -1,8 +1,10 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <fstream>
+#include <iterator>
 #include "gui.h"
 
-Gui::Gui(){
+Gui::Gui() : disp(nullptr) {
 	Init();
 }
 
@@ -25,13 +27,24 @@ void Gui::End(){
 
 void Gui::proc(){
 	GLFWwindow *win;
+
 	glfwInit();
-	win = glfwCreateWindow(100, 100, "emulator", nullptr, nullptr);
+
+	if(disp == nullptr) throw "display is null";
+	win = glfwCreateWindow(disp->GetSizeX(), disp->GetSizeY(), "emulator", nullptr, nullptr);
+
 	glfwMakeContextCurrent(win);
+
 	glPixelZoom(1,-1);
 	glRasterPos2f(-1,1);
+
 	while(!glfwWindowShouldClose(win) && flg){
 		glClear(GL_COLOR_BUFFER_BIT);
+
+//		if(disp != nullptr){
+			disp->FlushImage();
+			glDrawPixels(disp->GetSizeX(), disp->GetSizeY(), GL_RGB, GL_UNSIGNED_BYTE, disp->GetImage());
+//		}
 
 		glfwSwapBuffers(win);
 		glfwWaitEvents();
