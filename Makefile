@@ -23,7 +23,7 @@ run: $(TARGET) sample/$(EMU_BIN)
 	./$(TARGET) $(RUNFLAGS)
 
 clean : _clean
-	make -C gui clean
+	#make -C gui clean
 	#make -C shell clean
 	make -C font clean
 	make -C device clean

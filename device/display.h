@@ -14,6 +14,11 @@ public:
 	void InitDevName(){ name = "display"; }
 
 	void LoadFont(const std::string &fname);
+	void RegisterVRAM(Memory *mem, const uint32_t addr, const uint32_t size){
+		this->memory = mem;
+		vram_start = addr;
+		vram_size = size;
+	}
 
 	void MemoryMappedProc(Memory *memory, uint32_t addr){ throw "display: MemoryMappedProc"; }
 
@@ -23,6 +28,10 @@ public:
 	unsigned char* GetImage(){ return img; }
 	void FlushImage();
 
+	void PutFont(size_t x, size_t y, char c, uint8_t r, uint8_t g, uint8_t b);
+	void PutFont(size_t x, size_t y, char c){ PutFont(x, y, c, 0xff, 0xff, 0xff); }
+	void Print(const std::string &str);
+
 	void TestDraw();
 
 	size_t GetSizeX() const { return scrnx; }
@@ -30,7 +39,10 @@ public:
 
 	static size_t default_scrnx, default_scrny;
 private:
-	unsigned char vram[0xffff];	// とりあえず0xa0000 ~ 0affff だけ考える
+//	unsigned char vram[0xffff];	// とりあえず0xa0000 ~ 0affff だけ考える
+	Memory* memory;
+	uint32_t vram_start, vram_size;
+
 	bool txtmode_flg;
 	unsigned char pallete[0xff * 3]; // パレット
 	unsigned char *img;		// ウィンドウに実際に渡すイメージ

@@ -7,7 +7,7 @@ using namespace Device;
 size_t Display::default_scrnx = 320;
 size_t Display::default_scrny = 200;
 
-Display::Display() : img(nullptr), scrnx(default_scrnx), scrny(default_scrny) {
+Display::Display() : memory(nullptr), img(nullptr), scrnx(default_scrnx), scrny(default_scrny) {
 	InitDevice();
 	Init();
 }
@@ -46,52 +46,30 @@ void Display::ChangeMode(size_t scrnx, size_t scrny, bool txtmode_flg){
 	this->scrny = scrny;
 }
 
-#define POS(x, y) ((y*scrnx + x)*0x3)
+#define POS(x, y) (((y)*scrnx + x)*3)
 #define SET_RGB(x, y, r, g, b) { img[POS(x,y)]=r; img[POS(x,y)+1]=g; img[POS(x,y)+2]=b; }
 #define FONT_DATA(c,y) (font[c*font_ysiz + y+4])
+#define GET_VRAM(addr) (memory->GetData8(vram_start+addr))
+#define SET_VRAM(addr, val) { memory->SetData8(vram_start+addr, val); }
 
 void Display::FlushImage(){
+	if(memory == nullptr || img == nullptr) throw;
 	if(txtmode_flg){
 		size_t x = 0;
 		size_t y = 0;
-		for(unsigned int i=0;i<0xffff;i++){
-			char c = vram[i]; // 文字
+		for(size_t addr=0x00; addr<(vram_start+vram_size); addr++){
+			char c = GET_VRAM(addr); // 文字
 
 			switch(c){
 			case '\n':
 			case EOF:
 			case '\0':
-				goto not_print;
+				break;
 			default:
-				std::cout<<std::hex<<(uint32_t)c<<":"<<c<<std::endl;
+				PutFont(x, y, c);
 				break;
 			}
 
-			for(size_t fy=0;fy<font_ysiz;fy++){
-				unsigned char d = FONT_DATA(c, fy);
-				uint8_t l = 0x80;
-				for(size_t fx=0;fx<font_xsiz;fx++){
-					if((d & l) != 0x00){
-						SET_RGB(x+fx, y+fy, 0xff, 0xff, 0xff);
-					}
-					l = l / 2;
-				}
-			}
-/*
-			uint8_t *font_data = &font[c*font_ysiz];
-			for(size_t j=0;j<font_ysiz;j++){
-				uint8_t d = font_data[j];
-				unsigned int l = 0x80;
-				for(size_t k=0;k<font_xsiz;k++){
-					if((d & l) != 0){
-						unsigned int addr = x+k+(y+j)*scrnx;
-						img[addr*3] = 0xff;
-					}
-					l = l/2;
-				}
-			}
-*/
-not_print:
 			x += font_xsiz;
 			if(x>scrnx){
 				x = 0;
@@ -100,13 +78,52 @@ not_print:
 			if(y>scrny) break;
 		}
 	}
-	TestDraw();
+}
+
+void Display::PutFont(size_t x, size_t y, char c, uint8_t r, uint8_t g, uint8_t b){
+	for(size_t fy=0;fy<font_ysiz;fy++){
+		unsigned char d = FONT_DATA(c, fy);
+		uint8_t l = 0x80;
+		for(size_t fx=0;fx<font_xsiz;fx++){
+			if((d & l) != 0x00) SET_RGB(x+fx, y+fy, r, g, b);
+			l = l / 2;
+		}
+	}
+}
+
+void Display::Print(const std::string &str){
+	static size_t x = 0;
+	static size_t y = 0;
+	std::cout<<"x:"<<x<<" y:"<<y<<std::endl;
+	for(size_t i=0;i<str.size();i++){
+		char c = str[i];
+		switch(c){
+		case '\n':
+			x = 0;
+			y += font_ysiz;
+			continue;
+		case '\t':
+			x += 4*font_xsiz;
+			continue;
+		default:
+			PutFont(x, y, c);
+			break;
+		}
+
+		x += font_xsiz;
+		if(x > scrnx){
+			x = 0;
+			y += font_ysiz;
+		}
+		if(y > scrny) y = 0;
+	}
 }
 
 void Display::TestDraw(){
-	vram[0] = 'a';
-	vram[1] = 'b';
-	vram[2] = 'c';
+	Print("a\n\nbbbbbbccccc\tddddde\n\tfffggghijklmnopq\nrstuvwxyz!");
+//	SET_VRAM(0, 'a');
+//	SET_VRAM(1, 'b');
+//	SET_VRAM(2, 'c');
 /*
 	for(int y=100;y<=150;y++){
 		for(int x=20;x<=50;x++){

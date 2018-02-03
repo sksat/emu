@@ -78,8 +78,9 @@ try{
 	std::unique_ptr<Gui> gui;
 	Device::Display disp;
 	if(set.gui){
-//		disp.TestDraw();
 		disp.LoadFont(font_file);
+		disp.RegisterVRAM(emu->memory, 0xa0000, 0xffff);
+//		disp.TestDraw();
 		emu->ConnectDevice(disp);
 
 		gui = std::make_unique<Gui>();
