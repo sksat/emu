@@ -1,7 +1,8 @@
-TARGET	= harib27f.img
+TARGET	= helloos.img
 OBJS	= startup.o main.o
 
 HARIB27F_APP = bball
+HARIB_VER    = harib00a
 
 CFLAGS  = -m32
 CFLAGS  += -nostdlib -fno-asynchronous-unwind-tables -g -fno-stack-protector
@@ -21,7 +22,7 @@ default:
 	make $(TARGET)
 
 clean:
-	rm -f $(TARGET) *.o
+	rm -f *.img *.bin *.o
 
 tmp.elf:$(OBJS)
 	ld $(LDFLAGS) $^ -o $@
@@ -39,11 +40,14 @@ haribote-os:
 	cd $@ && ./install.sh
 
 helloos.img:haribote-os
-	cd $</src && ./asm.sh
+	cd $< && git checkout 2-4
+	make -C $</src
 	mv $</src/$@ ./$@
 
 haribote.img: haribote-os
-	cd $< && make
+	cd $< && git checkout refs/tags/$(HARIB_VER)
+	make -C $</src
+	mv $</src/$@ $@
 
 harib27f:z_tools
 	git clone https://github.com/HariboteOS/harib27f.git

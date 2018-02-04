@@ -10,8 +10,11 @@ LDFLAGS  +=
 CFLAGS   += $(INCFLAGS) -MD -Wall -g
 CXXFLAGS += $(INCFLAGS) -MD -std=c++14 -Wall -g
 CXXFLAGS += -DGIT_COMMIT_ID="\"$(GIT_COMMIT_ID)\"" -DGIT_COMMIT_DATE="\"$(GIT_COMMIT_DATE)\""
-#CXXFLAGS += -DDEBUG
-CXXFLAGS += -DNO_DEBUG
+ifeq ($(BUILD_TYPE),Debug)
+	CXXFLAGS += -DDEBUG
+else
+	CXXFLAGS += -DNO_DEBUG
+endif
 
 %.o:%.c $(HEAD)
 	$(CC) -c -o $@ $< $(CFLAGS)

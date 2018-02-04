@@ -9,8 +9,11 @@ OBJS	+= arch/arch.a
 
 LDFLAGS	+= -pthread -lglfw -lGL
 
-EMU_BIN	:= helloos.img
+EMU_BIN	:= haribote.img
 RUNFLAGS:= --arch x86 --junk-bios --memory-size 1 --gui --fda sample/$(EMU_BIN)
+
+# default build type
+BUILD_TYPE = Debug
 
 default:
 	make $(TARGET)
