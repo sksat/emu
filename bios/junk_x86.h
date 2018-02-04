@@ -74,7 +74,7 @@ public:
 		case 0x0e:
 			std::cout
 #ifdef DEBUG
-			<<"BIOS function putchar: ";
+			<<"BIOS function putchar: "
 #endif
 			<<AL
 #ifdef DEBUG
