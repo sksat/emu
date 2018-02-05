@@ -47,6 +47,29 @@ void jn ## flag(){ \
 	DEFINE_JX(z, IsZero);
 	DEFINE_JX(s, IsSign);
 
+	void add_rm8_imm8(){
+		auto rm8 = idata->GetRM8();
+		uint8_t tmp = rm8 + idata->imm8;
+		idata->SetRM8(tmp);
+		EFLAGS.UpdateAdd(rm8, idata->imm8, tmp);
+	}
+	void cmp_rm8_imm8(){
+		EFLAGS.Cmp(idata->GetRM8(), idata->imm8);
+	}
+	void code_80(){
+		DOUT(" REG="<<static_cast<uint32_t>(idata->modrm.reg)<<" ");
+		switch(idata->modrm.reg){
+		case 0:	add_rm8_imm8();	break;
+		case 7: cmp_rm8_imm8();	break;
+		default:
+		{
+			std::stringstream ss;
+			ss << "not implemented: 0x80 /"<<static_cast<uint32_t>(idata->modrm.reg);
+			throw ss.str();
+		}
+		}
+	}
+
 	void mov_r8_rm8(){
 		auto rm8 = idata->GetRM8();
 		auto& r8 = emu->reg[idata->modrm.reg];

@@ -34,6 +34,7 @@ void Instruction::Init(){
 //	SETINSN(0x7d, jnl,			0);
 //	SETINSN(0x7e, jle,			0);
 //	SETINSN(0x7f, jnle,			0);
+	SETINSN(0x80, code_80,			Flag::ModRM | Flag::Imm8);
 	SETINSN(0x8a, mov_r8_rm8,		Flag::ModRM);
 	SETINSN(0x8e, mov_sreg_rm16,		Flag::ModRM);
 	SETINSN(0x90, nop,			Flag::None);
