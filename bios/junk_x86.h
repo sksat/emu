@@ -41,7 +41,8 @@ public:
 	Device::Floppy* GetFloppy(){
 		auto& dev = emu->dev;
 		for(size_t i=0;i<dev.size();i++){
-			if(typeid(*dev[i]) == typeid(Device::Floppy))
+			auto& d = *dev[i];
+			if(typeid(d) == typeid(Device::Floppy))
 				return dynamic_cast<Device::Floppy*>(dev[i]);
 		}
 		return nullptr;
@@ -134,7 +135,7 @@ public:
 				//uint16_t cyl = CH | ((CL << 2) & 0x300)
 				Device::Floppy::Setting set = {
 					.drive = DL,
-					.head  = (DH==0) ? 0 : 1,
+					.head  = (DH==0) ? bool(0) : bool(1),
 					.cylinder = CH,
 					.sector = CL // 下位5bit
 				};
