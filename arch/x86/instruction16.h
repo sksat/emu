@@ -17,10 +17,15 @@ public:
 		idata->SetRM16(result);
 		EFLAGS.UpdateAdd(rm16, idata->imm8, result);
 	}
+	void cmp_rm16_imm8(){
+		uint16_t rm16 = idata->GetRM16();
+		EFLAGS.Cmp(rm16, idata->imm8);
+	}
 	void code_83(){
 		DOUT(" REG="<<static_cast<uint32_t>(idata->modrm.reg)<<" ");
 		switch(idata->modrm.reg){
 		case 0:	add_rm16_imm8();	break;
+		case 7: cmp_rm16_imm8();	break;
 		default:
 			{
 				std::stringstream ss;
