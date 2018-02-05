@@ -76,11 +76,19 @@ void Display::FlushImage(){
 				y += font_ysiz;
 			}
 			if(y>scrny) break;
+
+			PutFont(print_x, print_y, '_');
 		}
 	}
 }
 
 void Display::PutFont(size_t x, size_t y, char c, uint8_t r, uint8_t g, uint8_t b){
+	if(c == ' '){
+		for(size_t fy=0;fy<font_ysiz;fy++){
+			for(size_t fx=0;fx<font_xsiz;fx++)
+				SET_RGB(x+fx, y+fy, 0x00, 0x00, 0x00);
+		}
+	}
 	for(size_t fy=0;fy<font_ysiz;fy++){
 		unsigned char d = FONT_DATA(c, fy);
 		uint8_t l = 0x80;
