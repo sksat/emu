@@ -39,6 +39,14 @@
 
 #define SET_REG8(num, val) (num<0x4 ? (emu->reg[num].low8=val) : (emu->reg[num-0x4].high8=val))
 
+// segment registers
+#define ES emu->sreg[0].reg16
+#define CS emu->sreg[1].reg16
+#define SS emu->sreg[2].reg16
+#define DS emu->sreg[3].reg16
+#define FS emu->sreg[4].reg16
+#define GS emu->sreg[5].reg16
+
 namespace x86 {
 
 const size_t REG_COUNT = 8;
