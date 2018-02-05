@@ -10,6 +10,12 @@ public:
 	Instruction16(x86::Emulator *e) : x86::Instruction(e) {}
 	void Init();
 
+	void add_ax_imm16(){
+		uint16_t old = AX;
+		AX = AX + idata->imm16;
+		EFLAGS.UpdateAdd(old, idata->imm16, AX);
+	}
+
 	void add_rm16_imm8(){
 		DOUT("\n\t"<<__func__<<" ");
 		uint16_t rm16 = idata->GetRM16();
@@ -33,6 +39,11 @@ public:
 				throw ss.str();
 			}
 		}
+	}
+
+	void mov_rm16_sreg(){
+		uint16_t sreg = emu->sreg[idata->modrm.reg].reg16;
+		idata->SetRM16(sreg);
 	}
 
 	void mov_r16_imm16(){
