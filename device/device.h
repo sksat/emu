@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <vector>
 #include <string>
+#include "../common.h"
 #include "../memory.h"
 
 class Memory;

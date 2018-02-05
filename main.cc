@@ -56,10 +56,11 @@ try{
 
 	cout<<"memory size: "<<set.memsize<<"MB"<<endl;
 
-	if(fda_file.empty())
-		throw "no boot device.";
-	Device::Floppy fda(fda_file.c_str());
-	emu->ConnectDevice(fda);
+	Device::Floppy fda;
+	if(!fda_file.empty()){
+		fda.Open(fda_file);
+		emu->ConnectDevice(fda);
+	}
 
 	if(set.junk_bios){
 		cout<<"setup junk BIOS..."<<endl;
