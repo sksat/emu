@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <stdint.h>
 #include <vector>
+#include "common.h"
 #include "device/device.h"
 
 enum class ENDIAN { BIG, LITTLE, };
@@ -33,6 +34,8 @@ public:
 	bool IsVirt() const { return virt_flg; }
 	void EnableVirt(){ virt_flg=true; }
 	void UnableVirt(){ virt_flg=false; }
+
+	std::vector<uint8_t>& GetRaw(){ return mem; }
 
 //	Memory* operator->(){ return this; }
 
