@@ -24,8 +24,13 @@ public:
 	void SetDisplay(Device::Display &disp){ this->disp = &disp; }
 
 	void Boot() {
-		using namespace std;
-		cout<<"booting x86 BIOS..."<<endl;
+		DOUT("booting x86 BIOS..."<<std::endl);
+		if(disp != nullptr){
+			std::string msg = "x86 junk BIOS(version: ";
+			msg += GIT_COMMIT_ID;
+			msg += ")\n\n";
+			disp->Print(msg);
+		}
 
 		LoadIPL();
 
@@ -44,18 +49,25 @@ public:
 
 	Device::Base* GetBootDevice(){
 		auto fd = GetFloppy();
-		if(fd == nullptr)
-			throw "No bootable device.";
-		return fd;
+		if(fd != nullptr) return fd;
+		if(disp != nullptr)
+			disp->Print("No bootable device\n");
+		std::cout<<"No bootable device."<<std::endl;
+		emu->halt_flg = true;
+		return nullptr;
 	}
 
 	void LoadIPL(){
 		auto d = GetBootDevice();
+		if(d == nullptr) return;
 		if(typeid(*d) == typeid(Device::Floppy)){
+			if(disp != nullptr)
+				disp->Print("Booting from Floppy...\n");
 			Device::Floppy *f = dynamic_cast<Device::Floppy*>(d);
 			f->Load(emu->memory, 0x7c00, 256);
 		}else{
-			throw "unknown bootable device.";
+			if(disp != nullptr) disp->Print("unknown bootable device\n");
+			std::cout<<"unknown bootable device."<<std::endl;
 		}
 	}
 

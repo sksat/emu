@@ -62,6 +62,18 @@ try{
 		emu->ConnectDevice(fda);
 	}
 
+	std::unique_ptr<Gui> gui;
+	Device::Display disp;
+	if(set.gui){
+		disp.LoadFont(font_file);
+		disp.RegisterVRAM(emu->memory, 0xa0000, 0xffff);
+		emu->ConnectDevice(disp);
+
+		gui = std::make_unique<Gui>();
+		gui->onExit = [&](){ emu->finish_flg = true; };
+		gui->Start(disp);
+	}
+
 	if(set.junk_bios){
 		cout<<"setup junk BIOS..."<<endl;
 		switch(set.arch){
@@ -73,21 +85,8 @@ try{
 			throw "not implemented junk BIOS for this arch.";
 			break;
 		}
+		if(set.gui) emu->bios->SetDisplay(disp);
 		emu->bios->Boot();
-	}
-
-	std::unique_ptr<Gui> gui;
-	Device::Display disp;
-	if(set.gui){
-		disp.LoadFont(font_file);
-		disp.RegisterVRAM(emu->memory, 0xa0000, 0xffff);
-//		disp.TestDraw();
-		emu->ConnectDevice(disp);
-		if(set.junk_bios) emu->bios->SetDisplay(disp);
-
-		gui = std::make_unique<Gui>();
-		gui->onExit = [&](){ emu->finish_flg = true; };
-		gui->Start(disp);
 	}
 
 	cout<<"emulation start"<<endl;
