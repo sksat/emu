@@ -114,7 +114,9 @@ public:
 	void disk_func(){
 		auto fd = GetFloppy();
 		switch(AH){
-		//case 0x00:	// システムのリセット
+		case 0x00:	// システムのリセット
+			fd->Reset();
+			break;
 		case 0x02:	// 読み込み
 		//case 0x03:	// 書き込み
 		//case 0x04:	// ベリファイ

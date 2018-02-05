@@ -2,7 +2,7 @@ TARGET	= helloos.img
 OBJS	= startup.o main.o
 
 HARIB27F_APP = bball
-HARIB_VER    = harib00a
+HARIB_VER    = harib00b
 
 CFLAGS  = -m32
 CFLAGS  += -nostdlib -fno-asynchronous-unwind-tables -g -fno-stack-protector

@@ -28,6 +28,15 @@ public:
 		uint8_t sector : 5;	// 1〜18
 	};
 
+	void Reset(){
+		Setting set = {
+			.drive = 0,
+			.head = 0,
+			.cylinder = 0,
+			.sector = 1
+		};
+		Seek(set);
+	}
 	bool Seek(const Setting &set);
 	bool Read(Memory *mem, uint32_t addr, uint8_t sector_num);
 	bool Read(const Setting &set, Memory *mem, uint32_t addr, uint8_t sector_num){
