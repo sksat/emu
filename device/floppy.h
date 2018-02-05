@@ -30,6 +30,11 @@ public:
 
 	bool Seek(const Setting &set);
 	bool Read(Memory *mem, uint32_t addr, uint8_t sector_num);
+	bool Read(const Setting &set, Memory *mem, uint32_t addr, uint8_t sector_num){
+		if(!Seek(set)) return false;
+		if(!Read(mem, addr, sector_num)) return false;
+		return true;
+	}
 
 	void SetFile(const char *fname){
 		throw "not implemented: SetFile";

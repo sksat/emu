@@ -136,8 +136,13 @@ public:
 					.cylinder = CH,
 					.sector = CL // 下位5bit
 				};
-				fd->Seek(set);
-				fd->Read(emu->memory, (ES*16)+BX, AL);
+				if(fd->Read(set, emu->memory, (ES*16)+BX, AL)){
+					EFLAGS.CF = 0;
+					AH = 0;
+				}else{
+					EFLAGS.CF = 1;
+					AH = 0; // TODO: エラーコードわからん
+				}
 			}
 			break;
 		//case 0x08:	// パラメータ取得
