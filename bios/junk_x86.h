@@ -95,15 +95,36 @@ public:
 	void video_func(){
 		DOUT("\tvideo function  ");
 		DOUT("AH = 0x"<<std::hex<<static_cast<uint32_t>(AH)<<std::endl);
+		if(disp == nullptr) throw "junk BIOS: Display is null";
 		switch(AH){
 		case 0x00:
-			std::cerr<<"warning: not implemented video mode"<<std::endl;
+			{
+				std::string desc;
+				size_t xsize, ysize, bit;
+				bool txt;
+				switch(AL){
+				case 0x13:
+					desc  = "VGA graphics";
+					txt   = false;
+					xsize = 320;
+					ysize = 200;
+					bit = 8;
+					break;
+				default:
+					throw "not implemented: video mode(junk BIOS)";
+					break;
+				}
+
+				disp->ChangeMode(xsize, ysize, txt);
+				DOUT("VIDEO MODE: "<<desc<<" "
+						<<std::dec<<xsize<<"x"<<ysize<<"x"
+						<<bit<<"bit");
+			}
 			break;
 		case 0x0e:
 #ifdef DEBUG
 			std::cout <<"BIOS function putchar: " << AL << std::endl;
 #endif
-			if(disp == nullptr) throw "BIOS: Display is null";
 			disp->Print(static_cast<char>(AL));
 			break;
 		default:

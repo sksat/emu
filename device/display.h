@@ -28,6 +28,8 @@ public:
 	unsigned char* GetImage(){ return img; }
 	void FlushImage();
 
+	void Clear();
+
 	void PutFont(size_t x, size_t y, char c, uint8_t r, uint8_t g, uint8_t b);
 	void PutFont(size_t x, size_t y, char c){ PutFont(x, y, c, 0xff, 0xff, 0xff); }
 

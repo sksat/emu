@@ -44,6 +44,8 @@ void Display::ChangeMode(size_t scrnx, size_t scrny, bool txtmode_flg){
 	img = new unsigned char[scrnx*scrny*3];
 	this->scrnx = scrnx;
 	this->scrny = scrny;
+	this->txtmode_flg = txtmode_flg;
+	Clear();
 }
 
 #define POS(x, y) (((y)*scrnx + x)*3)
@@ -79,6 +81,13 @@ void Display::FlushImage(){
 
 			PutFont(print_x, print_y, '_');
 		}
+	}
+}
+
+void Display::Clear(){
+	for(size_t y=0;y<scrny;y++){
+		for(size_t x=0;x<scrnx;x++)
+			SET_RGB(x, y, 0x00, 0x00, 0x00);
 	}
 }
 
