@@ -37,7 +37,8 @@
 #define DH emu->reg[2].high8
 #define BH emu->reg[3].high8
 
-#define SET_REG8(num, val) (num<0x4 ? (emu->reg[num].low8=val) : (emu->reg[num-0x4].high8=val))
+#define GET_REG8(num)		(num<0x4 ? (emu->reg[num].low8) : (emu->reg[num-0x4].high8))
+#define SET_REG8(num, val)	(num<0x4 ? (emu->reg[num].low8=val) : (emu->reg[num-0x4].high8=val))
 
 // segment registers
 #define ES emu->sreg[0].reg16

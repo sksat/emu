@@ -44,7 +44,7 @@ bool Floppy::Seek(const Floppy::Setting &set){
 	this->set = set;
 
 	fs.seekg(0, std::fstream::beg);
-	if(set.head) fs.seekg(720*KB, std::fstream::cur);
+	if(set.head) fs.seekg(512*18, std::fstream::cur);
 	if(set.cylinder) fs.seekg(512*18*set.cylinder, std::fstream::cur);
 	fs.seekg(512*(set.sector-1), std::fstream::cur);
 	if(fs.fail()) return false;

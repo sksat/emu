@@ -196,7 +196,7 @@ get_disp32:
 
 	// get register
 	inline uint8_t GetR8(){
-		return emu->reg[modrm.reg].reg8;
+		return GET_REG8(modrm.reg);
 	}
 	inline uint16_t GetR16(){
 		return emu->reg[modrm.reg].reg16;
@@ -207,7 +207,7 @@ get_disp32:
 
 	// set register
 	inline void SetR8(uint8_t val){
-		emu->reg[modrm.reg].reg8 = val;
+		SET_REG8(modrm.reg, val);
 	}
 	inline void SetR16(uint16_t val){
 		emu->reg[modrm.reg].reg16 = val;
@@ -219,7 +219,7 @@ get_disp32:
 	// get rm
 	inline uint8_t GetRM8(){
 		if(MOD == 3)
-			return emu->reg[RM].reg8;
+			return GET_REG8(RM);
 		auto addr = CalcMemAddr();
 		DOUT("GetRM8: addr=0x"<<std::hex<<addr);
 		return emu->memory->GetData8(addr);
@@ -242,7 +242,7 @@ get_disp32:
 	// set rm
 	inline void SetRM8(uint8_t val){
 		if(MOD == 3){
-			emu->reg[RM].reg8 = val;
+			SET_REG8(RM, val);
 			DOUT("SetRM8: "<<emu->reg[RM].GetName()
 					<<" = 0x"<<std::hex<<static_cast<uint32_t>(val)<<std::endl);
 			return;
