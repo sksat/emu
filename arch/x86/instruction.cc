@@ -18,22 +18,22 @@ void Instruction::Init(){
 
 //	SETINSN(0x00, add_rm8_r8,		Flag::ModRM);
 	SETINSN(0x3c, cmp_al_imm8,		Flag::Imm8);
-	SETINSN(0x70, jo,			Flag::Imm8);
-	SETINSN(0x71, jno,			Flag::Imm8);
-	SETINSN(0x72, jc,			Flag::Imm8);	// = jb
-	SETINSN(0x73, jnc,			Flag::Imm8); // = jnb
-	SETINSN(0x74, jz,			Flag::Imm8);
-	SETINSN(0x75, jnz,			Flag::Imm8);
-//	SETINSN(0x76, jbe,			0);
-//	SETINSN(0x77, ja,			0);
-	SETINSN(0x78, js,			Flag::Imm8);
-	SETINSN(0x79, jns,			Flag::Imm8);
-//	SETINSN(0x7a, jp,			0);
-//	SETINSN(0x7b, jnp,			0);
-//	SETINSN(0x7c, jl,			0);
-//	SETINSN(0x7d, jnl,			0);
-//	SETINSN(0x7e, jle,			0);
-//	SETINSN(0x7f, jnle,			0);
+	SETINSN(0x70, jo_rel8,			Flag::Imm8);
+	SETINSN(0x71, jno_rel8,			Flag::Imm8);
+	SETINSN(0x72, jb_rel8,			Flag::Imm8); // = jc,jnae
+	SETINSN(0x73, jae_rel8,			Flag::Imm8); // = jnb,jnc
+	SETINSN(0x74, je_rel8,			Flag::Imm8); // = jz
+	SETINSN(0x75, jne_rel8,			Flag::Imm8); // = jnz
+	SETINSN(0x76, jbe_rel8,			Flag::Imm8); // = jna
+	SETINSN(0x77, ja_rel8,			Flag::Imm8); // = jnbe
+	SETINSN(0x78, js_rel8,			Flag::Imm8);
+	SETINSN(0x79, jns_rel8,			Flag::Imm8);
+	SETINSN(0x7a, jp_rel8,			Flag::Imm8); // = jpe
+	SETINSN(0x7b, jpo_rel8,			Flag::Imm8);
+	SETINSN(0x7c, jl_rel8,			Flag::Imm8); // = jnge
+	SETINSN(0x7d, jge_rel8,			Flag::Imm8); // = jnl
+	SETINSN(0x7e, jle_rel8,			Flag::Imm8); // = jng
+	SETINSN(0x7f, jg_rel8,			Flag::Imm8); // = jnle
 	SETINSN(0x80, code_80,			Flag::ModRM | Flag::Imm8);
 	SETINSN(0x8a, mov_r8_rm8,		Flag::ModRM);
 	SETINSN(0x8e, mov_sreg_rm16,		Flag::ModRM);

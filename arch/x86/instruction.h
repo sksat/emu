@@ -34,18 +34,28 @@ protected:
 		EFLAGS.Cmp(al, idata->imm8);
 	}
 
-#define DEFINE_JX(flag, is_flag) \
-void j ## flag(){ \
-	if(emu->eflags.is_flag()) EIP += static_cast<int8_t>(idata->imm8); \
-} \
-void jn ## flag(){ \
-	if(!emu->eflags.is_flag()) EIP += static_cast<int8_t>(idata->imm8); \
+// Jump if Condition Is Met
+#define DEF_JCC_REL8(flag, is_flag) \
+void j ## flag ## _rel8(){ \
+	if(is_flag) EIP += static_cast<int8_t>(idata->imm8); \
 }
 
-	DEFINE_JX(o, IsOverflow);
-	DEFINE_JX(c, IsCarry);
-	DEFINE_JX(z, IsZero);
-	DEFINE_JX(s, IsSign);
+	DEF_JCC_REL8(o,  EFLAGS.OF);
+	DEF_JCC_REL8(no, !EFLAGS.OF);
+	DEF_JCC_REL8(b,  EFLAGS.CF);					// jb =jc =jnae
+	DEF_JCC_REL8(ae, !EFLAGS.CF);					// jae=jnb=jnc
+	DEF_JCC_REL8(e,  EFLAGS.ZF);					// je =jz
+	DEF_JCC_REL8(ne, !EFLAGS.ZF);					// jne=jnz
+	DEF_JCC_REL8(be, EFLAGS.CF || EFLAGS.ZF);			// jbe=jna
+	DEF_JCC_REL8(a,  !EFLAGS.CF && !EFLAGS.ZF);			// ja =jnbe
+	DEF_JCC_REL8(s,  EFLAGS.SF);
+	DEF_JCC_REL8(ns, !EFLAGS.SF);
+	DEF_JCC_REL8(p,  EFLAGS.PF);					// jp =jpe
+	DEF_JCC_REL8(po, !EFLAGS.PF);
+	DEF_JCC_REL8(l,  EFLAGS.SF != EFLAGS.OF);			// jl =jnge
+	DEF_JCC_REL8(ge, EFLAGS.SF == EFLAGS.OF);			// jge=jnl
+	DEF_JCC_REL8(le, EFLAGS.ZF || (EFLAGS.SF != EFLAGS.OF));	// jle=jng
+	DEF_JCC_REL8(g,  !EFLAGS.ZF && (EFLAGS.SF == EFLAGS.OF));	// jg = jnle
 
 	void add_rm8_imm8(){
 		auto rm8 = idata->GetRM8();
