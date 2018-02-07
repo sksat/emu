@@ -22,15 +22,32 @@ public:
 	}
 
 	void SetDisplay(Device::Display &disp){ this->disp = &disp; }
+	void Print(const std::string &str){
+		if(this->disp !=nullptr){
+			disp->Print(str);
+			return;
+		}
+		DOUT("BIOS: Print: ");
+		std::cout<<str;
+		DOUT(std::endl);
+	}
+	void Print(const char c){
+		if(this->disp != nullptr){
+			disp->Print(c);
+			return;
+		}
+		DOUT("BIOS: Print: ");
+		std::cout<<c;
+		DOUT(std::endl);
+	}
 
 	void Boot() {
 		DOUT("booting x86 BIOS..."<<std::endl);
-		if(disp != nullptr){
-			std::string msg = "x86 junk BIOS(version: ";
-			msg += GIT_COMMIT_ID;
-			msg += ")\n\n";
-			disp->Print(msg);
-		}
+
+		std::string msg = "x86 junk BIOS(version: ";
+		msg += GIT_COMMIT_ID;
+		msg += ")\n\n";
+		Print(msg);
 
 		LoadIPL();
 
@@ -51,9 +68,7 @@ public:
 	Device::Base* GetBootDevice(){
 		auto fd = GetFloppy();
 		if(fd != nullptr) return fd;
-		if(disp != nullptr)
-			disp->Print("No bootable device\n");
-		std::cout<<"No bootable device."<<std::endl;
+		Print("No bootable device.\n");
 		emu->halt_flg = true;
 		return nullptr;
 	}
@@ -62,13 +77,11 @@ public:
 		auto d = GetBootDevice();
 		if(d == nullptr) return;
 		if(typeid(*d) == typeid(Device::Floppy)){
-			if(disp != nullptr)
-				disp->Print("Booting from Floppy...\n");
+			Print("Booting from Floppy...\n");
 			Device::Floppy *f = dynamic_cast<Device::Floppy*>(d);
 			f->Load(emu->memory, 0x7c00, 256);
 		}else{
-			if(disp != nullptr) disp->Print("unknown bootable device\n");
-			std::cout<<"unknown bootable device."<<std::endl;
+			Print("unknown bootable device.\n");
 		}
 	}
 
@@ -95,7 +108,7 @@ public:
 	void video_func(){
 		DOUT("\tvideo function  ");
 		DOUT("AH = 0x"<<std::hex<<static_cast<uint32_t>(AH)<<std::endl);
-		if(disp == nullptr) throw "junk BIOS: Display is null";
+//		if(disp == nullptr) throw "junk BIOS: Display is null";
 		switch(AH){
 		case 0x00:
 			{
@@ -115,7 +128,8 @@ public:
 					break;
 				}
 
-				disp->ChangeMode(xsize, ysize, txt);
+				if(disp != nullptr)
+					disp->ChangeMode(xsize, ysize, txt);
 				DOUT("VIDEO MODE: "<<desc<<" "
 						<<std::dec<<xsize<<"x"<<ysize<<"x"
 						<<bit<<"bit");
@@ -125,7 +139,7 @@ public:
 #ifdef DEBUG
 			std::cout <<"BIOS function putchar: " << AL << std::endl;
 #endif
-			disp->Print(static_cast<char>(AL));
+			Print(static_cast<const char>(AL));
 			break;
 		default:
 			throw "not implemented: video_func(junk BIOS)";
