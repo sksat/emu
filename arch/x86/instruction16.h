@@ -53,6 +53,10 @@ public:
 		DOUT(std::endl<<"\t"<<reg.GetName()<<"=0x"<<idata->imm16);
 	}
 
+	void mov_rm16_imm16(){
+		idata->SetRM16(idata->imm16);
+	}
+
 	void jmp_rel16(){
 		EIP += idata->imm16;
 	}
