@@ -107,6 +107,10 @@ void j ## flag ## _rel8(){ \
 		SET_REG8(reg8, idata->imm8);
 	}
 
+	void mov_rm8_imm8(){
+		idata->SetRM8(idata->imm8);
+	}
+
 	void int_imm8(){
 		DOUT(std::endl<<"\tint "<<static_cast<uint32_t>(idata->imm8));
 		emu->bios->Function(static_cast<int>(idata->imm8));
