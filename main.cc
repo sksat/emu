@@ -79,7 +79,7 @@ try{
 		switch(set.arch){
 		case ARCH::x86:
 //			auto e = new BIOS::Junk::x86(emu.GetRaw());
-			emu->SetBios(new BIOS::Junk::x86(emu));
+			emu->SetBios(new BIOS::Junk::x86(dynamic_cast<x86::Emulator*>(emu)));
 			break;
 		default:
 			throw "not implemented junk BIOS for this arch.";
