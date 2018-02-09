@@ -24,7 +24,7 @@ addons:
     - libglfw3-dev
 script:
 - g++ --version
-- make
+- make CC=$CC CXX=$CXX
 - file emu
 - make -C sample haribote.img
 - make run CC=$CC CXX=$CXX RUNFLAGS="--junk-bios --fda sample/haribote.img"
