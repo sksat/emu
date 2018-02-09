@@ -64,6 +64,7 @@ try{
 
 	std::unique_ptr<Gui> gui;
 	Device::Display disp;
+	bool halt_exit = false;
 	if(set.gui){
 		disp.LoadFont(font_file);
 		disp.RegisterVRAM(emu->memory, 0xa0000, 0xffff);
@@ -72,6 +73,8 @@ try{
 		gui = std::make_unique<Gui>();
 		gui->onExit = [&](){ emu->finish_flg = true; };
 		gui->Start(disp);
+	}else{
+		halt_exit = true; // CLIだったらhaltした時に終了するようにする
 	}
 
 	if(set.junk_bios){
@@ -93,7 +96,7 @@ try{
 
 	auto start = std::chrono::system_clock::now();
 
-	emu->Run();
+	emu->Run(halt_exit);
 
 	auto end = std::chrono::system_clock::now();
 

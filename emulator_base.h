@@ -22,8 +22,8 @@ public:
 
 	virtual void ConnectDevice(Device::Base &dev);
 
-	virtual void Run(){
-		while(!finish_flg){
+	virtual void Run(bool halt_exit){
+		while(!finish_flg && !(halt_exit && halt_flg)){
 			if(!halt_flg) insn->ExecStep();
 		}
 	}
