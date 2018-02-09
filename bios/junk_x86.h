@@ -15,7 +15,7 @@ namespace Junk {
 
 class x86 : public BIOS::Junk::Base {
 public:
-	x86(EmulatorBase *e) : BIOS::Junk::Base(e) {
+	x86(EmulatorBase *e) : BIOS::Junk::Base(e), emu(nullptr), disp(nullptr) {
 		if(typeid(*e) != typeid(::x86::Emulator))
 			throw "emulator is not for x86";
 		emu = dynamic_cast<::x86::Emulator*>(e);
