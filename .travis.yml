@@ -15,15 +15,18 @@ addons:
     - ubuntu-toolchain-r-test
     - llvm-toolchain-precise-3.7
     - llvm-toolchain-precise
+    - eglibc
     - sourceline: 'ppa:keithw/glfw3'
     packages:
     - gcc-5
     - g++-5
     - clang-3.7
+    - libc6-i386
     - libglfw3
     - libglfw3-dev
 script:
-- g++ --version
+- $CC --version
+- $CXX --version
 - make run CC=$CC CXX=$CXX RUNFLAGS="--junk-bios --fda sample/haribote.img"
 notifications:
   slack:
