@@ -24,6 +24,9 @@ addons:
     - libglfw3-dev
 script:
 - g++ --version
+- make
+- file emu
+- make -C sample haribote.img
 - make run CC=$CC CXX=$CXX RUNFLAGS="--junk-bios --fda sample/haribote.img"
 notifications:
   slack:
