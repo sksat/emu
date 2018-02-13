@@ -7,7 +7,7 @@ namespace x86 {
 
 class Instruction16 : public x86::Instruction {
 public:
-	Instruction16(x86::Emulator *e) : x86::Instruction(e) {}
+	Instruction16(x86::Emulator *e, InsnData *i) : x86::Instruction(e, i) {}
 	void Init();
 
 	void add_ax_imm16(){

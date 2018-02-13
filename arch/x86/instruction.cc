@@ -6,11 +6,6 @@
 
 namespace x86 {
 
-Instruction::Instruction(x86::Emulator *e) : emu(e) {
-	idata = new InsnData(e);
-	insn_name.resize(256);
-}
-
 void Instruction::Init(){
 	// default insn
 	ClearInsn(256);
@@ -51,6 +46,9 @@ void Instruction::Parse(){
 	idata->prefix = idata->opcode = emu->GetCode8(0);
 
 	// parse prefix
+	// bochs/cpu/fetchdecode.cc fetchDecode32
+	// is_32 = BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].cache.u.segment.d_b;
+	idata->chsiz_op = idata->chsiz_addr = false;
 	switch(idata->prefix){
 		case 0xf0:
 		case 0xf2:
@@ -61,17 +59,25 @@ void Instruction::Parse(){
 		case 0x3e:
 		case 0x64:
 		case 0x65:
-		case 0x66:
-		case 0x67:
+			goto not_impl;
+		case 0x66:	// op size
+			DOUT("0x66: operand size prefix"<<std::endl);
+			idata->chsiz_op = true;
+			EIP++;
+			idata->opcode = emu->GetCode8(0);
+			break;
+		case 0x67:	// addr size
+			//idata->chsiz_addr = true;
+			//break;
+not_impl:
 		{
 			std::stringstream ss;
 			ss << "not implemented prefix:"
 				<< std::hex << std::showbase
-				<< (uint32_t)idata->prefix
-				<<std::endl;
+				<< static_cast<uint32_t>(idata->prefix)
+				<< std::endl;
 			throw ss.str();
 		}
-			break;
 		default:
 			idata->prefix = 0x00;
 			EIP++;
@@ -120,11 +126,8 @@ void Instruction::Parse(){
 }
 
 void Instruction::ExecStep(){
-	Parse();
 	insnfunc_t func = insn[idata->opcode];
 	(this->*func)();
-	if(EIP == 0x00) emu->finish_flg=true;
-	DOUT(std::endl);
 }
 
 void Instruction::not_impl_insn(){

@@ -50,6 +50,9 @@ public:
 		int16_t imm16;
 		int32_t imm32;
 	};
+
+	bool chsiz_op;		// オペランドサイズ変更
+	bool chsiz_addr;	// アドレスサイズ変更
 public:
 	InsnData(x86::Emulator *e);
 

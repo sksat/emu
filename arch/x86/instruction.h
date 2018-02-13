@@ -10,8 +10,8 @@ namespace x86 {
 
 class Instruction : public InstructionBase {
 public:
-	Instruction(x86::Emulator *e);
-	~Instruction(){ delete idata; }
+	Instruction(x86::Emulator *e, x86::InsnData *i) : emu(e), idata(i) { insn_name.resize(256); }
+	~Instruction(){}
 	virtual void Init();
 	void Parse();
 	void ExecStep();

@@ -50,6 +50,9 @@
 
 namespace x86 {
 
+class InsnData;
+class Instruction;
+
 const size_t REG_COUNT = 8;
 const size_t SREG_COUNT= 6;
 
@@ -60,7 +63,9 @@ public:
 	void InitMemory();
 protected:
 	size_t mode;
-	Emulator *emu = this;
+	x86::Emulator *emu = this;
+	x86::InsnData *idata;
+	x86::Instruction *insn16, *insn32;
 public:
 	x86::Register32 pc;
 	x86::Eflags	eflags;
@@ -69,6 +74,14 @@ public:
 
 	inline bool IsMode16(){ return (mode == 16); }
 	inline bool IsMode32(){ return (mode == 32); }
+
+	void RunStep();
+	void Run(bool halt_exit){
+		while(!finish_flg && !(halt_exit && halt_flg)){
+			if(!halt_flg)
+				RunStep();
+		}
+	}
 
 	// memoryの関数を使うべき
 	inline uint8_t GetCode8(int index)	{ return (*memory)[EIP + index]; }

@@ -2,6 +2,7 @@
 #include <sstream>
 #include "emulator.h"
 #include "register.h"
+#include "insndata.h"
 #include "instruction.h"
 #include "instruction16.h"
 #include "instruction32.h"
@@ -12,8 +13,12 @@ namespace x86{
 
 void Emulator::InitInstructions(){
 	// 起動時は16bitリアルモード
-	insn = new Instruction16(this);
-	insn->Init();
+	idata = new InsnData(this);
+	insn16 = new Instruction16(this, idata);
+	insn32 = new Instruction32(this, idata);
+	insn16->Init();
+	insn32->Init();
+	insn = insn16;
 	mode = 16;
 }
 
@@ -47,6 +52,16 @@ void Emulator::InitRegisters(){
 
 void Emulator::InitMemory(){
 	memory->endian = ENDIAN::LITTLE;
+}
+
+void Emulator::RunStep(){
+	insn->Parse();
+	if(IsMode32() ^ idata->chsiz_op)
+		insn = insn32;
+	else
+		insn = insn16;
+	insn->ExecStep();
+	DOUT(std::endl);
 }
 
 }
