@@ -13,8 +13,9 @@ public:
 	Instruction(x86::Emulator *e, x86::InsnData *i) : emu(e), idata(i) { insn_name.resize(256); }
 	~Instruction(){}
 	virtual void Init();
-	void Parse();
-	void ExecStep();
+	void Fetch();
+	void Decode();
+	void Exec();
 protected:
 	x86::Emulator *emu;
 	x86::InsnData *idata;

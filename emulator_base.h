@@ -24,7 +24,10 @@ public:
 
 	virtual void Run(bool halt_exit){
 		while(!finish_flg && !(halt_exit && halt_flg)){
-			if(!halt_flg) insn->ExecStep();
+			if(halt_flg) continue;
+			insn->Fetch();
+			insn->Decode();
+			insn->Exec();
 		}
 	}
 
