@@ -42,7 +42,7 @@ void Instruction::Init(){
 	SETINSN(0xf4, hlt,			Flag::None);
 }
 
-void Instruction::Parse(){
+void Instruction::Fetch(){
 	idata->prefix = idata->opcode = emu->GetCode8(0);
 
 	// parse prefix
@@ -67,8 +67,11 @@ void Instruction::Parse(){
 			idata->opcode = emu->GetCode8(0);
 			break;
 		case 0x67:	// addr size
-			//idata->chsiz_addr = true;
-			//break;
+			DOUT("0x67: address size prefix"<<std::endl);
+			idata->chsiz_addr = true;
+			EIP++;
+			idata->opcode = emu->GetCode8(0);
+			break;
 not_impl:
 		{
 			std::stringstream ss;
@@ -83,7 +86,9 @@ not_impl:
 			EIP++;
 			break;
 	}
+}
 
+void Instruction::Decode(){
 	DOUT("opcode = 0x"
 		<< std::setw(2) << std::setfill('0') << std::hex
 		<< (uint32_t)idata->opcode
@@ -100,10 +105,10 @@ not_impl:
 				<< " RM=0x"
 				<< (uint32_t)idata->modrm.rm);
 		EIP++;
-		if(emu->IsMode16()) // 16bit mode
-			idata->ParseModRM16();
-		else // 32bit mode
+		if(emu->IsMode32() ^ idata->chsiz_addr)
 			idata->ParseModRM32();
+		else
+			idata->ParseModRM16();
 	}
 
 	// imm
@@ -125,7 +130,7 @@ not_impl:
 
 }
 
-void Instruction::ExecStep(){
+void Instruction::Exec(){
 	insnfunc_t func = insn[idata->opcode];
 	(this->*func)();
 }
