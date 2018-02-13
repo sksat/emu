@@ -7,7 +7,7 @@ namespace x86 {
 
 class Instruction32 : public x86::Instruction {
 public:
-	Instruction32(x86::Emulator *e) : Instruction(e) {}
+	Instruction32(x86::Emulator *e, InsnData *i) : Instruction(e, i) {}
 	void Init();
 private:
 	void add_rm32_r32(){
@@ -78,10 +78,10 @@ private:
 		EIP = emu->pop32();
 	}
 	void mov_rm32_imm32(){
-		uint32_t val = emu->GetCode32(0);
-		DOUT("mov_rm32_imm32: val="<<val<<std::endl);
-		EIP += 4;
-		idata->SetRM32(val);
+//		uint32_t val = emu->GetCode32(0);
+		DOUT("mov_rm32_imm32: val="<<idata->imm32<<std::endl);
+//		EIP += 4;
+		idata->SetRM32(idata->imm32);
 //		idata->SetRM32(emu->GetCode32(-4));
 	}
 	void leave32(){
