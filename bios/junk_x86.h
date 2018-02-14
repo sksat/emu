@@ -90,6 +90,9 @@ public:
 		case 0x13:
 			disk_func();
 			break;
+		case 0x16:
+			keyboard_func();
+			break;
 		default:
 			{
 				std::stringstream ss;
@@ -196,6 +199,25 @@ public:
 				throw ss.str();
 			}
 			break;
+		}
+	}
+
+	void keyboard_func(){
+		switch(AH){
+		//case 0x00:	// 文字読み出し
+		//case 0x01:	// キーバッファ状態チェック
+		case 0x02:	// キーロック＆シフト状態取得
+			// TODO: temporary impl
+			DOUT("warning: BIOS keyboard func AH=0x02 is implemented temporary.");
+			AL = 0x00;
+			break;
+		default:
+			{
+				std::stringstream ss;
+				ss << "not implemented: BIOS keyboard func AH=0x"
+					<< std::hex << static_cast<uint32_t>(AH);
+				throw ss.str();
+			}
 		}
 	}
 private:
