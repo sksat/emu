@@ -55,17 +55,18 @@ void Emulator::InitMemory(){
 }
 
 void Emulator::RunStep(){
+	bool is_16 = IsMode16();
+
 	insn->Fetch();
-	bool flg = IsMode32() ^ idata->chsiz_addr;
-	if(IsMode32() ^ idata->chsiz_op){
-		idata->chsiz_addr = !flg;
-		insn32->Decode();
-		insn32->Exec();
-	}else{
-		idata->chsiz_addr = flg;
+	idata->chsiz_addr = !(is_16 ^ idata->chsiz_addr);
+	if(is_16 ^  idata->chsiz_op){
 		insn16->Decode();
 		insn16->Exec();
+	}else{
+		insn32->Decode();
+		insn32->Exec();
 	}
+
 	DOUT(std::endl);
 }
 

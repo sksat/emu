@@ -57,6 +57,7 @@ public:
 	InsnData(x86::Emulator *e);
 
 	inline void ParseModRM16(){
+		DOUT("ModRM16: ");
 		switch(MOD){
 		case 0b00:
 			if(RM == 0b110)
@@ -70,19 +71,20 @@ public:
 		case 0b11:
 			break;
 get_disp8:
-	disp8 = static_cast<int8_t>(emu->GetCode8(0));
-	EIP++;
-	DOUT("disp8: 0x"<<std::hex<<static_cast<uint32_t>(disp8));
-	break;
+			disp8 = static_cast<int8_t>(emu->GetCode8(0));
+			EIP++;
+			DOUT("disp8=0x"<<std::hex<<static_cast<uint32_t>(disp8));
+			break;
 get_disp16:
-	disp16 = static_cast<int16_t>(emu->GetCode32(0));
-	EIP+=2;
-	DOUT("disp16: 0x"<<std::hex<<disp16);
-	break;
+			disp16 = static_cast<int16_t>(emu->GetCode32(0));
+			EIP+=2;
+			DOUT("disp16=0x"<<std::hex<<disp16);
+			break;
 		}
 	}
 
 	inline void ParseModRM32(){
+		DOUT(" ModRM32: ");
 		// SIB
 		if(MOD != 0b11 && RM == 0b100){
 			_sib = emu->GetCode8(0);
@@ -100,8 +102,8 @@ get_disp16:
 		case 0b00:
 			if(RM == 0b101)
 				goto get_disp32;
-			else
-				break;
+			DOUT("reg"<<std::endl);
+			return;//break;
 		case 0b01:
 			goto get_disp8;
 		case 0b10:
@@ -109,24 +111,23 @@ get_disp16:
 		case 0b11:
 			break;
 get_disp8:
-	disp8 = static_cast<int8_t>(emu->GetCode8(0));
-	EIP++;
-	DOUT("disp8");
-	break;
+			disp8 = static_cast<int8_t>(emu->GetCode8(0));
+			EIP++;
+			DOUT("disp8: 0x"<<std::hex<<static_cast<uint32_t>(disp8));
+			break;
 get_disp32:
-	disp32 = emu->GetSignCode32(0);
-	EIP+=4;
-	DOUT("disp32");
-	break;
+			disp32 = emu->GetSignCode32(0);
+			EIP+=4;
+			DOUT("disp32: 0x"<<std::hex<<disp32);
+			break;
 		}
-		DOUT(": 0x"<<std::hex<<disp32);
 	}
 
 	inline uint32_t CalcMemAddr(){
-		if(emu->IsMode16())
-			return CalcMemAddr16();
-		else
+		if(emu->IsMode32() ^ chsiz_addr)
 			return CalcMemAddr32();
+		else
+			return CalcMemAddr16();
 	}
 	inline uint32_t CalcMemAddr16(){ // p35
 		uint32_t addr = 0x00;

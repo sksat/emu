@@ -83,9 +83,9 @@ not_impl:
 		}
 		default:
 			idata->prefix = 0x00;
-			EIP++;
 			break;
 	}
+	EIP++;
 }
 
 void Instruction::Decode(){
@@ -101,14 +101,17 @@ void Instruction::Decode(){
 	if(flgs & Flag::ModRM){
 		idata->_modrm = emu->GetCode8(0);
 		DOUT("ModRM: Mod=0x" << std::hex
-				<< (uint32_t)idata->modrm.mod
+				<< static_cast<uint32_t>(idata->MOD)
+				<< " REG=0x"
+				<< static_cast<uint32_t>(idata->modrm.reg)
 				<< " RM=0x"
-				<< (uint32_t)idata->modrm.rm);
+				<< static_cast<uint32_t>(idata->RM)
+				<< "  ");
 		EIP++;
-		if(emu->IsMode32() ^ idata->chsiz_addr)
-			idata->ParseModRM32();
-		else
+		if(emu->IsMode16() ^ idata->chsiz_addr)
 			idata->ParseModRM16();
+		else
+			idata->ParseModRM32();
 	}
 
 	// imm

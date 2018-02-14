@@ -93,8 +93,8 @@ public:
 		default:
 			{
 				std::stringstream ss;
-				ss << "not implemented: BIOS function "
-					<< num;
+				ss << "not implemented: BIOS function 0x"
+					<< std::hex << num;
 				throw ss.str();
 			}
 			break;
