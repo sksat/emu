@@ -20,11 +20,12 @@ protected:
 	x86::Emulator *emu;
 	x86::InsnData *idata;
 	struct Flag {
-		static const uint8_t None	= 0b0000;
-		static const uint8_t ModRM	= 0b0001;
-		static const uint8_t Imm8	= 0b0010;
-		static const uint8_t Imm16	= 0b0100;
-		static const uint8_t Imm32	= 0b1000;
+		static const uint8_t None	= 0b00000;
+		static const uint8_t ModRM	= 0b00001;
+		static const uint8_t Imm8	= 0b00010;
+		static const uint8_t Imm16	= 0b00100;
+		static const uint8_t Imm32	= 0b01000;
+		static const uint8_t Moffs	= 0b10000;
 	};
 	uint8_t insn_flgs[256];
 
@@ -96,6 +97,11 @@ void j ## flag ## _rel8(){ \
 	}
 
 	void nop(){}
+
+	void mov_moffs8_al(){
+		emu->memory->SetData8(idata->moffs, AL);
+		DOUT("[0x"<<std::hex<<idata->moffs<<"] = AL("<<static_cast<uint32_t>(AL)<<")"<<std::endl);
+	}
 
 /* TODO: this is 32bit op
 	void near_jump(){

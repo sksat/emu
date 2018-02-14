@@ -33,6 +33,7 @@ void Instruction::Init(){
 	SETINSN(0x8a, mov_r8_rm8,		Flag::ModRM);
 	SETINSN(0x8e, mov_sreg_rm16,		Flag::ModRM);
 	SETINSN(0x90, nop,			Flag::None);
+	SETINSN(0xa2, mov_moffs8_al,		Flag::Moffs);
 	for(auto i=0;i<8;i++)
 		SETINSN(0xb0+i, mov_r8_imm8,	Flag::Imm8);
 	SETINSN(0xc6, mov_rm8_imm8,		Flag::ModRM | Flag::Imm8);
@@ -129,6 +130,15 @@ void Instruction::Decode(){
 		idata->imm32 = emu->GetSignCode32(0);
 		EIP+=4;
 		DOUT(" imm32=0x"<<std::hex<<idata->imm32);
+	}
+	if(flgs & Flag::Moffs){
+		if(emu->IsMode16() ^ idata->chsiz_addr){
+			idata->moffs = static_cast<uint32_t>(emu->GetCode16(0));
+			EIP+=2;
+		}else{
+			idata->moffs = emu->GetCode32(0);
+			EIP+=4;
+		}
 	}
 
 }
