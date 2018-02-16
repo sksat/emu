@@ -117,9 +117,10 @@ void Instruction::Decode(){
 
 	// imm
 	if(flgs & Flag::Imm8){
-		idata->imm8 = (int8_t)emu->GetCode8(0);
+		uint8_t data = emu->GetCode8(0);
+		idata->imm8 = static_cast<int8_t>(data);
 		EIP++;
-		DOUT("  imm8=0x"<<std::hex<<static_cast<int32_t>(idata->imm8));
+		DOUT("  imm8=0x"<<std::hex<<static_cast<int32_t>(data));
 	}
 	if(flgs & Flag::Imm16){
 		idata->imm16 = emu->GetSignCode16(0);
