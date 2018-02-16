@@ -13,9 +13,11 @@ namespace Device {
 
 class Base {
 public:
-	Base() : name("unknown device") {}
+	Base(const std::string &name) : name(name) {}
+//	Base() : name("unknown device") {}
 
 	virtual void MemoryMappedProc(Memory *memory, uint32_t addr){}
+
 	const std::string& GetDevName(){ return name; }
 
 	virtual uint8_t in8(uint16_t port){
@@ -28,15 +30,15 @@ public:
 		msg += name;
 		throw msg;
 	}
-protected:
-	virtual void InitDevice() { InitDevName(); InitDevIRQ(); InitDevPort(); }
-	virtual void InitDevName() = 0;
-	void InitDevIRQ() { irq		= std::vector<int>(); }
-	void InitDevPort(){ io_port	= std::vector<int>(); }
-	void SetDevName(const std::string &name){ this->name = name; }
-	void AddDevIRQ(int irq){ this->irq.push_back(irq); }
-	void AddDevPort(int port){ io_port.push_back(port); }
 
+//	virtual void Init() { InitDevName(); }//InitDevIRQ(); InitDevPort(); }
+//	virtual void InitDevName() = 0;
+//	void InitDevIRQ() { irq		= std::vector<int>(); }
+//	void InitDevPort(){ io_port	= std::vector<int>(); }
+//	void AddDevIRQ(int irq){ this->irq.push_back(irq); }
+//	void AddDevPort(int port){ io_port.push_back(port); }
+
+protected:
 	std::string name;
 	std::vector<int> irq;
 	std::vector<int> io_port;

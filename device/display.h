@@ -11,7 +11,6 @@ public:
 	~Display();
 
 	void Init();
-	void InitDevName(){ name = "display"; }
 
 	void LoadFont(const std::string &fname);
 	void RegisterVRAM(Memory *mem, const uint32_t addr, const uint32_t size){

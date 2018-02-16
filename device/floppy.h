@@ -12,8 +12,8 @@ namespace Device {
 
 class Floppy : public Device::Base {
 public:
-	Floppy(){}
-	Floppy(const std::string fname) : fname(fname) { Open(fname); }
+	Floppy() : Base("Floppy") {}
+	Floppy(const std::string fname) : Base("Floppy"), fname(fname) { Open(fname); }
 	~Floppy(){}
 
 	void InitDevName(){ name = "floppy"; }

@@ -7,8 +7,7 @@ using namespace Device;
 size_t Display::default_scrnx = 320;
 size_t Display::default_scrny = 200;
 
-Display::Display() : memory(nullptr), img(nullptr), scrnx(default_scrnx), scrny(default_scrny) {
-	InitDevice();
+Display::Display() : Base("Display"), memory(nullptr), img(nullptr), scrnx(default_scrnx), scrny(default_scrny) {
 	Init();
 }
 
