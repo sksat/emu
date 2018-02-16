@@ -123,6 +123,10 @@ void j ## flag ## _rel8(){ \
 		emu->bios->Function(static_cast<int>(idata->imm8));
 	}
 
+	void out_imm8_al(){
+		emu->io->out8(idata->imm8, AL);
+	}
+
 	void short_jump(){
 		IP += static_cast<uint16_t>(idata->imm8);
 	}
