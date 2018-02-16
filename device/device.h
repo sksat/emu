@@ -17,6 +17,17 @@ public:
 
 	virtual void MemoryMappedProc(Memory *memory, uint32_t addr){}
 	const std::string& GetDevName(){ return name; }
+
+	virtual uint8_t in8(uint16_t port){
+		std::string msg = "in8() is not implemented in ";
+		msg += name;
+		throw msg;
+	}
+	virtual void out8(uint16_t port, uint8_t data){
+		std::string msg = "out8() is not implemented in ";
+		msg += name;
+		throw msg;
+	}
 protected:
 	virtual void InitDevice() { InitDevName(); InitDevIRQ(); InitDevPort(); }
 	virtual void InitDevName() = 0;

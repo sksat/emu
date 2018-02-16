@@ -10,6 +10,7 @@ public:
 	void InitInstructions();
 	void InitRegisters();
 	void InitMemory(){}
+	void InitIO(){}
 	void Dump();
 };
 

@@ -7,6 +7,7 @@
 #include "insn_base.h"
 #include "register_base.h"
 #include "memory.h"
+#include "io.h"
 #include "device/device.h"
 #include "bios/base.h"
 
@@ -19,6 +20,7 @@ public:
 	virtual void InitInstructions() = 0;
 	virtual void InitRegisters() = 0;
 	virtual void InitMemory() = 0;
+	virtual void InitIO() = 0;
 
 	virtual void ConnectDevice(Device::Base &dev);
 
@@ -42,6 +44,7 @@ public:
 	std::vector<RegisterBase*> all_reg;
 	std::vector<Device::Base*> dev;
 	Memory *memory;
+	IO *io;
 	BIOS::Base *bios;
 };
 

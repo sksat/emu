@@ -54,6 +54,10 @@ void Emulator::InitMemory(){
 	memory->endian = ENDIAN::LITTLE;
 }
 
+void Emulator::InitIO(){
+	io = new IO();
+}
+
 void Emulator::RunStep(){
 	bool is_16 = IsMode16();
 

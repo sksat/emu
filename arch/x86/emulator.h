@@ -61,6 +61,7 @@ public:
 	void InitInstructions();
 	void InitRegisters();
 	void InitMemory();
+	void InitIO();
 protected:
 	size_t mode;
 	x86::Emulator *emu = this;
