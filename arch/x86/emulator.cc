@@ -6,6 +6,7 @@
 #include "instruction.h"
 #include "instruction16.h"
 #include "instruction32.h"
+#include "../../device/pic.h"
 
 using namespace std;
 
@@ -56,6 +57,8 @@ void Emulator::InitMemory(){
 
 void Emulator::InitIO(){
 	io = new IO();
+	auto pic = new Device::PIC();
+	io->port[0x20] = io->port[0x21] = io->port[0xa0] = io->port[0xa1] = pic;
 }
 
 void Emulator::RunStep(){

@@ -20,12 +20,12 @@ public:
 
 	const std::string& GetDevName(){ return name; }
 
-	virtual uint8_t in8(uint16_t port){
+	virtual uint8_t in8(const uint16_t &port){
 		std::string msg = "in8() is not implemented in ";
 		msg += name;
 		throw msg;
 	}
-	virtual void out8(uint16_t port, uint8_t data){
+	virtual void out8(const uint16_t &port, const uint8_t &data){
 		std::string msg = "out8() is not implemented in ";
 		msg += name;
 		throw msg;
