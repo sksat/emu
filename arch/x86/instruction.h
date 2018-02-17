@@ -124,7 +124,8 @@ void j ## flag ## _rel8(){ \
 	}
 
 	void out_imm8_al(){
-		emu->io->out8(idata->imm8, AL);
+		uint8_t port = idata->imm8;
+		emu->io->out8(port, AL);
 	}
 
 	void short_jump(){
