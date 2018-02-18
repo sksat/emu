@@ -7,6 +7,7 @@
 #include "instruction16.h"
 #include "instruction32.h"
 #include "../../device/pic.h"
+#include "../../device/keyboard.h"
 
 using namespace std;
 
@@ -59,6 +60,9 @@ void Emulator::InitIO(){
 	io = new IO();
 	auto pic = new Device::PIC();
 	io->port[0x20] = io->port[0x21] = io->port[0xa0] = io->port[0xa1] = pic;
+
+	auto keyboard = new Device::Keyboard();
+	io->port[0x64] = keyboard;
 }
 
 void Emulator::RunStep(){
