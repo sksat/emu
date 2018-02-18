@@ -136,6 +136,10 @@ void j ## flag ## _rel8(){ \
 		DOUT("hlt"<<std::endl);
 		emu->halt_flg = true;
 	}
+
+	void cli(){
+		EFLAGS.IF = 0;
+	}
 };
 
 };
