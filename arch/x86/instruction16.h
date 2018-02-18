@@ -57,6 +57,11 @@ public:
 		idata->SetRM16(idata->imm16);
 	}
 
+	void call_rel16(){
+		emu->push16(IP);
+		IP += idata->imm16;
+	}
+
 	void jmp_rel16(){
 		EIP += idata->imm16;
 	}
