@@ -60,6 +60,7 @@ public:
 	}
 };
 
+// EFLAGS
 class Eflags : public ::RegisterBase {
 public:
 	struct {
@@ -129,6 +130,17 @@ public:
 		UpdateSub(v1, v2, result);
 	}
 
+	template<typename T>
+	inline void UpdateAnd(T v1, uint32_t v2, uint64_t result){
+		auto size = sizeof(T)*8; // bit数
+		bool signr = (result >> (size-1)) & 1;
+
+		SetCarry(0);
+		SetZero(result == 0);
+		SetSign(signr);
+		SetOverflow(0);
+	}
+
 	const uint32_t GetData32(){
 		uint32_t ret = 0x00;
 		ret |= CF;
@@ -162,7 +174,6 @@ public:
 		return ss.str();
 	}
 };
-
 
 }
 
