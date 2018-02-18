@@ -102,6 +102,16 @@ public:
 	}
 	inline int32_t GetSignCode32(int index)	{ return static_cast<int32_t>(GetCode32(index)); }
 
+	inline void push16(uint16_t val){
+		SP -= 2;
+		memory->SetData16(SP, val);
+	}
+	inline uint16_t pop16(){
+		uint16_t val = memory->GetData16(SP);
+		SP += 2;
+		return val;
+	}
+
 	inline void push32(uint32_t val){
 		ESP -= 4;
 		memory->SetData32(ESP, val);
