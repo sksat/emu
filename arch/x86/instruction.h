@@ -123,6 +123,11 @@ void j ## flag ## _rel8(){ \
 		emu->bios->Function(static_cast<int>(idata->imm8));
 	}
 
+	void in_al_imm8(){
+		uint8_t port = idata->imm8;
+		AL = emu->io->in8(port);
+	}
+
 	void out_imm8_al(){
 		uint8_t port = idata->imm8;
 		emu->io->out8(port, AL);
