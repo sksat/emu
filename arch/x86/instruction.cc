@@ -12,6 +12,7 @@ void Instruction::Init(){
 	idata->opcode = 0x90;
 
 //	SETINSN(0x00, add_rm8_r8,		Flag::ModRM);
+	SETINSN(0x24, and_al_imm8,		Flag::Imm8);
 	SETINSN(0x3c, cmp_al_imm8,		Flag::Imm8);
 	SETINSN(0x70, jo_rel8,			Flag::Imm8);
 	SETINSN(0x71, jno_rel8,			Flag::Imm8);

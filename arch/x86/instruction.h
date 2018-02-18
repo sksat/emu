@@ -31,6 +31,12 @@ protected:
 
 	void not_impl_insn();
 
+	void and_al_imm8(){
+		uint8_t al = AL;
+		AL = al & idata->imm8;
+		EFLAGS.UpdateAnd(al, idata->imm8, al&idata->imm8);
+	}
+
 	void cmp_al_imm8(){
 		uint8_t al = AL;
 		EFLAGS.Cmp(al, idata->imm8);
