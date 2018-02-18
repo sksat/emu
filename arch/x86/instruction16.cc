@@ -12,6 +12,7 @@ void Instruction16::Init(){
 	SETINSN(0x8c, mov_rm16_sreg,	Flag::ModRM);
 	for(auto i=0;i<8;i++)
 		SETINSN(0xb8+i, mov_r16_imm16, Flag::Imm16);
+	SETINSN(0xc3, ret,		Flag::None);
 	SETINSN(0xc7, mov_rm16_imm16,	Flag::ModRM | Flag::Imm16);
 	SETINSN(0xe8, call_rel16,	Flag::Imm16);
 	SETINSN(0xe9, jmp_rel16,	Flag::Imm16);
