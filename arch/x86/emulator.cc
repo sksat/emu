@@ -50,6 +50,10 @@ void Emulator::InitRegisters(){
 	GDTR.SetSize(sizeof(uint64_t)*3/4);
 	IDTR.SetSize(sizeof(uint64_t)*3/4);
 
+	LDTR.selector = 0x00;
+	GDTR.base  = IDTR.base = TR.base = LDTR.base	= 0x00;
+	GDTR.limit = IDTR.limit = TR.limit = LDTR.limit	= 0xffff;
+
 // all_regへの登録
 	all_reg.push_back(&pc);
 	all_reg.push_back(&eflags);
