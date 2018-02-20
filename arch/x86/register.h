@@ -175,6 +175,31 @@ public:
 	}
 };
 
+// memory management register: GDTR, IDTR, TR, LDTR
+class MemManRegister : public ::RegisterBase {
+public:
+	MemManRegister() : ::RegisterBase(sizeof(uint64_t)), selector(0x00), base(0x00), limit(0x00) {}
+
+	union {
+		struct {
+			uint16_t selector;	// TR, LDTRのみ
+			uint32_t base;
+			uint16_t limit;
+		};
+		uint64_t _reg64;
+	};
+
+	const std::string GetDataByString(){
+		std::stringstream ss;
+		ss	<< "0x"
+			<< std::hex
+			<< std::setw(GetSize()*2)
+			<< std::setfill('0')
+			<< _reg64;
+		return ss.str();
+	}
+};
+
 }
 
 #endif

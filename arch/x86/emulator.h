@@ -72,6 +72,7 @@ public:
 	x86::Eflags	eflags;
 	std::vector<x86::Register32> reg;
 	std::vector<x86::SRegister> sreg;
+	x86::MemManRegister GDTR, IDTR, TR, LDTR;
 
 	inline bool IsMode16(){ return (mode == 16); }
 	inline bool IsMode32(){ return (mode == 32); }

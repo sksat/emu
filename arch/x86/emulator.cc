@@ -43,6 +43,13 @@ void Emulator::InitRegisters(){
 	for(size_t i=0;i<SREG_COUNT;i++)
 		sreg[i].SetName(sreg_name[i]);
 
+	GDTR.SetName("GDTR");
+	IDTR.SetName("IDTR");
+	TR.SetName("  TR");
+	LDTR.SetName("LDTR");
+	GDTR.SetSize(sizeof(uint64_t)*3/4);
+	IDTR.SetSize(sizeof(uint64_t)*3/4);
+
 // all_regへの登録
 	all_reg.push_back(&pc);
 	all_reg.push_back(&eflags);
@@ -50,6 +57,10 @@ void Emulator::InitRegisters(){
 		all_reg.push_back(&reg[i]);
 	for(size_t i=0;i<SREG_COUNT;i++)
 		all_reg.push_back(&sreg[i]);
+	all_reg.push_back(&GDTR);
+	all_reg.push_back(&IDTR);
+	all_reg.push_back(&TR);
+	all_reg.push_back(&LDTR);
 }
 
 void Emulator::InitMemory(){
