@@ -28,6 +28,7 @@ public:
 
 	uint8_t prefix;
 	uint8_t opcode;
+	uint8_t subopcode;
 
 	union {
 		uint8_t _modrm;

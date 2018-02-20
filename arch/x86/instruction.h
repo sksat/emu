@@ -31,6 +31,51 @@ protected:
 
 	void not_impl_insn();
 
+	void lgdt(){
+		uint32_t addr = idata->CalcMemAddr();
+		// GDTR.limit = SRC[0:15];
+		uint16_t limit;
+		uint32_t base;
+		if(emu->IsMode16() ^ idata->chsiz_op){
+			uint16_t addr16 = static_cast<uint16_t>(addr);
+			limit = emu->memory->GetData16(addr16);
+			// GDTR.base  = SRC[16:47] & 0xffffff;
+			base  = emu->memory->GetData32(addr16+2) & 0xffffff;
+		}else{
+			limit = emu->memory->GetData16(addr);
+			// GDTR.base  = SRC[16:47];
+			base  = emu->memory->GetData32(addr+2);
+		}
+		emu->GDTR.limit = limit;
+		emu->GDTR.base  = base;
+	}
+	void code_0f01(){
+		DOUT(" /"<<static_cast<uint32_t>(idata->modrm.reg));
+		switch(idata->modrm.reg){
+		case 2:
+			lgdt();
+			break;
+		default:
+			{
+				std::stringstream ss;
+				ss << "not implemented: 0x0f01 /"
+					<< static_cast<uint32_t>(idata->modrm.reg);
+				throw ss.str();
+			}
+			break;
+		}
+	}
+	void code_0f(){
+		DOUT(std::endl<<"subop=0x"<<std::hex<<static_cast<uint32_t>(idata->subopcode));
+		switch(idata->subopcode){
+		case 0x01:
+			code_0f01();
+			break;
+		default:
+			throw "not implemented: 0x0f subop";
+		}
+	}
+
 	void and_al_imm8(){
 		uint8_t al = AL;
 		AL = al & idata->imm8;

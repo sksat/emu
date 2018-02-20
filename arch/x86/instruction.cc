@@ -12,6 +12,7 @@ void Instruction::Init(){
 	idata->opcode = 0x90;
 
 //	SETINSN(0x00, add_rm8_r8,		Flag::ModRM);
+	SETINSN(0x0f, code_0f,			Flag::None); // とりあえずNoneにしておく
 	SETINSN(0x24, and_al_imm8,		Flag::Imm8);
 	SETINSN(0x3c, cmp_al_imm8,		Flag::Imm8);
 	SETINSN(0x70, jo_rel8,			Flag::Imm8);
@@ -91,6 +92,27 @@ not_impl:
 			break;
 	}
 	EIP++;
+
+	if(idata->opcode == 0x0f){
+		uint8_t flgs = 0x00;
+		idata->subopcode = emu->GetCode8(0);
+		switch(idata->subopcode){
+		case 0x01:
+			flgs = Flag::ModRM;
+			break;
+		default:
+			{
+				std::stringstream ss;
+				ss << "not implemented 0x0f: subop=0x"
+					<< std::hex
+					<< static_cast<uint32_t>(idata->subopcode);
+				throw ss.str();
+			}
+			break;
+		}
+		insn_flgs[0x0f] = flgs;
+		EIP++;
+	}
 }
 
 void Instruction::Decode(){
