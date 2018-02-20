@@ -62,7 +62,7 @@ void Emulator::InitIO(){
 	io->port[0x20] = io->port[0x21] = io->port[0xa0] = io->port[0xa1] = pic;
 
 	auto keyboard = new Device::Keyboard();
-	io->port[0x64] = keyboard;
+	io->port[0x60] = io->port[0x64] = keyboard;
 }
 
 void Emulator::RunStep(){
