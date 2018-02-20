@@ -193,9 +193,12 @@ public:
 		std::stringstream ss;
 		ss	<< "0x"
 			<< std::hex
-			<< std::setw(GetSize()*2)
-			<< std::setfill('0')
-			<< _reg64;
+			<< std::setfill('0');
+		if(GetSize() == sizeof(uint64_t)){
+			ss << std::setw(4) << selector;
+		}
+		ss	<< std::setw(8) << base
+			<< std::setw(4) << limit;
 		return ss.str();
 	}
 };
