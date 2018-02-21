@@ -48,6 +48,9 @@
 #define FS emu->sreg[4].reg16
 #define GS emu->sreg[5].reg16
 
+#define GET_CRN(num)		(num==0x00 ? (emu->CR0.reg32) : (throw "GET_CRN: crn not found."))
+#define SET_CRN(num, val)	(num==0x00 ? (emu->CR0.reg32=val): (throw "SET_CRN: crn not found."))
+
 namespace x86 {
 
 class InsnData;

@@ -65,11 +65,21 @@ protected:
 			break;
 		}
 	}
+	void mov_r32_crn(){
+		auto& r32 = emu->reg[idata->RM];
+		auto n   = idata->modrm.reg;
+		uint32_t crn = GET_CRN(n);
+		r32.reg32 = crn;
+		DOUT(std::endl<<__func__<<": "<<r32.GetName()<<" <- CR"<<static_cast<uint32_t>(n)<<"(0x"<<std::hex<<crn<<")");
+	}
 	void code_0f(){
 		DOUT(std::endl<<"subop=0x"<<std::hex<<static_cast<uint32_t>(idata->subopcode));
 		switch(idata->subopcode){
 		case 0x01:
 			code_0f01();
+			break;
+		case 0x20:
+			mov_r32_crn();
 			break;
 		default:
 			throw "not implemented: 0x0f subop";

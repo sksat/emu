@@ -94,10 +94,11 @@ not_impl:
 	EIP++;
 
 	if(idata->opcode == 0x0f){
-		uint8_t flgs = 0x00;
+		uint8_t flgs = Flag::None;
 		idata->subopcode = emu->GetCode8(0);
 		switch(idata->subopcode){
 		case 0x01:
+		case 0x20:
 			flgs = Flag::ModRM;
 			break;
 		default:
