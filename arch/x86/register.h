@@ -203,6 +203,45 @@ public:
 	}
 };
 
+// base for CR0~CR4
+class CRegister : public ::RegisterBase {
+public:
+	CRegister() : ::RegisterBase(sizeof(uint32_t)) {}
+};
+
+class CR0_t : public CRegister {
+public:
+	union {
+		struct {
+			bool PE  : 1; // 保護イネーブル
+			bool MP  : 1; // モニタ・コプロセッサ
+			bool EM  : 1; // エミュレーション
+			bool TS  : 1; // タスクスイッチ
+			bool ET  : 1; // 拡張タイプ
+			bool NE  : 1; // 数値演算エラー
+			uint16_t : 10;
+			bool WP  : 1; // 書き込み保護
+			bool     : 1;
+			bool AM  : 1; // アラインメント・マスク
+			uint16_t : 10;
+			bool NW  : 1; // ノット・ライトスルー
+			bool CD  : 1; // キャッシュ・ディスエーブル
+			bool PG  : 1; // ページング
+		};
+		uint32_t reg32;
+	};
+
+	const std::string GetDataByString(){
+		std::stringstream ss;
+		ss << "0x"
+			<< std::hex
+			<< std::setfill('0')
+			<< std::setw(8)
+			<< reg32;
+		return ss.str();
+	}
+};
+
 }
 
 #endif

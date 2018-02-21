@@ -54,6 +54,8 @@ void Emulator::InitRegisters(){
 	GDTR.base  = IDTR.base = TR.base = LDTR.base	= 0x00;
 	GDTR.limit = IDTR.limit = TR.limit = LDTR.limit	= 0xffff;
 
+	CR0.SetName("CR0");
+
 // all_regへの登録
 	all_reg.push_back(&pc);
 	all_reg.push_back(&eflags);
@@ -65,6 +67,7 @@ void Emulator::InitRegisters(){
 	all_reg.push_back(&IDTR);
 	all_reg.push_back(&TR);
 	all_reg.push_back(&LDTR);
+	all_reg.push_back(&CR0);
 }
 
 void Emulator::InitMemory(){
