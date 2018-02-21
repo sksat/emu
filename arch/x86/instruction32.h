@@ -56,19 +56,15 @@ private:
 	}
 		void add_rm32_imm8(){
 			uint32_t rm32 = idata->GetRM32();
-			uint32_t imm8 = (int32_t)emu->GetSignCode8(0);
-			EIP++;
-			idata->SetRM32(rm32 + imm8);
+			uint64_t set = rm32 + idata->imm8;
+			idata->SetRM32(set);
+			EFLAGS.UpdateAdd(rm32, idata->imm8, set);
 		}
 		void sub_rm32_imm8(){
-//			std::cout<<"sub"<<std::endl;
 			uint32_t rm32 = idata->GetRM32();
-			uint32_t imm8 = (int32_t)emu->GetSignCode8(0);
-			EIP++;
-			idata->SetRM32(rm32 - imm8);
-			
-//			emu->EIP++;
-//			idata->SetRM32(idata->GetRM32() - (int32_t)emu->GetSignCode8(-1));
+			uint64_t set = rm32 - idata->imm8;
+			idata->SetRM32(set);
+			EFLAGS.UpdateSub(rm32, idata->imm8, set);
 		}
 	void mov_rm32_r32(){
 		idata->SetRM32(emu->reg[idata->modrm.reg].reg32);
