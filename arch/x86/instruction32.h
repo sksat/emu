@@ -13,6 +13,13 @@ private:
 	void add_rm32_r32(){
 		idata->SetRM32(idata->GetRM32() + emu->reg[idata->modrm.reg].reg32);
 	}
+
+	void and_eax_imm32(){
+		DOUT(std::endl<<"EAX <- EAX(0x"<<std::hex<<EAX<<") & "<<idata->imm32);
+		EAX = EAX & idata->imm32;
+		DOUT(" = 0x"<<EAX);
+	}
+
 	void cmp_r32_rm32(){
 		uint32_t r32  = emu->reg[idata->modrm.reg].reg32;
 		uint32_t rm32 = idata->GetRM32();
