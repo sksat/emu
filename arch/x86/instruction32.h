@@ -44,6 +44,9 @@ private:
 		case 0:
 			add_rm32_imm8();
 			break;
+		case 1:
+			or_rm32_imm8();
+			break;
 		case 5:
 			sub_rm32_imm8();
 			break;
@@ -59,6 +62,12 @@ private:
 			uint64_t set = rm32 + idata->imm8;
 			idata->SetRM32(set);
 			EFLAGS.UpdateAdd(rm32, idata->imm8, set);
+		}
+		void or_rm32_imm8(){
+			uint32_t rm32 = idata->GetRM32();
+			uint64_t set = rm32 | idata->imm8;
+			idata->SetRM32(set);
+			EFLAGS.UpdateOr(rm32, idata->imm8, set);
 		}
 		void sub_rm32_imm8(){
 			uint32_t rm32 = idata->GetRM32();
