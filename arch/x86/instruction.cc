@@ -99,6 +99,7 @@ not_impl:
 		switch(idata->subopcode){
 		case 0x01:
 		case 0x20:
+		case 0x22:
 			flgs = Flag::ModRM;
 			break;
 		default:

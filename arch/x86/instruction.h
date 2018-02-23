@@ -72,6 +72,13 @@ protected:
 		r32.reg32 = crn;
 		DOUT(std::endl<<__func__<<": "<<r32.GetName()<<" <- CR"<<static_cast<uint32_t>(n)<<"(0x"<<std::hex<<crn<<")");
 	}
+	void mov_crn_r32(){
+		auto& r32 = emu->reg[idata->RM];
+		auto n = idata->modrm.reg;
+		SET_CRN(n, r32.reg32);
+		DOUT(std::endl<<__func__<<": CR"<<static_cast<uint32_t>(n)<<" <- "<<r32.GetName()<<"(0x"<<std::hex<<r32.reg32<<")");
+		throw "temp exit";
+	}
 	void code_0f(){
 		DOUT(std::endl<<"subop=0x"<<std::hex<<static_cast<uint32_t>(idata->subopcode));
 		switch(idata->subopcode){
@@ -80,6 +87,9 @@ protected:
 			break;
 		case 0x20:
 			mov_r32_crn();
+			break;
+		case 0x22:
+			mov_crn_r32();
 			break;
 		default:
 			throw "not implemented: 0x0f subop";
