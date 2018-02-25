@@ -69,9 +69,10 @@
 #define SET_SEG_MEM16(sreg, addr, val) (SET_MEM16(emu->L2P(sreg, addr), val))
 #define SET_SEG_MEM32(sreg, addr, val) (SET_MEM32(emu->L2P(sreg, addr), val))
 
-#define GET_CODE8(offset)  (SET_SEG_MEM8(CS, offset))
-#define GET_CODE16(offset) (SET_SEG_MEM16(CS, offset))
-#define GET_CODE32(offset) (SET_SEG_MEM32(CS, offset))
+// memory access(code segment)
+#define GET_CODE8(offset)  (GET_SEG_MEM8(CS, offset))
+#define GET_CODE16(offset) (GET_SEG_MEM16(CS, offset))
+#define GET_CODE32(offset) (GET_SEG_MEM32(CS, offset))
 
 namespace x86 {
 
@@ -115,6 +116,7 @@ public:
 	// logical addr to physical addr
 	inline uint32_t L2P(const x86::SRegister &sreg, const uint32_t &addr){
 		if(IsProtected()){ // protect mode
+			DOUT("L2P: "<<sreg.GetName()<<"=0x"<<std::hex<<sreg.reg16);
 			throw "not implemented: L2P in pretect mode";
 		}else{ // real mode
 			return (sreg.reg16 * 16) + addr;
