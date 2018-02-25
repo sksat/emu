@@ -77,7 +77,10 @@ protected:
 		auto n = idata->modrm.reg;
 		SET_CRN(n, r32.reg32);
 		DOUT(std::endl<<__func__<<": CR"<<static_cast<uint32_t>(n)<<" <- "<<r32.GetName()<<"(0x"<<std::hex<<r32.reg32<<")");
-		throw "temp exit";
+		if(emu->CR0.PE)
+			DOUT(std::endl<<"Protect Enable");
+		if(emu->CR0.PG)
+			throw "not implemented: paging";
 	}
 	void code_0f(){
 		DOUT(std::endl<<"subop=0x"<<std::hex<<static_cast<uint32_t>(idata->subopcode));

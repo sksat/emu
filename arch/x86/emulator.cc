@@ -24,6 +24,7 @@ void Emulator::InitInstructions(){
 	mode = 16;
 }
 
+// vol3_i 9.1
 void Emulator::InitRegisters(){
 	pc.SetName("EIP");
 	eflags.SetName("EFLAGS");
@@ -55,6 +56,7 @@ void Emulator::InitRegisters(){
 	GDTR.limit = IDTR.limit = TR.limit = LDTR.limit	= 0xffff;
 
 	CR0.SetName("CR0");
+	CR0.reg32 = 0x60000010;
 
 // all_regへの登録
 	all_reg.push_back(&pc);
@@ -85,6 +87,10 @@ void Emulator::InitIO(){
 
 void Emulator::RunStep(){
 	bool is_16 = IsMode16();
+
+	if(IsProtected()){
+		throw "Protected";
+	}
 
 	insn->Fetch();
 	idata->chsiz_addr = !(is_16 ^ idata->chsiz_addr);

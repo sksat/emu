@@ -78,8 +78,9 @@ public:
 	x86::MemManRegister GDTR, IDTR, TR, LDTR;
 	x86::CR0_t CR0;
 
-	inline bool IsMode16(){ return (mode == 16); }
-	inline bool IsMode32(){ return (mode == 32); }
+	inline bool IsMode16(){ return (!CR0.PE); }
+	inline bool IsMode32(){ return (CR0.PE); }
+	inline bool IsProtected(){ return (CR0.PE); }
 
 	void RunStep();
 	void Run(bool halt_exit){
