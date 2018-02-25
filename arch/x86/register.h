@@ -47,7 +47,14 @@ public:
 class SRegister : public ::RegisterBase {
 public:
 	SRegister() : ::RegisterBase(sizeof(uint16_t)), reg16(0x00) {}
-	uint16_t reg16;
+	union {
+		uint16_t reg16;
+		struct { // segment selector
+			uint8_t	 RPL	: 2; // required priviledge level
+			bool     TI	: 1; // table indicator
+			uint16_t index	: 13;
+		};
+	};
 
 	inline SRegister& operator=(const uint16_t val){ reg16 = val; return *this; }
 
