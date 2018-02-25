@@ -51,6 +51,15 @@
 #define GET_CRN(num)		(num==0x00 ? (emu->CR0.reg32) : (throw "GET_CRN: crn not found."))
 #define SET_CRN(num, val)	(num==0x00 ? (emu->CR0.reg32=val): (throw "SET_CRN: crn not found."))
 
+// memory access(physical address)
+#define GET_MEM8(addr)		(emu->memory->GetData8(addr))
+#define GET_MEM16(addr)		(emu->memory->GetData16(addr))
+#define GET_MEM32(addr)		(emu->memory->GetData32(addr))
+
+#define SET_MEM8(addr, val)	(emu->memory->SetData8(addr,  static_cast<uint8_t>(val)) )
+#define SET_MEM16(addr, val)	(emu->memory->SetData16(addr, static_cast<uint16_t>(val)))
+#define SET_MEM32(addr, val)	(emu->memory->SetData32(addr, static_cast<uint32_t>(val)))
+
 namespace x86 {
 
 class InsnData;
@@ -91,40 +100,40 @@ public:
 	}
 
 	// memoryの関数を使うべき
-	inline uint8_t GetCode8(int index)	{ return (*memory)[EIP + index]; }
+	inline uint8_t GetCode8(int index)	{ return GET_MEM8(EIP + index); }
 	inline int8_t GetSignCode8(int index)	{ return static_cast<int8_t>(GetCode8(index)); }
 	inline uint16_t GetCode16(int index){
 		uint16_t ret = 0x00;
 		for(int i=0;i<2;i++)
 			ret |= GetCode8(index + i) << (i * 8);
-		return ret;
+		return GET_MEM16(EIP + index);
 	}
 	inline int16_t GetSignCode16(int index)	{ return static_cast<int16_t>(GetCode16(index)); }
 	inline uint32_t GetCode32(int index){
 		uint32_t ret = 0x00;
 		for(int i=0;i<4;i++)
 			ret |= GetCode8(index + i) << (i * 8);
-		return ret;
+		return GET_MEM32(EIP + index);
 	}
 	inline int32_t GetSignCode32(int index)	{ return static_cast<int32_t>(GetCode32(index)); }
 
 	inline void push16(uint16_t val){
 		SP -= 2;
-		memory->SetData16(SP, val);
+		SET_MEM16(SP, val);
 	}
 	inline uint16_t pop16(){
-		uint16_t val = memory->GetData16(SP);
+		uint16_t val = GET_MEM16(SP);
 		SP += 2;
 		return val;
 	}
 
 	inline void push32(uint32_t val){
 		ESP -= 4;
-		memory->SetData32(ESP, val);
+		SET_MEM32(ESP, val);
 	}
 	inline uint32_t pop32(){
 		ESP += 4;
-		return memory->GetData32(ESP-4);
+		return GET_MEM32(ESP-4);
 	}
 };
 
