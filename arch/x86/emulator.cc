@@ -89,7 +89,7 @@ void Emulator::RunStep(){
 	bool is_16 = IsMode16();
 
 	if(IsProtected()){
-		throw "Protected";
+//		throw "Protected";
 	}
 
 	insn->Fetch();

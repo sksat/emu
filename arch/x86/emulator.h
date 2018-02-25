@@ -41,12 +41,12 @@
 #define SET_REG8(num, val)	(num<0x4 ? (emu->reg[num].low8=val) : (emu->reg[num-0x4].high8=val))
 
 // segment registers
-#define ES emu->sreg[0].reg16
-#define CS emu->sreg[1].reg16
-#define SS emu->sreg[2].reg16
-#define DS emu->sreg[3].reg16
-#define FS emu->sreg[4].reg16
-#define GS emu->sreg[5].reg16
+#define ES emu->sreg[0]
+#define CS emu->sreg[1]
+#define SS emu->sreg[2]
+#define DS emu->sreg[3]
+#define FS emu->sreg[4]
+#define GS emu->sreg[5]
 
 #define GET_CRN(num)		(num==0x00 ? (emu->CR0.reg32) : (throw "GET_CRN: crn not found."))
 #define SET_CRN(num, val)	(num==0x00 ? (emu->CR0.reg32=val): (throw "SET_CRN: crn not found."))
@@ -59,6 +59,19 @@
 #define SET_MEM8(addr, val)	(emu->memory->SetData8(addr,  static_cast<uint8_t>(val)) )
 #define SET_MEM16(addr, val)	(emu->memory->SetData16(addr, static_cast<uint16_t>(val)))
 #define SET_MEM32(addr, val)	(emu->memory->SetData32(addr, static_cast<uint32_t>(val)))
+
+// memory access with segmentation
+#define GET_SEG_MEM8(sreg, addr)  (GET_MEM8(emu->L2P(sreg, addr)) )
+#define GET_SEG_MEM16(sreg, addr) (GET_MEM16(emu->L2P(sreg, addr)))
+#define GET_SEG_MEM32(sreg, addr) (GET_MEM32(emu->L2P(sreg, addr)))
+
+#define SET_SEG_MEM8(sreg, addr, val)  (SET_MEM8(emu->L2P(sreg, addr), val))
+#define SET_SEG_MEM16(sreg, addr, val) (SET_MEM16(emu->L2P(sreg, addr), val))
+#define SET_SEG_MEM32(sreg, addr, val) (SET_MEM32(emu->L2P(sreg, addr), val))
+
+#define GET_CODE8(offset)  (SET_SEG_MEM8(CS, offset))
+#define GET_CODE16(offset) (SET_SEG_MEM16(CS, offset))
+#define GET_CODE32(offset) (SET_SEG_MEM32(CS, offset))
 
 namespace x86 {
 
@@ -99,41 +112,39 @@ public:
 		}
 	}
 
-	// memoryの関数を使うべき
-	inline uint8_t GetCode8(int index)	{ return GET_MEM8(EIP + index); }
+	// logical addr to physical addr
+	inline uint32_t L2P(const x86::SRegister &sreg, const uint32_t &addr){
+		if(IsProtected()){ // protect mode
+			throw "not implemented: L2P in pretect mode";
+		}else{ // real mode
+			return (sreg.reg16 * 16) + addr;
+		}
+	}
+
+	inline uint8_t GetCode8(int index)	{ return GET_SEG_MEM8(CS, EIP + index); }
 	inline int8_t GetSignCode8(int index)	{ return static_cast<int8_t>(GetCode8(index)); }
-	inline uint16_t GetCode16(int index){
-		uint16_t ret = 0x00;
-		for(int i=0;i<2;i++)
-			ret |= GetCode8(index + i) << (i * 8);
-		return GET_MEM16(EIP + index);
-	}
+	inline uint16_t GetCode16(int index)	{ return GET_SEG_MEM16(CS, EIP + index); }
 	inline int16_t GetSignCode16(int index)	{ return static_cast<int16_t>(GetCode16(index)); }
-	inline uint32_t GetCode32(int index){
-		uint32_t ret = 0x00;
-		for(int i=0;i<4;i++)
-			ret |= GetCode8(index + i) << (i * 8);
-		return GET_MEM32(EIP + index);
-	}
+	inline uint32_t GetCode32(int index)	{ return GET_SEG_MEM32(CS, EIP + index); }
 	inline int32_t GetSignCode32(int index)	{ return static_cast<int32_t>(GetCode32(index)); }
 
 	inline void push16(uint16_t val){
 		SP -= 2;
-		SET_MEM16(SP, val);
+		SET_SEG_MEM16(SS, SP, val);
 	}
 	inline uint16_t pop16(){
-		uint16_t val = GET_MEM16(SP);
+		uint16_t val = GET_SEG_MEM16(SS, SP);
 		SP += 2;
 		return val;
 	}
 
 	inline void push32(uint32_t val){
 		ESP -= 4;
-		SET_MEM32(ESP, val);
+		SET_SEG_MEM32(SS, ESP, val);
 	}
 	inline uint32_t pop32(){
 		ESP += 4;
-		return GET_MEM32(ESP-4);
+		return GET_SEG_MEM32(SS, ESP-4);
 	}
 };
 

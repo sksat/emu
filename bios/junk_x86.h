@@ -173,7 +173,7 @@ public:
 					.cylinder = CH,
 					.sector = CL // 下位5bit
 				};
-				if(fd->Read(set, emu->memory, (ES*16)+BX, AL)){
+				if(fd->Read(set, emu->memory, (ES.reg16*16)+BX, AL)){
 					EFLAGS.CF = 0;
 					AH = 0;
 				}else{
