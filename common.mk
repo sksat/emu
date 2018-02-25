@@ -8,10 +8,10 @@ INCFLAGS += -I./libsksat
 LDFLAGS  += 
 
 CFLAGS   += $(INCFLAGS) -MD -Wall -g
-CXXFLAGS += $(INCFLAGS) -MD -std=c++14 -Wall -g
+CXXFLAGS += $(INCFLAGS) -MD -std=c++14 -Wall
 CXXFLAGS += -DGIT_COMMIT_ID="\"$(GIT_COMMIT_ID)\"" -DGIT_COMMIT_DATE="\"$(GIT_COMMIT_DATE)\""
 ifeq ($(BUILD_TYPE),Debug)
-	CXXFLAGS += -DDEBUG
+	CXXFLAGS += -DDEBUG -g -O0
 else
 	CXXFLAGS += -DNO_DEBUG
 endif
