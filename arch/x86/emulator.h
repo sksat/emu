@@ -74,6 +74,15 @@
 #define GET_CODE16(offset) (GET_SEG_MEM16(CS, offset))
 #define GET_CODE32(offset) (GET_SEG_MEM32(CS, offset))
 
+// memory access(data segment)
+#define GET_DATA8(addr)  (GET_SEG_MEM8(sreg, addr))
+#define GET_DATA16(addr) (GET_SEG_MEM16(sreg, addr))
+#define GET_DATA32(addr) (GET_SEG_MEM32(sreg, addr))
+
+#define SET_DATA8(addr, val)  (SET_SEG_MEM8(sreg, addr, val))
+#define SET_DATA16(addr, val) (SET_SEG_MEM16(sreg, addr, val))
+#define SET_DATA32(addr, val) (SET_SEG_MEM32(sreg, addr, val))
+
 namespace x86 {
 
 class InsnData;
@@ -114,13 +123,16 @@ public:
 	}
 
 	// logical addr to physical addr
-	inline uint32_t L2P(const x86::SRegister &sreg, const uint32_t &addr){
+	inline uint32_t L2P(const x86::SRegister* sreg, const uint32_t &addr){
 		if(IsProtected()){ // protect mode
-			DOUT("L2P: "<<sreg.GetName()<<"=0x"<<std::hex<<sreg.reg16);
+			DOUT("L2P: "<<sreg->GetName()<<"=0x"<<std::hex<<sreg->reg16);
 			throw "not implemented: L2P in pretect mode";
 		}else{ // real mode
-			return (sreg.reg16 * 16) + addr;
+			return (sreg->reg16 * 16) + addr;
 		}
+	}
+	inline uint32_t L2P(const x86::SRegister &sreg, const uint32_t &addr){
+		return L2P(&sreg, addr);
 	}
 
 	inline uint8_t GetCode8(int index)	{ return GET_SEG_MEM8(CS, EIP + index); }

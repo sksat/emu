@@ -56,6 +56,8 @@ public:
 
 	bool chsiz_op;		// オペランドサイズ変更
 	bool chsiz_addr;	// アドレスサイズ変更
+
+	SRegister *sreg = &DS;
 public:
 	InsnData(x86::Emulator *e);
 
@@ -229,21 +231,21 @@ get_disp32:
 			return GET_REG8(RM);
 		auto addr = CalcMemAddr();
 		DOUT("GetRM8: addr=0x"<<std::hex<<addr);
-		return GET_MEM8(addr); //emu->memory->GetData8(addr);
+		return GET_DATA8(addr); //emu->memory->GetData8(addr);
 	}
 	inline uint16_t GetRM16(){
 		if(MOD == 3)
 			return emu->reg[RM].reg16;
 		auto addr = CalcMemAddr();
 		DOUT("GetRM16: addr=0x"<<std::hex<<addr);
-		return GET_MEM16(addr); //emu->memory->GetData16(addr);
+		return GET_DATA16(addr); //emu->memory->GetData16(addr);
 	}
 	inline uint32_t GetRM32(){
 		if(MOD == 3)
 			return emu->reg[RM].reg32;
 		auto addr = CalcMemAddr();
 		DOUT("GetRM32: addr=0x"<<std::hex<<addr);
-		return GET_MEM32(addr); //emu->memory->GetData32(addr);
+		return GET_DATA32(addr); //emu->memory->GetData32(addr);
 	}
 
 	// set rm
@@ -255,7 +257,7 @@ get_disp32:
 			return;
 		}
 		auto addr = CalcMemAddr();
-		SET_MEM8(addr, val); //emu->memory->SetData8(addr, val);
+		SET_DATA8(addr, val); //emu->memory->SetData8(addr, val);
 		DOUT("SetRM8: [0x"<<std::hex<<addr
 				<<"] = 0x"<<static_cast<uint32_t>(val)<<std::endl);
 	}
@@ -266,7 +268,7 @@ get_disp32:
 			return;
 		}
 		auto addr = CalcMemAddr();
-		SET_MEM16(addr, val); //emu->memory->SetData16(addr, val);
+		SET_DATA16(addr, val); //emu->memory->SetData16(addr, val);
 		DOUT("SetRM16: [0x"<<std::hex<<addr
 				<<"] = 0x"<<val<<std::endl);
 	}
@@ -277,7 +279,7 @@ get_disp32:
 			return;
 		}
 		uint32_t addr = CalcMemAddr();
-		SET_MEM32(addr, val); //emu->memory->SetData32(addr, val);
+		SET_DATA32(addr, val); //emu->memory->SetData32(addr, val);
 		DOUT("SetRM32: [0x"<<std::hex<<addr
 				<<"] = 0x"<<val<<std::endl);
 	}

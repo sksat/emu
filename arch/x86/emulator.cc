@@ -44,6 +44,8 @@ void Emulator::InitRegisters(){
 	for(size_t i=0;i<SREG_COUNT;i++)
 		sreg[i].SetName(sreg_name[i]);
 
+	idata->sreg = &sreg[3];
+
 	GDTR.SetName("GDTR");
 	IDTR.SetName("IDTR");
 	TR.SetName("  TR");
