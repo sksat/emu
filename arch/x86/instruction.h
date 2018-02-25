@@ -38,6 +38,7 @@ protected:
 		uint32_t base;
 		if(emu->IsMode16() ^ idata->chsiz_op){
 			uint16_t addr16 = static_cast<uint16_t>(addr);
+			addr = addr16;
 			limit = emu->memory->GetData16(addr16);
 			// GDTR.base  = SRC[16:47] & 0xffffff;
 			base  = emu->memory->GetData32(addr16+2) & 0xffffff;
@@ -48,6 +49,8 @@ protected:
 		}
 		emu->GDTR.limit = limit;
 		emu->GDTR.base  = base;
+
+		DOUT(std::endl<<"LGDT: GDTR <- [0x"<<std::hex<<addr<<"](limit=0x"<<std::hex<<limit<<", base=0x"<<std::hex<<base<<")");
 	}
 	void code_0f01(){
 		DOUT(" /"<<static_cast<uint32_t>(idata->modrm.reg));
