@@ -201,7 +201,7 @@ public:
 // memory management register: GDTR, IDTR, TR, LDTR
 class MemManRegister : public ::RegisterBase {
 public:
-	MemManRegister() : ::RegisterBase(sizeof(uint64_t)), selector(0x00), base(0x00), limit(0x00) {}
+	MemManRegister() : ::RegisterBase(sizeof(uint64_t)), limit(0x00), base(0x00), selector(0x00) {}
 
 	union {
 		struct {
@@ -209,7 +209,7 @@ public:
 			uint32_t base		: 32;
 			uint16_t selector	: 16;	// TR, LDTRのみ
 		};
-		uint64_t _reg64;
+//		uint64_t _reg64 : 64;
 	};
 
 	const std::string GetDataByString(){
@@ -222,12 +222,14 @@ public:
 			<< std::setfill('0');
 
 		if(GetSize()==sizeof(uint64_t))
-			ss << "0x" << std::setw(16);
+			ss << "0x" << std::setw(4) << selector;
 		else
-			ss << "    0x" << std::setw(12);
+			ss << "    0x";
 
-		ss	<< _reg64
-			<< " = (";
+		ss	<< std::setw(8) << base
+			<< std::setw(4) << limit;
+
+		ss	<< " = (";
 
 		if(GetSize() == sizeof(uint64_t))
 			ss << "selector=0x" << std::setw(4) << selector << ", ";
