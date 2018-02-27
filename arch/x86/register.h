@@ -60,10 +60,15 @@ public:
 
 	const std::string GetDataByString(){
 		std::stringstream ss;
-		ss << "0x"
-			<< std::hex << std::setw(4) << std::setfill('0')
-			<< static_cast<uint32_t>(reg16);
-			return ss.str();
+		ss	<< "0x"
+			<< std::hex << std::setfill('0')
+			<< std::setw(4) << reg16
+			<< " = ("
+			<< "RPL=0x" << static_cast<uint16_t>(RPL)
+			<< ", TI=0x" << TI << ":" << (TI ? "LDT" : "GDT")
+			<< ", index=0x" << std::setw(4) << index
+			<< ")";
+		return ss.str();
 	}
 };
 
@@ -200,23 +205,36 @@ public:
 
 	union {
 		struct {
-			uint16_t selector;	// TR, LDTRのみ
-			uint32_t base;
-			uint16_t limit;
+			uint16_t selector	: 16;	// TR, LDTRのみ
+			uint32_t base		: 32;
+			uint16_t limit		: 16;
 		};
 		uint64_t _reg64;
 	};
 
 	const std::string GetDataByString(){
 		std::stringstream ss;
-		ss	<< "0x"
-			<< std::hex
+
+		if(GetSize() != sizeof(uint64_t) && selector != 0x00)
+				throw "selector is not zero";
+
+		ss	<< std::hex
 			<< std::setfill('0');
-		if(GetSize() == sizeof(uint64_t)){
-			ss << std::setw(4) << selector;
-		}
-		ss	<< std::setw(8) << base
-			<< std::setw(4) << limit;
+
+		if(GetSize()==sizeof(uint64_t))
+			ss << "0x" << std::setw(16);
+		else
+			ss << "    0x" << std::setw(12);
+
+		ss	<< _reg64
+			<< " = (";
+
+		if(GetSize() == sizeof(uint64_t))
+			ss << "selector=0x" << std::setw(4) << selector << ", ";
+
+		ss	<< "base=0x" << std::setw(8) << base
+			<< ", limit=0x" << std::setw(4) << limit
+			<< ")";
 		return ss.str();
 	}
 };
