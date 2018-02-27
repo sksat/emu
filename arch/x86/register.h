@@ -205,9 +205,9 @@ public:
 
 	union {
 		struct {
-			uint16_t selector	: 16;	// TR, LDTRのみ
-			uint32_t base		: 32;
 			uint16_t limit		: 16;
+			uint32_t base		: 32;
+			uint16_t selector	: 16;	// TR, LDTRのみ
 		};
 		uint64_t _reg64;
 	};
