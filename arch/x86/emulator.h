@@ -122,10 +122,97 @@ public:
 		}
 	}
 
+	struct Descriptor {
+		union {
+			uint32_t low32;
+			struct {
+				uint16_t limit_low;
+				uint16_t base_low;
+			};
+		};
+
+		union {
+			uint32_t high32;
+			struct {
+				uint8_t base_mid;
+				uint8_t type		: 4;
+				bool S			: 1; // ディスクリプタ・タイプ(0:システム, 1:コードorデータ)
+				uint8_t	DPL		: 2; // 特権レベル
+				bool P			: 1; // セグメント存在
+				uint8_t limit_high	: 4;
+				bool AVL		: 1; // システム・ソフトウェアが使用出来る
+				bool			: 1; // 虚無
+				bool D_B		: 1; // Dビット(0:16bitセグメント, 1:32bitセグメント)
+				bool G			: 1; // グラニュラリティ
+				uint8_t base_high	: 8;
+			};
+		};
+
+		uint32_t GetLimit(){
+//			uint8_t high = limit_high;
+//			DOUT(std::endl<<"llow=0x"<<limit_low<<", lhigh=0x"<<static_cast<uint32_t>(high)<<std::endl);
+			uint32_t limit = limit_low;
+			limit |= limit_high << 16;
+			return limit;
+		}
+
+		uint32_t GetBase(){
+			uint32_t base = base_low;
+			base |= base_mid << 16;
+			base |= base_high<< 24;
+			return base;
+		}
+
+		std::string GetDataByString(){
+			std::stringstream ss;
+			ss << "base=0x"
+				<< std::hex << std::setfill('0') << std::setw(8) << GetBase();
+			uint64_t l_org = GetLimit();
+			auto l = l_org;
+			if(G) l = l << 12;
+			l += (G ? 4*KB : 1);
+			auto gb = l;
+			auto mb = gb%GB;
+			auto kb = mb%MB;
+			auto  b = kb%KB;
+			gb = gb/GB;
+			mb = mb/MB;
+			kb = kb/KB;
+			ss << ", limit=0x"
+				<< std::hex << std::setw(5) << l_org;
+
+			if(!l_org || !(gb || mb || kb || b)) return ss.str();
+
+			ss << "(" << std::dec << "G=" << G << ",size=";
+
+			if(gb) ss << gb << "GB";
+			if(mb) ss << (gb	? "-" : "") << mb << "MB";
+			if(kb) ss << (gb||mb	? "-" : "") << kb << "KB";
+			if(b)  ss << (gb||mb||kb? "-" : "") << b  <<  "B";
+
+			ss << ")";
+
+			return ss.str();
+		}
+	};
+
 	// logical addr to physical addr
 	inline uint32_t L2P(const x86::SRegister* sreg, const uint32_t &addr){
 		if(IsProtected()){ // protect mode
-			DOUT("L2P: "<<sreg->GetName()<<"=0x"<<std::hex<<sreg->reg16);
+			DOUT("L2P: "<<sreg->GetName()<<"=0x"<<std::hex<<sreg->reg16<<std::endl);
+			DOUT(GDTR.GetName()<<": "<<GDTR.GetDataByString()<<std::endl);
+			for(size_t i=0;i<GDTR.limit;i+=8){
+				Descriptor desc;
+				desc.low32 = GET_MEM32(GDTR.base+i);
+				desc.high32= GET_MEM32(GDTR.base+i+4);
+				DOUT("desc: 0x" << std::hex
+						<< std::setw(8) << desc.low32
+						<< ", 0x"
+						<< std::setw(8) << desc.high32
+						<< std::endl);
+
+				DOUT("\t"<<desc.GetDataByString()<<std::endl);
+			}
 			throw "not implemented: L2P in pretect mode";
 		}else{ // real mode
 			return (sreg->reg16 * 16) + addr;
