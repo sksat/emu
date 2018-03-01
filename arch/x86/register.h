@@ -35,7 +35,7 @@ public:
 
 	inline Register32& operator=(const uint32_t val){ reg32 = val; return *this; }
 
-	const std::string GetDataByString(){
+	const std::string GetDataByString() const {
 		std::stringstream ss;
 		ss << "0x"
 			<< std::hex << std::setw(8) << std::setfill('0')
@@ -58,7 +58,7 @@ public:
 
 	inline SRegister& operator=(const uint16_t val){ reg16 = val; return *this; }
 
-	const std::string GetDataByString(){
+	const std::string GetDataByString() const {
 		std::stringstream ss;
 		ss	<< "0x"
 			<< std::hex << std::setfill('0')
@@ -164,7 +164,7 @@ public:
 		SetOverflow(0);
 	}
 
-	const uint32_t GetData32(){
+	const uint32_t GetData32() const {
 		uint32_t ret = 0x00;
 		ret |= CF;
 		ret |= PF	<< 2;
@@ -187,7 +187,7 @@ public:
 		return ret;
 	}
 
-	const std::string GetDataByString(){
+	const std::string GetDataByString() const {
 		std::stringstream ss;
 		ss	<< "0x"
 			<< std::hex
@@ -212,7 +212,7 @@ public:
 //		uint64_t _reg64 : 64;
 	};
 
-	const std::string GetDataByString(){
+	const std::string GetDataByString() const {
 		std::stringstream ss;
 
 		if(GetSize() != sizeof(uint64_t) && selector != 0x00)
@@ -269,7 +269,7 @@ public:
 		uint32_t reg32;
 	};
 
-	const std::string GetDataByString(){
+	const std::string GetDataByString() const {
 		std::stringstream ss;
 		ss << "0x"
 			<< std::hex

@@ -60,7 +60,7 @@ public:
 	void SetName(std::string n) { name = n; }
 	void SetName(const char* n) { name = n; }
 
-	virtual const std::string GetDataByString() = 0;
+	virtual const std::string GetDataByString() const = 0;
 private:
 	std::size_t size;
 	std::string name;
