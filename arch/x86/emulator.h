@@ -198,25 +198,36 @@ public:
 
 	// logical addr to physical addr
 	inline uint32_t L2P(const x86::SRegister* sreg, const uint32_t &addr){
-		if(IsProtected()){ // protect mode
-			DOUT("L2P: "<<sreg->GetName()<<"=0x"<<std::hex<<sreg->reg16<<std::endl);
-			DOUT(GDTR.GetName()<<": "<<GDTR.GetDataByString()<<std::endl);
-			for(size_t i=0;i<GDTR.limit;i+=8){
-				Descriptor desc;
-				desc.low32 = GET_MEM32(GDTR.base+i);
-				desc.high32= GET_MEM32(GDTR.base+i+4);
-				DOUT("desc: 0x" << std::hex
-						<< std::setw(8) << desc.low32
-						<< ", 0x"
-						<< std::setw(8) << desc.high32
-						<< std::endl);
-
-				DOUT("\t"<<desc.GetDataByString()<<std::endl);
-			}
-			throw "not implemented: L2P in pretect mode";
-		}else{ // real mode
+		if(!IsProtected()){ // real mode
 			return (sreg->reg16 * 16) + addr;
 		}
+
+		// protect mode
+		DOUT("L2P: "<<sreg->GetName()<<"="<<sreg->GetDataByString()<<std::endl);
+
+		// TODO: LDTはとりあえずエラー
+		if(sreg->TI) throw "TI=1, LDT is not implemented.";
+
+		DOUT(GDTR.GetName()<<": "<<GDTR.GetDataByString()<<std::endl);
+
+		if(sreg->index == 0x00) throw "#GP: null selector";
+
+		Descriptor desc;
+
+		// GDTはリニアアドレス空間にある
+		if(sreg->index*8 >= GDTR.limit) throw "out of GDTR";
+		desc.low32 = GET_MEM32(GDTR.base+(sreg->index*8));
+		desc.high32= GET_MEM32(GDTR.base+(sreg->index*8)+4);
+
+		DOUT("desc: " << std::hex
+				<< std::setw(8) << desc.low32
+				<< ", 0x"
+				<< std::setw(8) << desc.high32
+				<< std::endl
+				<< "\t"
+					<< desc.GetDataByString() << std::endl);
+
+		throw "not implemented: L2P in protect mode";
 	}
 	inline uint32_t L2P(const x86::SRegister &sreg, const uint32_t &addr){
 		return L2P(&sreg, addr);
