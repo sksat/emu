@@ -50,7 +50,7 @@ public:
 
 	uint16_t GetData16Big(uint32_t addr){ throw "not implemented: big endian"; }
 	uint16_t GetData16Little(uint32_t addr);
-	inline uint32_t GetData16(uint32_t addr){
+	inline uint16_t GetData16(uint32_t addr){
 		if(endian == ENDIAN::BIG) return GetData32Big(addr);
 		return GetData32Little(addr);
 	}
