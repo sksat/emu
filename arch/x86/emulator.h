@@ -110,8 +110,7 @@ public:
 	x86::MemManRegister GDTR, IDTR, TR, LDTR;
 	x86::CR0_t CR0;
 
-	inline bool IsMode16(){ return (!CR0.PE); }
-	inline bool IsMode32(){ return (CR0.PE); }
+	inline bool IsReal(){ return (!CR0.PE); }
 	inline bool IsProtected(){ return (CR0.PE); }
 
 	void RunStep();
@@ -210,7 +209,11 @@ public:
 
 		DOUT(GDTR.GetName()<<": "<<GDTR.GetDataByString()<<std::endl);
 
-		if(sreg->index == 0x00) throw "#GP: null selector";
+		if(sreg->index == 0x00){
+			std::cerr<<"#GP: null selector"<<std::endl;
+			if(EFLAGS.IF) throw "GP";
+			return addr;
+		}
 
 		Descriptor desc;
 

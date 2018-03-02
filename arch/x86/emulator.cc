@@ -88,15 +88,15 @@ void Emulator::InitIO(){
 }
 
 void Emulator::RunStep(){
-	bool is_16 = IsMode16();
+	bool is_real = IsReal();
 
 	if(IsProtected()){
 //		throw "Protected";
 	}
 
 	insn->Fetch();
-	idata->chsiz_addr = !(is_16 ^ idata->chsiz_addr);
-	if(is_16 ^  idata->chsiz_op){
+	idata->chsiz_addr = !(is_real ^ idata->chsiz_addr);
+	if(idata->IsMode16()){
 		insn16->Decode();
 		insn16->Exec();
 	}else{

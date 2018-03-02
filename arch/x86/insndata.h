@@ -61,6 +61,10 @@ public:
 public:
 	InsnData(x86::Emulator *e);
 
+	inline bool IsMode16(){
+		return (emu->IsReal() ^ chsiz_op);
+	}
+
 	inline void ParseModRM16(){
 		DOUT("ModRM16: ");
 		switch(MOD){
@@ -129,7 +133,7 @@ get_disp32:
 	}
 
 	inline uint32_t CalcMemAddr(){
-		if(emu->IsMode32() ^ chsiz_addr)
+		if(emu->IsProtected() ^ chsiz_addr)
 			return CalcMemAddr32();
 		else
 			return CalcMemAddr16();

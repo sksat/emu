@@ -36,7 +36,7 @@ protected:
 		// GDTR.limit = SRC[0:15];
 		uint16_t limit;
 		uint32_t base;
-		if(emu->IsMode16() ^ idata->chsiz_op){
+		if(idata->IsMode16()){
 			uint16_t addr16 = static_cast<uint16_t>(addr);
 			addr = addr16;
 			limit = emu->memory->GetData16(addr16);

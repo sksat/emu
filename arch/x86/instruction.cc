@@ -137,7 +137,7 @@ void Instruction::Decode(){
 				<< static_cast<uint32_t>(idata->RM)
 				<< "  ");
 		EIP++;
-		if(emu->IsMode16() ^ idata->chsiz_addr)
+		if(emu->IsReal() ^ idata->chsiz_addr)
 			idata->ParseModRM16();
 		else
 			idata->ParseModRM32();
@@ -161,7 +161,7 @@ void Instruction::Decode(){
 		DOUT(" imm32=0x"<<std::hex<<idata->imm32);
 	}
 	if(flgs & Flag::Moffs){
-		if(emu->IsMode16() ^ idata->chsiz_addr){
+		if(emu->IsReal() ^ idata->chsiz_addr){
 			idata->moffs = static_cast<uint32_t>(emu->GetCode16(0));
 			EIP+=2;
 		}else{
