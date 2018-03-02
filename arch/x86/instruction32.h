@@ -83,8 +83,10 @@ private:
 		emu->reg[idata->modrm.reg].reg32 = idata->GetRM32();
 	}
 	void mov_r32_imm32(){
-		emu->reg[emu->GetCode8(0) - 0xB8].reg32 = emu->GetCode32(1);
-		EIP+=5;
+		auto& reg = emu->reg[idata->opcode - 0xb8];
+		DOUT(__func__<<": "<<reg.GetName()<<" <- "<<std::hex<<idata->imm32);
+		reg.reg32 = idata->imm32;
+//		emu->reg[idata->opcode - 0xB8].reg32 = idata->imm32;
 	}
 	void ret32(){
 		EIP = emu->pop32();

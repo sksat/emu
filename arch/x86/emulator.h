@@ -202,12 +202,12 @@ public:
 		}
 
 		// protect mode
-		DOUT("L2P: "<<sreg->GetName()<<"="<<sreg->GetDataByString()<<std::endl);
+//		DOUT("L2P: "<<sreg->GetName()<<"="<<sreg->GetDataByString()<<std::endl);
 
 		// TODO: LDTはとりあえずエラー
 		if(sreg->TI) throw "TI=1, LDT is not implemented.";
 
-		DOUT(GDTR.GetName()<<": "<<GDTR.GetDataByString()<<std::endl);
+//		DOUT(GDTR.GetName()<<": "<<GDTR.GetDataByString()<<std::endl);
 
 		if(sreg->index == 0x00){
 			std::cerr<<"#GP: null selector"<<std::endl;
