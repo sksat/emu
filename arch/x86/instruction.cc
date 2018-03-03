@@ -49,48 +49,52 @@ void Instruction::Init(){
 }
 
 void Instruction::Fetch(){
-	idata->prefix = idata->opcode = emu->GetCode8(0);
-
 	// parse prefix
 	// bochs/cpu/fetchdecode.cc fetchDecode32
 	// is_32 = BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].cache.u.segment.d_b;
 	idata->chsiz_op = idata->chsiz_addr = false;
-	switch(idata->prefix){
-		case 0xf0:
-		case 0xf2:
-		case 0xf3:
-		case 0x26:
-		case 0x2e:
-		case 0x36:
-		case 0x3e:
-		case 0x64:
-		case 0x65:
-			goto not_impl;
-		case 0x66:	// op size
-			DOUT("0x66: operand size prefix"<<std::endl);
-			idata->chsiz_op = true;
-			EIP++;
-			idata->opcode = emu->GetCode8(0);
-			break;
-		case 0x67:	// addr size
-			DOUT("0x67: address size prefix"<<std::endl);
-			idata->chsiz_addr = true;
-			EIP++;
-			idata->opcode = emu->GetCode8(0);
-			break;
+
+	for(;;){
+		idata->opcode = emu->GetCode8(0);
+		switch(idata->opcode){
+			case 0xf0:
+			case 0xf2:
+			case 0xf3:
+			case 0x26:
+			case 0x2e:
+			case 0x36:
+			case 0x3e:
+			case 0x64:
+			case 0x65:
+				goto not_impl;
+			case 0x66:	// op size
+				DOUT("0x66: operand size prefix"<<std::endl);
+				idata->chsiz_op = true;
+				goto next;
+			case 0x67:	// addr size
+				DOUT("0x67: address size prefix"<<std::endl);
+				idata->chsiz_addr = true;
+				goto next;
+next:
+				idata->prefix = idata->opcode;
+				EIP++;
+				continue;
 not_impl:
-		{
-			std::stringstream ss;
-			ss << "not implemented prefix:"
-				<< std::hex << std::showbase
-				<< static_cast<uint32_t>(idata->prefix)
-				<< std::endl;
-			throw ss.str();
+			{
+				std::stringstream ss;
+				ss << "not implemented prefix:"
+					<< std::hex << std::showbase
+					<< static_cast<uint32_t>(idata->prefix)
+					<< std::endl;
+				throw ss.str();
+			}
+			default:
+				idata->prefix = 0x00;
+				goto no_prefix;
 		}
-		default:
-			idata->prefix = 0x00;
-			break;
 	}
+
+no_prefix:
 	EIP++;
 
 	if(idata->opcode == 0x0f){
