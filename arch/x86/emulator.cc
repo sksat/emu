@@ -96,13 +96,18 @@ void Emulator::RunStep(){
 
 	insn->Fetch();
 	idata->chsiz_addr = !(is_real ^ idata->chsiz_addr);
-	if(idata->IsMode16()){
-		insn16->Decode();
-		insn16->Exec();
-	}else{
-		insn32->Decode();
-		insn32->Exec();
+
+	// オペランドサイズ変更
+	if(idata->chsiz_op){
+		insn_cache = insn;
+		insn = ((insn==insn16) ? insn32 : insn32);
 	}
+
+	insn->Decode();
+	insn->Exec();
+
+	if(idata->chsiz_op)
+		insn = insn_cache;
 
 	DOUT(std::endl);
 }

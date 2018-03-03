@@ -102,6 +102,7 @@ protected:
 	x86::Emulator *emu = this;
 	x86::InsnData *idata;
 	x86::Instruction *insn16, *insn32;
+	InstructionBase *insn_cache;
 public:
 	x86::Register32 pc;
 	x86::Eflags	eflags;
@@ -230,7 +231,7 @@ public:
 				<< "\t"
 					<< desc.GetDataByString() << std::endl);
 
-		throw "not implemented: L2P in protect mode";
+		return addr;
 	}
 	inline uint32_t L2P(const x86::SRegister &sreg, const uint32_t &addr){
 		return L2P(&sreg, addr);
