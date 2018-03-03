@@ -234,21 +234,21 @@ get_disp32:
 		if(MOD == 3)
 			return GET_REG8(RM);
 		auto addr = CalcMemAddr();
-		DOUT("GetRM8: addr=0x"<<std::hex<<addr);
+//		DOUT("GetRM8: addr=0x"<<std::hex<<addr);
 		return GET_DATA8(addr); //emu->memory->GetData8(addr);
 	}
 	inline uint16_t GetRM16(){
 		if(MOD == 3)
 			return emu->reg[RM].reg16;
 		auto addr = CalcMemAddr();
-		DOUT("GetRM16: addr=0x"<<std::hex<<addr);
+//		DOUT("GetRM16: addr=0x"<<std::hex<<addr);
 		return GET_DATA16(addr); //emu->memory->GetData16(addr);
 	}
 	inline uint32_t GetRM32(){
 		if(MOD == 3)
 			return emu->reg[RM].reg32;
 		auto addr = CalcMemAddr();
-		DOUT("GetRM32: addr=0x"<<std::hex<<addr);
+//		DOUT("GetRM32: addr=0x"<<std::hex<<addr);
 		return GET_DATA32(addr); //emu->memory->GetData32(addr);
 	}
 

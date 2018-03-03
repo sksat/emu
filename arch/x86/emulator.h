@@ -222,7 +222,7 @@ public:
 		if(sreg->index*8 >= GDTR.limit) throw "out of GDTR";
 		desc.low32 = GET_MEM32(GDTR.base+(sreg->index*8));
 		desc.high32= GET_MEM32(GDTR.base+(sreg->index*8)+4);
-
+/*
 		DOUT("desc: " << std::hex
 				<< std::setw(8) << desc.low32
 				<< ", 0x"
@@ -230,7 +230,7 @@ public:
 				<< std::endl
 				<< "\t"
 					<< desc.GetDataByString() << std::endl);
-
+*/
 		return addr;
 	}
 	inline uint32_t L2P(const x86::SRegister &sreg, const uint32_t &addr){
