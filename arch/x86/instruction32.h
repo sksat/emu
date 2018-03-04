@@ -110,6 +110,25 @@ private:
 		reg.reg32 = idata->imm32;
 //		emu->reg[idata->opcode - 0xB8].reg32 = idata->imm32;
 	}
+
+	void code_c1(){
+		switch(idata->modrm.reg){
+		case 5:
+			shr_rm16_imm8();
+			break;
+		default:
+			std::stringstream ss;
+			ss << "not implemented: 0xc1 /"<<std::dec<<static_cast<uint32_t>(idata->modrm.reg);
+			throw ss.str();
+		}
+	}
+		void shr_rm16_imm8(){
+			uint16_t rm16 = idata->GetRM16();
+			uint32_t result = rm16 >> idata->imm8;
+			idata->SetRM16(result);
+			EFLAGS.UpdateShr(rm16, idata->imm8, result);
+		}
+
 	void ret32(){
 		EIP = emu->pop32();
 	}
