@@ -3,7 +3,6 @@
 
 #ifndef NO_DEBUG
 
-#include <stdio.h>
 #include <iostream>
 #define DEBUG_PUTS(msg) puts(msg);
 #define DOUT(stream) std::cout<<stream;

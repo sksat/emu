@@ -211,8 +211,10 @@ public:
 //		DOUT(GDTR.GetName()<<": "<<GDTR.GetDataByString()<<std::endl);
 
 		if(sreg->index == 0x00){
-			std::cerr<<"#GP: null selector"<<std::endl;
-			if(EFLAGS.IF) throw "GP";
+			if(EFLAGS.IF){
+				std::cerr<<"#GP: null selector"<<std::endl;
+				throw "GP";
+			}
 			return addr;
 		}
 

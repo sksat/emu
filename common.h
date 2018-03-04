@@ -1,6 +1,7 @@
 #ifndef COMMON_H_
 #define COMMON_H_
 
+#include <stdio.h>
 #include <stdint.h>
 
 //#define NO_DEBUG
