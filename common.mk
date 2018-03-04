@@ -13,7 +13,7 @@ CXXFLAGS += -DGIT_COMMIT_ID="\"$(GIT_COMMIT_ID)\"" -DGIT_COMMIT_DATE="\"$(GIT_CO
 ifeq ($(BUILD_TYPE),Debug)
 	CXXFLAGS += -DDEBUG -g -O0
 else
-	CXXFLAGS += -DNO_DEBUG
+	CXXFLAGS += -DNO_DEBUG -O3
 endif
 
 %.o:%.c $(HEAD)
