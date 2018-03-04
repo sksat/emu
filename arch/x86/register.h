@@ -164,6 +164,20 @@ public:
 		SetOverflow(0);
 	}
 
+	template<typename T>
+	inline void UpdateShr(T v1, uint8_t v2, uint64_t result){
+		auto size = sizeof(T)*8;
+		bool signr = (result >> (size-1)) & 1;
+
+		SetCarry((v1 >> (v2-1)) & 1);
+		SetZero(result == 0);
+		SetSign(signr);
+
+		// OFは1bitシフトのときのみ影響を受ける
+		if(v2 == 1)
+			SetOverflow((v1>>(size-1)) & 1);
+	}
+
 	const uint32_t GetData32() const {
 		uint32_t ret = 0x00;
 		ret |= CF;
