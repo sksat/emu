@@ -65,6 +65,10 @@ public:
 		return (emu->IsReal() ^ chsiz_op);
 	}
 
+	inline bool IsMode32(){
+		return !IsMode16();
+	}
+
 	inline void ParseModRM16(){
 		DOUT("ModRM16: ");
 		switch(MOD){
@@ -133,7 +137,7 @@ get_disp32:
 	}
 
 	inline uint32_t CalcMemAddr(){
-		if(emu->IsProtected() ^ chsiz_addr)
+		if(IsMode32() ^ chsiz_addr)
 			return CalcMemAddr32();
 		else
 			return CalcMemAddr16();
@@ -143,7 +147,7 @@ get_disp32:
 		switch(MOD){
 		case 0b00:
 			if(RM == 0b110)
-				return disp16;
+				addr = disp16;
 			break;
 		case 0b01:
 			addr = static_cast<uint32_t>(disp8);
