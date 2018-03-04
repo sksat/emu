@@ -39,6 +39,19 @@ private:
 		emu->reg[emu->GetCode8(0) - 0x58].reg32 = emu->pop32();
 		EIP++;
 	}
+
+	void imul_r32_rm32_imm32(){
+		auto& reg = emu->reg[idata->modrm.reg];
+		uint32_t rm32 = idata->GetRM32();
+		uint64_t temp = static_cast<int32_t>(rm32) * idata->imm32;
+		DOUT(std::endl<<reg.GetName()<<" <- 0x"<<std::hex<<rm32<<" * 0x"<<idata->imm32<<" = 0x"<<temp);
+		reg.reg32 = static_cast<uint32_t>(temp);
+		if(temp != reg.reg32) // temp != DEST
+			EFLAGS.CF = EFLAGS.OF = 1;
+		else
+			EFLAGS.CF = EFLAGS.OF = 0;
+	}
+
 	void code_83(){
 		switch(idata->modrm.reg){
 		case 0:
