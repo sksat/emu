@@ -159,6 +159,10 @@ void j ## flag ## _rel8(){ \
 		}
 	}
 
+	void mov_rm8_r8(){
+		idata->SetRM8(GET_REG8(idata->modrm.reg));
+	}
+
 	void mov_r8_rm8(){
 		auto rm8 = idata->GetRM8();
 		SET_REG8(idata->modrm.reg, rm8);
