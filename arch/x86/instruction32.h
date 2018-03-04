@@ -52,6 +52,14 @@ private:
 			EFLAGS.CF = EFLAGS.OF = 0;
 	}
 
+	void sub_rm32_imm32(){
+		uint32_t rm32 = idata->GetRM32();
+		int32_t set = static_cast<int32_t>(rm32) - idata->imm32;
+		DOUT(std::endl<<"neko: RM32=0x"<<std::hex<<static_cast<int32_t>(rm32)<<", imm32=0x"<<idata->imm32<<", set=0x"<<set);
+		idata->SetRM32(set);
+		EFLAGS.UpdateSub(rm32, idata->imm32, set);
+	}
+
 	void code_83(){
 		switch(idata->modrm.reg){
 		case 0:
