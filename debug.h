@@ -1,11 +1,13 @@
 #ifndef DEBUG_H_
 #define DEBUG_H_
 
+inline bool debug_out_flg = true;
+
 #ifndef NO_DEBUG
 
 #include <iostream>
 #define DEBUG_PUTS(msg) puts(msg);
-#define DOUT(stream) std::cout<<stream;
+#define DOUT(stream) {if(debug_out_flg){std::cout<<stream;}}
 
 #else
 
