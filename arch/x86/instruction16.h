@@ -55,6 +55,7 @@ public:
 
 	void ret(){
 		IP = emu->pop16();
+		debug_out_flg = true;
 	}
 
 	void mov_rm16_imm16(){
@@ -62,6 +63,8 @@ public:
 	}
 
 	void call_rel16(){
+		std::cout<<"ESI=0x"<<std::hex<<ESI<<", EDI=0x"<<EDI<<", ECX=0x"<<ECX<<std::endl;
+		debug_out_flg = false;
 		emu->push16(IP);
 		IP += idata->imm16;
 	}
