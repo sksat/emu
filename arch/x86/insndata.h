@@ -146,8 +146,13 @@ get_disp32:
 		uint32_t addr = 0x00;
 		switch(MOD){
 		case 0b00:
-			if(RM == 0b110)
-				addr = disp16;
+			if(RM == 0b110){
+				uint16_t tmp16 = disp16;
+				addr = tmp16;
+				DOUT(std::endl<<__func__<<": 0x"<<std::hex<<addr<<std::endl);
+			//	getchar();
+				return addr;
+			}
 			break;
 		case 0b01:
 			addr = static_cast<uint32_t>(disp8);
@@ -249,8 +254,11 @@ get_disp32:
 		return GET_DATA16(addr); //emu->memory->GetData16(addr);
 	}
 	inline uint32_t GetRM32(){
-		if(MOD == 3)
-			return emu->reg[RM].reg32;
+		if(MOD == 3){
+			auto& reg = emu->reg[RM];
+//			DOUT("GetRM32: reg:"<<reg.GetName()<<"("<<std::hex<<reg.reg32<<")");
+			return reg.reg32;
+		}
 		auto addr = CalcMemAddr();
 //		DOUT("GetRM32: addr=0x"<<std::hex<<addr);
 		return GET_DATA32(addr); //emu->memory->GetData32(addr);
