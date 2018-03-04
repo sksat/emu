@@ -161,9 +161,8 @@ void j ## flag ## _rel8(){ \
 
 	void mov_r8_rm8(){
 		auto rm8 = idata->GetRM8();
-		auto& r8 = emu->reg[idata->modrm.reg];
-		r8 = rm8;
-		DOUT(std::endl<<"\t"<<r8.GetName()<<"=0x"<<std::hex<<static_cast<uint32_t>(rm8));
+		SET_REG8(idata->modrm.reg, rm8);
+		DOUT(std::endl<<"\t"<<GET_REG8_NAME(idata->modrm.reg)<<"=0x"<<std::hex<<static_cast<uint32_t>(rm8));
 	}
 
 	void mov_sreg_rm16(){
