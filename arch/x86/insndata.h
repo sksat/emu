@@ -52,6 +52,8 @@ public:
 		int32_t imm32;
 	};
 
+	uint16_t ptr16;
+
 	uint32_t moffs;
 
 	bool chsiz_op;		// オペランドサイズ変更

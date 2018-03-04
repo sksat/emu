@@ -165,6 +165,13 @@ void Instruction::Decode(){
 		EIP+=4;
 		DOUT(" imm32=0x"<<std::hex<<idata->imm32);
 	}
+
+	if(flgs & Flag::Ptr16){
+		idata->ptr16 = emu->GetCode16(0);
+		EIP+=2;
+		DOUT(" ptr16=0x"<<std::hex<<idata->ptr16);
+	}
+
 	if(flgs & Flag::Moffs){
 		if(emu->IsReal() ^ idata->chsiz_addr){
 			idata->moffs = static_cast<uint32_t>(emu->GetCode16(0));

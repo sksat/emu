@@ -20,12 +20,13 @@ protected:
 	x86::Emulator *emu;
 	x86::InsnData *idata;
 	struct Flag {
-		static const uint8_t None	= 0b00000;
-		static const uint8_t ModRM	= 0b00001;
-		static const uint8_t Imm8	= 0b00010;
-		static const uint8_t Imm16	= 0b00100;
-		static const uint8_t Imm32	= 0b01000;
-		static const uint8_t Moffs	= 0b10000;
+		static const uint8_t None	= 0b000000;
+		static const uint8_t ModRM	= 0b000001;
+		static const uint8_t Imm8	= 0b000010;
+		static const uint8_t Imm16	= 0b000100;
+		static const uint8_t Imm32	= 0b001000;
+		static const uint8_t Moffs	= 0b010000;
+		static const uint8_t Ptr16	= 0b100000;
 	};
 	uint8_t insn_flgs[256];
 
