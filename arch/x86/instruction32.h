@@ -79,8 +79,9 @@ private:
 		idata->SetRM32(emu->reg[idata->modrm.reg].reg32);
 	}
 	void mov_r32_rm32(){
-		DOUT("mov_r32_rm32 "<<std::hex<<idata->GetRM32()<<std::endl);
-		emu->reg[idata->modrm.reg].reg32 = idata->GetRM32();
+		auto& reg = emu->reg[idata->modrm.reg];
+		DOUT(__func__<<": "<<reg.GetName()<<" <- 0x"<<std::hex<<idata->GetRM32()<<std::endl);
+		reg.reg32 = idata->GetRM32();
 	}
 	void mov_r32_imm32(){
 		auto& reg = emu->reg[idata->opcode - 0xb8];
