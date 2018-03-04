@@ -172,7 +172,7 @@ get_disp32:
 		case 0b011:
 		case 0b110:
 			addr += static_cast<uint32_t>(BP);
-			throw "not implemented: sreg=SS";
+			std::cerr<<std::endl<<"TODO: not implemented: sreg=SS"<<std::endl;
 			// TODO: segment register: SS
 			break;
 		}
