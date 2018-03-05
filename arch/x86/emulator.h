@@ -112,6 +112,9 @@ public:
 	x86::MemManRegister GDTR, IDTR, TR, LDTR;
 	x86::CR0_t CR0;
 
+	bool IsMode16();
+	bool IsMode32(){ return !IsMode16(); }
+
 	inline bool IsReal(){ return (!CR0.PE); }
 	inline bool IsProtected(){ return (CR0.PE); }
 
@@ -197,6 +200,18 @@ public:
 		}
 	};
 
+
+	inline Descriptor GetDesc(const SRegister *sreg){
+		Descriptor desc;
+		if(sreg->TI) throw "LDT is not implemented";
+
+		if(sreg->index*8 >= GDTR.limit) throw "out of GDTR";
+		desc.low32 = GET_MEM32(GDTR.base+(sreg->index*8));
+		desc.high32= GET_MEM32(GDTR.base+(sreg->index*8)+4);
+		return desc;
+	}
+	inline Descriptor GetDesc(const SRegister &sreg){ return GetDesc(&sreg); }
+
 	// logical addr to physical addr
 	inline uint32_t L2P(const x86::SRegister* sreg, const uint32_t &addr){
 		if(!IsProtected()){ // real mode
@@ -234,7 +249,16 @@ public:
 				<< "\t"
 					<< desc.GetDataByString() << std::endl);
 */
-		return addr;
+
+		if(addr >= desc.GetLimit()*(desc.G ? 1024 : 1)){
+			debug_out_flg = true;
+			DOUT("logical addr=0x"<<std::hex<<addr<<", limit=0x"<<desc.GetLimit());
+			throw "out of segment";
+		}
+		uint32_t ret = addr + desc.GetBase();
+
+		DOUT("phy_addr=0x"<<std::hex<<ret<<std::endl);
+		return ret;
 	}
 	inline uint32_t L2P(const x86::SRegister &sreg, const uint32_t &addr){
 		return L2P(&sreg, addr);
@@ -264,6 +288,15 @@ public:
 	inline uint32_t pop32(){
 		ESP += 4;
 		return GET_SEG_MEM32(SS, ESP-4);
+	}
+
+	inline void far_jmp(uint16_t selector, uint32_t eip){
+		// TODO: protect
+		DOUT(std::endl<<__func__<<": CS=0x"<<std::hex<<selector<<", EIP=0x"<<eip);
+		CS = selector;
+		EIP = eip;
+
+		DOUT(", desc: "<<GetDesc(CS).GetDataByString()<<std::endl);
 	}
 };
 
