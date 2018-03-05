@@ -37,7 +37,7 @@ protected:
 		// GDTR.limit = SRC[0:15];
 		uint16_t limit;
 		uint32_t base;
-		if(idata->IsMode16()){
+		if(!idata->is_op32){
 			uint16_t addr16 = static_cast<uint16_t>(addr);
 			addr = addr16;
 			limit = emu->memory->GetData16(addr16);
@@ -161,7 +161,9 @@ void j ## flag ## _rel8(){ \
 	}
 
 	void mov_rm8_r8(){
-		idata->SetRM8(GET_REG8(idata->modrm.reg));
+		uint8_t reg8 = GET_REG8(idata->modrm.reg);
+		DOUT(__func__<<": "<<GET_REG8_NAME(idata->modrm.reg)<<"=0x"<<std::hex<<reg8);
+		idata->SetRM8(reg8);
 	}
 
 	void mov_r8_rm8(){

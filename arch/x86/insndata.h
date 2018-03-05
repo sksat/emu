@@ -59,17 +59,12 @@ public:
 	bool chsiz_op;		// オペランドサイズ変更
 	bool chsiz_addr;	// アドレスサイズ変更
 
+	bool is_op32;		// オペランドサイズが32bitかどうか
+	bool is_addr32;		// アドレスサイズが32bitかどうか
+
 	SRegister *sreg = &DS;
 public:
 	InsnData(x86::Emulator *e);
-
-	inline bool IsMode16(){
-		return (emu->IsReal() ^ chsiz_op);
-	}
-
-	inline bool IsMode32(){
-		return !IsMode16();
-	}
 
 	inline void ParseModRM16(){
 		DOUT("ModRM16: ");
@@ -139,7 +134,7 @@ get_disp32:
 	}
 
 	inline uint32_t CalcMemAddr(){
-		if(IsMode32() ^ chsiz_addr)
+		if(is_addr32)
 			return CalcMemAddr32();
 		else
 			return CalcMemAddr16();
