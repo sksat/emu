@@ -1,3 +1,6 @@
+# default build type
+BUILD_TYPE = Debug
+
 TARGET	:= emu
 OBJS	:= main.o emulator_base.o emulator.o register_base.o memory.o
 OBJS	+= device/device.a
@@ -6,15 +9,13 @@ OBJS	+= font/font.o
 #OBJS	+= gui/gui.a
 OBJS	+= gui.o
 OBJS	+= arch/arch.a
+OBJS	+= debug.o
 
 LDFLAGS	+= -pthread -lglfw -lGL
 
 EMU_BIN	:= haribote.img
 MEMSIZE := 4
 RUNFLAGS:= --arch x86 --junk-bios --memory-size $(MEMSIZE) --gui --fda sample/$(EMU_BIN)
-
-# default build type
-BUILD_TYPE = Debug
 
 default:
 	make $(TARGET)

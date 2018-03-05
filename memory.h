@@ -64,7 +64,7 @@ public:
 
 	void SetData8(uint32_t addr, uint8_t val){
 		if(addr > static_cast<uint32_t>(size)){
-			std::cerr<<"addr=0x"<<std::hex<<addr;
+			DOUT("addr=0x"<<std::hex<<addr);
 			throw "out of mem";
 		}
 		mem[addr] = val;

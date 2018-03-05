@@ -251,7 +251,7 @@ public:
 */
 
 		if(addr >= desc.GetLimit()*(desc.G ? 1024 : 1)){
-			debug_out_flg = true;
+			debug::out_flg = true;
 			DOUT("logical addr=0x"<<std::hex<<addr<<", limit=0x"<<desc.GetLimit());
 			throw "out of segment";
 		}
