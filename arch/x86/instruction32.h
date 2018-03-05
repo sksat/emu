@@ -42,9 +42,9 @@ private:
 
 	void imul_r32_rm32_imm32(){
 		auto& reg = emu->reg[idata->modrm.reg];
-		uint32_t rm32 = idata->GetRM32();
-		uint64_t temp = static_cast<int32_t>(rm32) * idata->imm32;
-		DOUT(std::endl<<reg.GetName()<<" <- 0x"<<std::hex<<rm32<<" * 0x"<<idata->imm32<<" = 0x"<<temp);
+		int32_t s_rm32 = idata->GetRM32();
+		int64_t temp = static_cast<int64_t>(s_rm32) * static_cast<int64_t>(idata->imm32);
+		DOUT(std::endl<<reg.GetName()<<" <- 0x"<<std::hex<<s_rm32<<" * 0x"<<idata->imm32<<" = 0x"<<temp);
 		reg.reg32 = static_cast<uint32_t>(temp);
 		if(temp != reg.reg32) // temp != DEST
 			EFLAGS.CF = EFLAGS.OF = 1;
@@ -149,6 +149,11 @@ private:
 		emu->push32(EIP + 5);
 		EIP += (diff + 5);
 	}
+
+	void jmp_ptr16_32(){
+		emu->far_jmp(idata->ptr16, idata->imm32);
+	}
+
 	void code_ff(){
 		switch(idata->modrm.reg){
 		case 0:

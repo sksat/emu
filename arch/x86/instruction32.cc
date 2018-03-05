@@ -28,6 +28,7 @@ void Instruction32::Init(){
 	SETINSN(0xC7, mov_rm32_imm32,			Flag::ModRM | Flag::Imm32);
 //	SETINSN(0xC9, leave32,				0);
 //	SETINSN(0xE8, call_rel32,			0);
+	SETINSN(0xea, jmp_ptr16_32,			Flag::Ptr16 | Flag::Imm32); // far jump
 //	SETINSN(0xFF, code_ff,				1);
 }
 
