@@ -10,7 +10,8 @@ OBJS	+= arch/arch.a
 LDFLAGS	+= -pthread -lglfw -lGL
 
 EMU_BIN	:= haribote.img
-RUNFLAGS:= --arch x86 --junk-bios --memory-size 1 --gui --fda sample/$(EMU_BIN)
+MEMSIZE := 4
+RUNFLAGS:= --arch x86 --junk-bios --memory-size $(MEMSIZE) --gui --fda sample/$(EMU_BIN)
 
 # default build type
 BUILD_TYPE = Debug
