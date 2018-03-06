@@ -27,7 +27,7 @@ private:
 		emu->eflags.UpdateSub(r32, rm32, res);
 	}
 	void inc_r32(){
-		uint8_t r = emu->GetCode8(0) - 0x40;
+		uint8_t r = idata->opcode - 0x40;
 		emu->reg[r].reg32++;
 	}
 
@@ -54,6 +54,7 @@ private:
 	void code_81(){
 		switch(idata->modrm.reg){
 		case 5: sub_rm32_imm32(); break;
+		case 7: cmp_rm32_imm32(); break;
 		default:
 			std::stringstream ss;
 			ss << "not implemented: 0x83 /" << static_cast<uint32_t>(idata->modrm.reg);
@@ -66,6 +67,10 @@ private:
 			DOUT(std::endl<<"neko: RM32=0x"<<std::hex<<static_cast<int32_t>(rm32)<<", imm32=0x"<<idata->imm32<<", set=0x"<<set);
 			idata->SetRM32(set);
 			EFLAGS.UpdateSub(rm32, idata->imm32, set);
+		}
+		void cmp_rm32_imm32(){
+			auto rm32 = idata->GetRM32();
+			EFLAGS.Cmp(rm32, idata->imm32);
 		}
 
 	void code_83(){
