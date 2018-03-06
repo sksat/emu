@@ -169,8 +169,8 @@ get_disp32:
 		case 0b011:
 		case 0b110:
 			addr += static_cast<uint32_t>(BP);
-			std::cerr<<std::endl<<"TODO: not implemented: sreg=SS"<<std::endl;
-			// TODO: segment register: SS
+			//std::cerr<<std::endl<<"TODO: not implemented: sreg=SS"<<std::endl;
+			sreg = &SS;
 			break;
 		}
 
@@ -241,14 +241,14 @@ get_disp32:
 			return GET_REG8(RM);
 		auto addr = CalcMemAddr();
 //		DOUT("GetRM8: addr=0x"<<std::hex<<addr);
-		return GET_DATA8(addr); //emu->memory->GetData8(addr);
+		return GET_SEG_MEM8(sreg, addr);
 	}
 	inline uint16_t GetRM16(){
 		if(MOD == 3)
 			return emu->reg[RM].reg16;
 		auto addr = CalcMemAddr();
 //		DOUT("GetRM16: addr=0x"<<std::hex<<addr);
-		return GET_DATA16(addr); //emu->memory->GetData16(addr);
+		return GET_SEG_MEM16(sreg, addr);
 	}
 	inline uint32_t GetRM32(){
 		if(MOD == 3){
@@ -258,7 +258,7 @@ get_disp32:
 		}
 		auto addr = CalcMemAddr();
 //		DOUT("GetRM32: addr=0x"<<std::hex<<addr);
-		return GET_DATA32(addr); //emu->memory->GetData32(addr);
+		return GET_SEG_MEM32(sreg, addr);
 	}
 
 	// set rm
@@ -270,7 +270,7 @@ get_disp32:
 			return;
 		}
 		auto addr = CalcMemAddr();
-		SET_DATA8(addr, val); //emu->memory->SetData8(addr, val);
+		SET_SEG_MEM8(sreg, addr, val);
 		DOUT("SetRM8: [0x"<<std::hex<<addr
 				<<"] = 0x"<<static_cast<uint32_t>(val)<<std::endl);
 	}
@@ -281,7 +281,7 @@ get_disp32:
 			return;
 		}
 		auto addr = CalcMemAddr();
-		SET_DATA16(addr, val); //emu->memory->SetData16(addr, val);
+		SET_SEG_MEM16(sreg, addr, val);
 		DOUT("SetRM16: [0x"<<std::hex<<addr
 				<<"] = 0x"<<val<<std::endl);
 	}
@@ -292,7 +292,7 @@ get_disp32:
 			return;
 		}
 		uint32_t addr = CalcMemAddr();
-		SET_DATA32(addr, val); //emu->memory->SetData32(addr, val);
+		SET_SEG_MEM32(sreg, addr, val);
 		DOUT("SetRM32: [0x"<<std::hex<<addr
 				<<"] = 0x"<<val<<std::endl);
 	}

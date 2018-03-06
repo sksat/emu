@@ -100,6 +100,8 @@ void Emulator::RunStep(){
 
 	bool is_32;
 
+	idata->sreg = &DS;	// デフォルトのセグメントレジスタ
+
 	if(is_real)	// リアルモード
 		is_32 = is_mode32;
 	else		// プロテクトモード
