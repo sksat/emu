@@ -31,13 +31,13 @@ private:
 		emu->reg[r].reg32++;
 		EIP++;
 	}
+
 	void push_r32(){
-		emu->push32(emu->reg[emu->GetCode8(0)-0x50].reg32);
-		EIP++;
+		emu->push32(emu->reg[idata->opcode-0x50].reg32);
 	}
+
 	void pop_r32(){
-		emu->reg[emu->GetCode8(0) - 0x58].reg32 = emu->pop32();
-		EIP++;
+		emu->reg[idata->opcode - 0x58].reg32 = emu->pop32();
 	}
 
 	void imul_r32_rm32_imm32(){
@@ -148,6 +148,10 @@ private:
 		int32_t diff = emu->GetSignCode32(1);
 		emu->push32(EIP + 5);
 		EIP += (diff + 5);
+	}
+
+	void jmp_rel32(){
+		EIP += idata->imm32;
 	}
 
 	void jmp_ptr16_32(){
