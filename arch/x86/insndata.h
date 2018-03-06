@@ -187,8 +187,10 @@ get_disp32:
 	inline uint32_t CalcSibAddr(){
 		uint32_t addr = 0x00;
 
-		uint32_t base, index;
+		uint32_t base = 0x00, index;
 
+		if(sib.base == 0b100)
+			sreg = &SS;
 		if(sib.base == 0b101)
 			throw "not implemented: SIB.base=0b101";
 		else
