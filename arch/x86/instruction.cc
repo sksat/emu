@@ -15,6 +15,7 @@ void Instruction::Init(){
 	SETINSN(0x0f, code_0f,			Flag::None); // とりあえずNoneにしておく
 	SETINSN(0x24, and_al_imm8,		Flag::Imm8);
 	SETINSN(0x3c, cmp_al_imm8,		Flag::Imm8);
+	SETINSN(0x6a, push_imm8,		Flag::Imm8);
 	SETINSN(0x70, jo_rel8,			Flag::Imm8);
 	SETINSN(0x71, jno_rel8,			Flag::Imm8);
 	SETINSN(0x72, jb_rel8,			Flag::Imm8); // = jc,jnae
