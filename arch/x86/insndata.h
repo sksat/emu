@@ -183,25 +183,46 @@ get_disp32:
 
 		return addr;
 	}
+
+	inline uint32_t CalcSibAddr(){
+		uint32_t addr = 0x00;
+
+		uint32_t base, index;
+
+		if(sib.base == 0b101)
+			throw "not implemented: SIB.base=0b101";
+		else
+			base = emu->reg[sib.base].reg32;
+
+		if(sib.index == 0b100)
+			index = 0x00; // none
+		else
+			index = emu->reg[sib.index].reg32;
+
+		addr = base + (index * (1<<sib.scale));
+		DOUT(std::endl<<__func__<<"=0x"<<std::hex<<addr<<std::endl);
+		return addr;
+	}
+
 	inline uint32_t CalcMemAddr32(){
 		switch(MOD){
 			case 0b00:
 				switch(RM){
 					case 0b100: // SIB
-						break;
+						return CalcSibAddr();
 					case 0b101:
-						return disp32;
+						throw "not implemented: Mod=0b00,RM=0b101";
 					default:
 						return emu->reg[RM].reg32;
 				}
 			case 0b01:
 				if(RM == 0b100) // SIB
-					break;
+					return CalcSibAddr() + disp8;
 				else
 					return emu->reg[RM].reg32 + disp8;
 			case 0b10:
 				if(RM == 0b100) // SIB
-					break;
+					return CalcSibAddr() + disp32;
 				else
 					return emu->reg[RM].reg32 + disp32;
 			case 0b11:
