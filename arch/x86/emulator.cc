@@ -87,7 +87,12 @@ void Emulator::InitIO(){
 	io->port[0x60] = io->port[0x64] = keyboard;
 }
 
-bool Emulator::IsMode16(){ return (insn == insn16); }
+void Emulator::ChangeMode16(){
+	mode = 16;
+}
+void Emulator::ChangeMode32(){
+	mode = 32;
+}
 
 void Emulator::RunStep(){
 	bool is_mode32	= IsMode32();
@@ -95,28 +100,23 @@ void Emulator::RunStep(){
 
 	bool is_32;
 
-	if(is_real){ // リアルモード
+	if(is_real)	// リアルモード
 		is_32 = is_mode32;
-	}else{
-		is_32 = is_mode32; // TODO: 本当はコードセグメントディスクリプタ内のDフラグで判断する
-	}
+	else		// プロテクトモード
+		is_32 = GetDesc(CS).D_B; // TODO: ディスクリプタ・キャッシュから取ってくる
 
 	insn->Fetch();
 
 	idata->is_op32		= is_32 ^ idata->chsiz_op;
 	idata->is_addr32	= is_32 ^ idata->chsiz_addr;
 
-	// オペランドサイズ変更
-	if(idata->chsiz_op){
-		insn_cache = insn;
-		insn = ((insn == insn32) ? insn16 : insn32);
+	if(idata->is_op32){
+		insn32->Decode();
+		insn32->Exec();
+	}else{
+		insn16->Decode();
+		insn16->Exec();
 	}
-
-	insn->Decode();
-	insn->Exec();
-
-	if(idata->chsiz_op)
-		insn = insn_cache;
 
 	DOUT(std::endl);
 }

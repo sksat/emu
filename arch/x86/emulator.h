@@ -112,8 +112,12 @@ public:
 	x86::MemManRegister GDTR, IDTR, TR, LDTR;
 	x86::CR0_t CR0;
 
-	bool IsMode16();
-	bool IsMode32(){ return !IsMode16(); }
+	bool IsMode16(){ return (mode == 16); }
+	bool IsMode32(){ return (mode == 32); }
+
+	void ChangeMode16();
+	void ChangeMode32();
+	void ChangeMode(){ (IsMode16() ? ChangeMode32() : ChangeMode16()); }
 
 	inline bool IsReal(){ return (!CR0.PE); }
 	inline bool IsProtected(){ return (CR0.PE); }
@@ -296,7 +300,16 @@ public:
 		CS = selector;
 		EIP = eip;
 
-		DOUT(", desc: "<<GetDesc(CS).GetDataByString()<<std::endl);
+		auto desc = GetDesc(CS);
+		DOUT(", desc: "<<desc.GetDataByString()<<std::endl);
+
+		if(desc.D_B){	// 32bitセグメント
+			ChangeMode32();
+			DOUT("32bit-segment");
+		}else{
+			ChangeMode16();
+			DOUT("16bit-segment");
+		}
 	}
 };
 
