@@ -276,22 +276,22 @@ public:
 	inline int32_t GetSignCode32(int index)	{ return static_cast<int32_t>(GetCode32(index)); }
 
 	inline void push8(uint8_t val){
-		SP--;
-		SET_SEG_MEM8(SS, SP, val);
+		ESP--;
+		SET_SEG_MEM8(SS, ESP, val);
 	}
 	inline uint8_t pop8(){
-		uint8_t val = GET_SEG_MEM8(SS, SP);
-		SP++;
+		uint8_t val = GET_SEG_MEM8(SS, ESP);
+		ESP++;
 		return val;
 	}
 
 	inline void push16(uint16_t val){
-		SP -= 2;
-		SET_SEG_MEM16(SS, SP, val);
+		ESP -= 2;
+		SET_SEG_MEM16(SS, ESP, val);
 	}
 	inline uint16_t pop16(){
-		uint16_t val = GET_SEG_MEM16(SS, SP);
-		SP += 2;
+		uint16_t val = GET_SEG_MEM16(SS, ESP);
+		ESP += 2;
 		return val;
 	}
 
@@ -300,8 +300,8 @@ public:
 		SET_SEG_MEM32(SS, ESP, val);
 	}
 	inline uint32_t pop32(){
+		return GET_SEG_MEM32(SS, ESP);
 		ESP += 4;
-		return GET_SEG_MEM32(SS, ESP-4);
 	}
 
 	inline void far_jmp(uint16_t selector, uint32_t eip){
