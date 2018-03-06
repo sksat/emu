@@ -29,7 +29,6 @@ private:
 	void inc_r32(){
 		uint8_t r = emu->GetCode8(0) - 0x40;
 		emu->reg[r].reg32++;
-		EIP++;
 	}
 
 	void push_r32(){
@@ -145,9 +144,8 @@ private:
 		EIP++;
 	}
 	void call_rel32(){
-		int32_t diff = emu->GetSignCode32(1);
-		emu->push32(EIP + 5);
-		EIP += (diff + 5);
+		emu->push32(EIP);
+		EIP += idata->imm32;
 	}
 
 	void jmp_rel32(){
