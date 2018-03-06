@@ -14,8 +14,13 @@ OBJS	+= debug.o
 LDFLAGS	+= -pthread -lglfw -lGL
 
 EMU_BIN	:= haribote.img
-MEMSIZE := 4
-RUNFLAGS:= --arch x86 --junk-bios --memory-size $(MEMSIZE) --gui --fda sample/$(EMU_BIN)
+ARCH	:= x86
+MEMSIZE	:= 4
+BIOS	:= --junk-bios
+FLOPPY	:= --fda sample/$(EMU_BIN)
+DEV	:= $(FLOPPY)
+UI	:= --gui
+RUNFLAGS:= --arch $(ARCH) --memory-size $(MEMSIZE) $(BIOS) $(DEV) $(UI)
 
 default:
 	make $(TARGET)
