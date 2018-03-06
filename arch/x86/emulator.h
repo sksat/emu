@@ -275,6 +275,16 @@ public:
 	inline uint32_t GetCode32(int index)	{ return GET_SEG_MEM32(CS, EIP + index); }
 	inline int32_t GetSignCode32(int index)	{ return static_cast<int32_t>(GetCode32(index)); }
 
+	inline void push8(uint8_t val){
+		SP--;
+		SET_SEG_MEM8(SS, SP, val);
+	}
+	inline uint8_t pop8(){
+		uint8_t val = GET_SEG_MEM8(SS, SP);
+		SP++;
+		return val;
+	}
+
 	inline void push16(uint16_t val){
 		SP -= 2;
 		SET_SEG_MEM16(SS, SP, val);
