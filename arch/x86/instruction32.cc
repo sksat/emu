@@ -24,7 +24,7 @@ void Instruction32::Init(){
 	for(int i=0;i<8;i++)
 		SETINSN(0xB8+i, mov_r32_imm32,		Flag::Imm32);
 	SETINSN(0xC1, code_c1,				Flag::ModRM | Flag::Imm8);
-//	SETINSN(0xC3, ret32,				0);
+	SETINSN(0xc3, ret32,				Flag::None);
 	SETINSN(0xC7, mov_rm32_imm32,			Flag::ModRM | Flag::Imm32);
 //	SETINSN(0xC9, leave32,				0);
 	SETINSN(0xE8, call_rel32,			Flag::Imm32);
