@@ -91,7 +91,7 @@ void Display::FlushImage(){
 			SET_RGB(x, y, r, g, b);
 
 			x++;
-			if(x>scrnx){
+			if(x>=scrnx){
 				x = 0;
 				y++;
 			}
