@@ -27,7 +27,7 @@ addons:
 script:
 - $CC --version
 - $CXX --version
-- make CC=$CC CXX=$CXX
+- make CC=$CC CXX=$CXX BUILD_TYPE=Release
 - make run CC=$CC CXX=$CXX UI=""
 notifications:
   slack:
