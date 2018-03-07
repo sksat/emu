@@ -7,6 +7,8 @@ using namespace Device;
 size_t Display::default_scrnx = 320;
 size_t Display::default_scrny = 200;
 
+#define SET_PALETTE(num, r, g, b) {palette[num*3]=r;palette[num*3+1]=g;palette[num*3+2]=b;}
+
 Display::Display() : Base("Display"), memory(nullptr), img(nullptr), scrnx(default_scrnx), scrny(default_scrny) {
 	Init();
 }
@@ -20,6 +22,7 @@ void Display::Init(){
 	font_xsiz = 8;
 	font_ysiz = 16;
 	ChangeMode(scrnx, scrny);
+	SET_PALETTE(15, 0xff, 0xff, 0xff);
 }
 
 void Display::LoadFont(const std::string &fname){
@@ -55,10 +58,9 @@ void Display::ChangeMode(size_t scrnx, size_t scrny, bool txtmode_flg){
 
 void Display::FlushImage(){
 	if(memory == nullptr || img == nullptr) throw;
+	size_t x=0, y=0;
 	if(txtmode_flg){
-		size_t x = 0;
-		size_t y = 0;
-		for(size_t addr=0x00; addr<(vram_start+vram_size); addr++){
+		for(size_t addr=0x00; addr<=vram_size; addr++){
 			char c = GET_VRAM(addr); // 文字
 
 			switch(c){
@@ -79,6 +81,20 @@ void Display::FlushImage(){
 			if(y>scrny) break;
 
 			PutFont(print_x, print_y, '_');
+		}
+	}else{
+		for(size_t addr=0x00; addr<vram_size; addr++){
+			uint8_t num = GET_VRAM(addr); // 色番号
+			uint8_t r = palette[num * 3    ];
+			uint8_t g = palette[num * 3 + 1];
+			uint8_t b = palette[num * 3 + 2];
+			SET_RGB(x, y, r, g, b);
+
+			x++;
+			if(x>scrnx){
+				x = 0;
+				y++;
+			}
 		}
 	}
 }

@@ -47,7 +47,7 @@ private:
 	uint32_t vram_start, vram_size;
 
 	bool txtmode_flg;
-	unsigned char pallete[0xff * 3]; // パレット
+	unsigned char palette[0xff * 3]; // パレット
 	unsigned char *img;		// ウィンドウに実際に渡すイメージ
 	size_t scrnx, scrny;	// 縦、横サイズ
 
