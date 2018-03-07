@@ -261,7 +261,7 @@ public:
 		}
 		uint32_t ret = addr + desc.GetBase();
 
-		DOUT("phy_addr=0x"<<std::hex<<ret<<std::endl);
+//		DOUT("phy_addr=0x"<<std::hex<<ret<<std::endl);
 		return ret;
 	}
 	inline uint32_t L2P(const x86::SRegister &sreg, const uint32_t &addr){
@@ -278,9 +278,11 @@ public:
 	inline void push8(uint8_t val){
 		ESP--;
 		SET_SEG_MEM8(SS, ESP, val);
+		DOUT("push8: addr=0x"<<L2P(SS, ESP));
 	}
 	inline uint8_t pop8(){
 		uint8_t val = GET_SEG_MEM8(SS, ESP);
+		DOUT("pop8: addr=0x"<<L2P(SS, ESP));
 		ESP++;
 		return val;
 	}
@@ -288,9 +290,11 @@ public:
 	inline void push16(uint16_t val){
 		ESP -= 2;
 		SET_SEG_MEM16(SS, ESP, val);
+		DOUT("push16: addr=0x"<<L2P(SS, ESP));
 	}
 	inline uint16_t pop16(){
 		uint16_t val = GET_SEG_MEM16(SS, ESP);
+		DOUT("pop16: addr=0x"<<L2P(SS,ESP));
 		ESP += 2;
 		return val;
 	}
@@ -298,10 +302,13 @@ public:
 	inline void push32(uint32_t val){
 		ESP -= 4;
 		SET_SEG_MEM32(SS, ESP, val);
+		DOUT("push32: addr=0x"<<L2P(SS, ESP));
 	}
 	inline uint32_t pop32(){
-		return GET_SEG_MEM32(SS, ESP);
+		uint32_t val = GET_SEG_MEM32(SS, ESP);
+		DOUT("pop32: addr=0x"<<L2P(SS, ESP));
 		ESP += 4;
+		return val;
 	}
 
 	inline void far_jmp(uint16_t selector, uint32_t eip){
