@@ -225,7 +225,7 @@ void j ## flag ## _rel8(){ \
 	}
 
 	void hlt(){
-		DOUT("hlt"<<std::endl);
+		std::cout<<"hlt"<<std::endl;
 		emu->halt_flg = true;
 	}
 
