@@ -1,12 +1,31 @@
-TARGET	= harib27f.img
+TARGET	= helloos.img
 OBJS	= startup.o main.o
 
 HARIB27F_APP = bball
+
+HARIB_VER = harib00j
+#HARIB_DAY = 02
+
+default:
+	make $(TARGET)
+
+set_branch:
+ifdef HARIB_VER
+	$(eval HARIB_BRANCH=refs/tags/$(HARIB_VER))
+else
+ifdef HARIB_DAY
+	$(eval HARIB_BRANCH=day/$(HARIB_DAY))
+endif
+endif
+
+HARIB_BRANCH ?= master
 
 CFLAGS  = -m32
 CFLAGS  += -nostdlib -fno-asynchronous-unwind-tables -g -fno-stack-protector
 LDFLAGS  = -melf_i386
 LDFLAGS += --entry=start -Ttext=0x7c00
+
+include ../common.mk
 
 %.o:%.S
 	gcc -m32 -c  $< -o $@
@@ -17,11 +36,8 @@ LDFLAGS += --entry=start -Ttext=0x7c00
 %.o:%.c
 	gcc $(CFLAGS) -c $< -o $@
 
-default:
-	make $(TARGET)
-
 clean:
-	rm -f $(TARGET) *.o
+	rm -f *.img *.bin *.o
 
 tmp.elf:$(OBJS)
 	ld $(LDFLAGS) $^ -o $@
@@ -39,11 +55,16 @@ haribote-os:
 	cd $@ && ./install.sh
 
 helloos.img:haribote-os
-	cd $</src && ./asm.sh
+	cd $< && git checkout 2-4
+	make -C $</src
 	mv $</src/$@ ./$@
 
-haribote.img: haribote-os
-	cd $< && make
+haribote.img: haribote-os set_branch DUMMY
+	cd $< && git clean -f
+	cd $< && git checkout $(HARIB_BRANCH) || \
+		(echo -e "error:\n\t$(if $(HARIB_VER), version "\"$(HARIB_VER)\"", day "\"$(HARIB_DAY)\"") not found." && exit -1)
+	make -C $</src
+	mv $</src/$@ $@ || mv $</src/helloos.img $@
 
 harib27f:z_tools
 	git clone https://github.com/HariboteOS/harib27f.git

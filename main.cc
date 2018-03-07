@@ -3,6 +3,7 @@
 #include <chrono>
 #include <sksat/cmdline.hpp> // https://github.com/sk2sat/libsksat
 #include "emulator.h"
+#include "gui.h"
 
 EmulatorCtrl::Setting set;
 EmulatorCtrl emuctrl;
@@ -18,11 +19,14 @@ try{
 	sksat::optparse o;
 	string arch_str;
 	string fda_file; // A drive (floppy)
+	string font_file = "./font/hankaku.bin";
 
 	o.add_opt(arch_str, 'a', "arch", "architecture");
 	o.add_opt(set.junk_bios, "junk-bios", "enable junk BIOS");
 	o.add_opt(set.memsize, 'm', "memory-size", "memory size(MB)");
+	o.add_opt(set.gui, "gui", "with GUI");
 	o.add_opt(fda_file, "fda", "floppy disk image file");
+	o.add_opt(font_file, "font", "font file");
 
 	if(!o.parse(argc, argv)){
 		cout	<<"simple x86 emulator by sksat"<<endl
@@ -52,22 +56,39 @@ try{
 
 	cout<<"memory size: "<<set.memsize<<"MB"<<endl;
 
-	if(fda_file.empty())
-		throw "no boot device.";
-	Device::Floppy fda(fda_file.c_str());
-	emu->ConnectDevice(fda);
+	Device::Floppy fda;
+	if(!fda_file.empty()){
+		fda.Open(fda_file);
+		emu->ConnectDevice(fda);
+	}
+
+	std::unique_ptr<Gui> gui;
+	Device::Display disp;
+	bool halt_exit = false;
+	if(set.gui){
+		disp.LoadFont(font_file);
+		disp.RegisterVRAM(emu->memory, 0xa0000, 0xffff);
+		emu->ConnectDevice(disp);
+
+		gui = std::make_unique<Gui>();
+		gui->onExit = [&](){ emu->finish_flg = true; };
+		gui->Start(disp);
+	}else{
+		halt_exit = true; // CLIだったらhaltした時に終了するようにする
+	}
 
 	if(set.junk_bios){
 		cout<<"setup junk BIOS..."<<endl;
 		switch(set.arch){
 		case ARCH::x86:
 //			auto e = new BIOS::Junk::x86(emu.GetRaw());
-			emu->SetBios(new BIOS::Junk::x86(emu));
+			emu->SetBios(new BIOS::Junk::x86(dynamic_cast<x86::Emulator*>(emu)));
 			break;
 		default:
 			throw "not implemented junk BIOS for this arch.";
 			break;
 		}
+		if(set.gui) emu->bios->SetDisplay(disp);
 		emu->bios->Boot();
 	}
 
@@ -75,13 +96,12 @@ try{
 
 	auto start = std::chrono::system_clock::now();
 
-	while(!emu->finish_flg){
-		emu->insn->ExecStep();
-	}
+	emu->Run(halt_exit);
 
 	auto end = std::chrono::system_clock::now();
 
 	emu->Dump();
+	if(set.gui) gui->End();
 
 	std::cout<<"time: "<<(double)std::chrono::duration_cast<std::chrono::seconds>(end - start).count()<<"s"<<std::endl;
 

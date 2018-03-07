@@ -21,8 +21,9 @@ public:
 	//void SetEmu(EmulatorBase *emu){ this->emu=emu; }
 	void ClearInsn(size_t num){ insn.resize(num, (insnfunc_t)&InstructionBase::not_impl_insn); }
 	virtual void Init() = 0;
-	virtual void Parse() = 0;
-	virtual void ExecStep() = 0;
+	virtual void Fetch() = 0;
+	virtual void Decode() = 0;
+	virtual void Exec() = 0;
 protected:
 	//EmulatorBase *emu;
 //	typedef void (InstructionBase::*insnfunc_t)();

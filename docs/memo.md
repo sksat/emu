@@ -20,13 +20,13 @@
 ## セグメント・レジスタ
 
 
-特権レベル(IA32 Arch Dev Vol1 p169)
+# 特権レベル(IA32 Arch Dev Vol1 p169)
 Level 0		OS Kernel
 Level 1		OS Service (ex: device driver)
 Level 2		OS Service (ex: device driver)
 Level 3		Application
 
-割り込み/例外(Vol1 p174)
+# 割り込み/例外(Vol1 p174)
 ベクタ	mnemonic	説明			原因
 0	#DE		除算エラー		DIV,IDIV命令
 1	#DB		debug			任意のコード・データの参照
@@ -51,3 +51,22 @@ Level 3		Application
 20~31			予約
 32~255			マスク可能割り込み	INTRピンによる外部割り込み,INT n命令
 
+
+# Jcc -- Jump If Condition Is Met
+70 jo
+71 jno
+72 jb,jc,jnae
+73 jae,jnb,jnc
+74 je,jz
+75 jne,jnz
+76 jbe,jna
+77 ja,jnbe
+78 js
+79 jns
+7a jp,jpe
+7b jpo
+7c jl,jnge
+7d jge,jnl
+7e jle,jng
+7f jg,jnle
+e3 jcxz,jecxz(16,32bit)

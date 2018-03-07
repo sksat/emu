@@ -10,8 +10,10 @@ class Instruction : public InstructionBase {
 public:
 	Instruction(Emulator *e) {}
 	void Init();
-	void ExecStep();
-	void Parse();
+
+	void Fetch();
+	void Decode();
+	void Exec();
 
 	void SkipSignature(){ // 0x05
 		// if(memory[pc+1]==0xE2 && memory[pc+2]) pc+=3;

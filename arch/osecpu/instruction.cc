@@ -12,12 +12,16 @@ void Instruction::Init(){
 	SETINSN(0x00, nop, 0);
 }
 
-void Instruction::Parse(){
-	throw "osecpu::Instruction::Parse() is not implemented.";
+void Instruction::Fetch(){
+	throw "osecpu::Instruction::Fetch() is not implemented.";
 }
 
-void Instruction::ExecStep(){
-	throw "osecpu::Instruction::ExecStep() is not implemented.";
+void Instruction::Decode(){
+	throw "osecpu::Instruction::Decode() is not implemented.";
+}
+
+void Instruction::Exec(){
+	throw "osecpu::Instruction::Exec() is not implemented.";
 }
 
 };

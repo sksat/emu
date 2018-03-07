@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <stdint.h>
 #include <vector>
+#include "common.h"
 #include "device/device.h"
 
 enum class ENDIAN { BIG, LITTLE, };
@@ -34,6 +35,8 @@ public:
 	void EnableVirt(){ virt_flg=true; }
 	void UnableVirt(){ virt_flg=false; }
 
+	std::vector<uint8_t>& GetRaw(){ return mem; }
+
 //	Memory* operator->(){ return this; }
 
 	// little endianでのuint32_tの読み込み処理はEmulatorクラスから持ってくる
@@ -47,7 +50,7 @@ public:
 
 	uint16_t GetData16Big(uint32_t addr){ throw "not implemented: big endian"; }
 	uint16_t GetData16Little(uint32_t addr);
-	inline uint32_t GetData16(uint32_t addr){
+	inline uint16_t GetData16(uint32_t addr){
 		if(endian == ENDIAN::BIG) return GetData32Big(addr);
 		return GetData32Little(addr);
 	}
@@ -60,6 +63,10 @@ public:
 	}
 
 	void SetData8(uint32_t addr, uint8_t val){
+		if(addr > static_cast<uint32_t>(size)){
+			DOUT("addr=0x"<<std::hex<<addr);
+			throw "out of mem";
+		}
 		mem[addr] = val;
 	}
 

@@ -35,7 +35,7 @@ public:
 
 	inline Register32& operator=(const uint32_t val){ reg32 = val; return *this; }
 
-	const std::string GetDataByString(){
+	const std::string GetDataByString() const {
 		std::stringstream ss;
 		ss << "0x"
 			<< std::hex << std::setw(8) << std::setfill('0')
@@ -47,177 +47,32 @@ public:
 class SRegister : public ::RegisterBase {
 public:
 	SRegister() : ::RegisterBase(sizeof(uint16_t)), reg16(0x00) {}
-	uint16_t reg16;
+	union {
+		uint16_t reg16;
+		struct { // segment selector
+			uint8_t	 RPL	: 2; // required priviledge level
+			bool     TI	: 1; // table indicator
+			uint16_t index	: 13;
+		};
+	};
 
 	inline SRegister& operator=(const uint16_t val){ reg16 = val; return *this; }
 
-	const std::string GetDataByString(){
+	const std::string GetDataByString() const {
 		std::stringstream ss;
-		ss << "0x"
-			<< std::hex << std::setw(4) << std::setfill('0')
-			<< static_cast<uint32_t>(reg16);
-			return ss.str();
-	}
-};
-
-/*
-class Register8 : public ::RegisterBase {
-public:
-	Register8() : ::RegisterBase(sizeof(uint8_t)), reg8(0x00) {}
-	explicit Register8(uint8_t r) : ::RegisterBase(sizeof(uint8_t)), reg8(r) {}
-
-	inline operator uint8_t () { return reg8; }
-	inline operator int8_t  () { return reg8; }
-
-	inline virtual Register8& operator=(const uint8_t data){
-		reg8 = data;
-		return *this;
-	}
-
-	inline virtual Register8& operator++(int){
-		reg8++;
-		return *this;
-	}
-
-	inline uint8_t Get8() const{ return reg8; }
-	inline void Set8(uint8_t r){ reg8 = r; }
-
-	virtual const std::string GetDataByString(){
-		std::stringstream ss;
-		ss << "0x"
-			<< std::hex << std::setw(2) << std::setfill('0')
-			<< static_cast<uint32_t>(reg8);
-			return ss.str();
-	}
-
-protected:
-	uint8_t reg8;
-};
-
-class Register16 : public Register8 {
-//public ::RegisterBase {
-public:
-	Register16() : high8(0x00) { SetSize(sizeof(uint16_t)); }
-	Register16(uint16_t r) : high8(r >> 8) { SetSize(sizeof(uint16_t)); Set8((uint8_t)r);}
-
-	inline operator uint16_t () { return ((high8 << 8) | reg8); }
-	inline operator  int16_t () { return ((high8 << 8) | reg8); }
-	inline operator uint32_t () { return static_cast<uint32_t>(static_cast<uint16_t>(*this)); }
-	inline operator  int32_t () { return static_cast< int32_t>(static_cast<uint16_t>(*this)); }
-
-//	inline Register16& operator=(const uint8_t data){
-//		reg8 = data;
-//		return *this;
-//	}
-
-	inline virtual Register16& operator=(const uint16_t data) {
-		high8 = data >> 8;
-		reg8  = (uint8_t)data;
-		return *this;
-	}
-
-	template<typename T>
-        inline Register16& operator+=(T diff){
-		Set16(Get16()+diff);
-		return *this;
-	}
-
-	inline virtual Register16& operator++(int){
-		Set16(Get16()+1);
-		return *this;
-	}
-
-	inline uint16_t Get16() const {
-		return ((high8 << 8) | reg8);
-	}
-
-	inline void Set16(uint16_t r){
-		high8 = r >> 8;
-		reg8  = (uint8_t)r;
-	}
-
-	virtual const std::string GetDataByString(){
-		std::stringstream ss;
-		ss  << "0x"
-			<< std::hex << std::setw(4) << std::setfill('0')
-			<< this->Get16();
+		ss	<< "0x"
+			<< std::hex << std::setfill('0')
+			<< std::setw(4) << reg16
+			<< " = ("
+			<< "RPL=0x" << static_cast<uint16_t>(RPL)
+			<< ", TI=0x" << TI << ":" << (TI ? "LDT" : "GDT")
+			<< ", index=0x" << std::setw(4) << index
+			<< ")";
 		return ss.str();
 	}
-
-protected:
-//	Register8 low8, high8;
-	uint8_t high8;
 };
 
-
-class Register32 : public Register16 {
-public:
-	Register32(){ SetSize(sizeof(uint32_t)); }
-	Register32(uint32_t r) : high16(r >> 16) { SetSize(sizeof(uint32_t)); Set16((uint16_t)r); }
-
-	inline operator uint32_t () { return ((high16 << 16) | Get16()); }
-
-//	inline operator Register16 () {
-//		return Register16(Get16());
-//	}
-
-	inline Register32& operator=(uint32_t r){
-		Set32(r);
-		return *this;
-	}
-
-	inline virtual Register32& operator=(const Register16 &r16){
-		Set16(r16.Get16());
-		return *this;
-	}
-
-	template<typename T>
-	inline Register32& operator+=(T diff){
-		Set32(Get32()+diff);
-		return *this;
-	}
-
-	template<typename T>
-	inline Register32& operator-=(T diff){
-		Set32(Get32()-diff);
-		return *this;
-	}
-
-	inline virtual Register32& operator++(int){
-		Set32(Get32()+1);
-		return *this;
-	}
-
-	template<typename T>
-	inline bool operator==(T val) const {
-		return Get32() == static_cast<uint32_t>(val);
-	}
-
-	inline uint32_t Get32() const {
-		return ((high16 << 16) | Get16());
-	}
-
-	inline void Set32(uint32_t r){
-		high16 = r >> 16;
-		Set16((uint16_t)r);
-	}
-
-	const std::string GetDataByString(){
-		std::stringstream ss;
-		ss << "0x"
-			<< std::hex
-			<< std::setw(8)
-			<< std::setfill('0')
-			<< this->Get32();
-		return ss.str();
-	}
-protected:
-//	Register16 low16, high16;
-	uint16_t high16;
-};
-
-*/
-
+// EFLAGS
 class Eflags : public ::RegisterBase {
 public:
 	struct {
@@ -263,19 +118,6 @@ public:
 	inline void SetInterrupt(bool intr)	{ IF = intr; }
 	inline void SetDirection(bool dir)	{ DF = dir; }
 
-	/*
-	inline void UpdateSub(uint32_t v1, uint32_t v2, uint64_t res){
-		int sign1 = v1 >> 31;
-		int sign2 = v2 >> 31;
-		int signr = (res >> 31) & 1;
-
-		SetCarry(res >> 32);
-		SetZero(res == 0);
-		SetSign(signr);
-		SetOverflow(sign1 != sign2 && sign1 != signr);
-	}
-*/
-
 	template<typename T>
 	inline void UpdateSub(T v1, uint32_t v2, uint64_t result){
 		auto size = sizeof(T)*8; // bit数
@@ -300,7 +142,43 @@ public:
 		UpdateSub(v1, v2, result);
 	}
 
-	const uint32_t GetData32(){
+	template<typename T>
+	inline void UpdateAnd(T v1, uint32_t v2, uint64_t result){
+		auto size = sizeof(T)*8; // bit数
+		bool signr = (result >> (size-1)) & 1;
+
+		SetCarry(0);
+		SetZero(result == 0);
+		SetSign(signr);
+		SetOverflow(0);
+	}
+
+	template<typename T>
+	inline void UpdateOr(T v1, uint32_t v2, uint64_t result){
+		auto size = sizeof(T)*8;
+		bool signr = (result >> (size-1)) & 1;
+
+		SetCarry(0);
+		SetZero(result == 0);
+		SetSign(signr);
+		SetOverflow(0);
+	}
+
+	template<typename T>
+	inline void UpdateShr(T v1, uint8_t v2, uint64_t result){
+		auto size = sizeof(T)*8;
+		bool signr = (result >> (size-1)) & 1;
+
+		SetCarry((v1 >> (v2-1)) & 1);
+		SetZero(result == 0);
+		SetSign(signr);
+
+		// OFは1bitシフトのときのみ影響を受ける
+		if(v2 == 1)
+			SetOverflow((v1>>(size-1)) & 1);
+	}
+
+	const uint32_t GetData32() const {
 		uint32_t ret = 0x00;
 		ret |= CF;
 		ret |= PF	<< 2;
@@ -323,7 +201,7 @@ public:
 		return ret;
 	}
 
-	const std::string GetDataByString(){
+	const std::string GetDataByString() const {
 		std::stringstream ss;
 		ss	<< "0x"
 			<< std::hex
@@ -334,27 +212,87 @@ public:
 	}
 };
 
-/*
-template<typename T>
-uint32_t operator+(const Register32 &reg, const T &val){
-	return reg.reg32. + val;
-}
+// memory management register: GDTR, IDTR, TR, LDTR
+class MemManRegister : public ::RegisterBase {
+public:
+	MemManRegister() : ::RegisterBase(sizeof(uint64_t)), limit(0x00), base(0x00), selector(0x00) {}
 
-template<typename T>
-uint32_t operator+(T val, Register32 reg32){
-	return val + reg32.Get32();
-}
+	union {
+		struct {
+			uint16_t limit		: 16;
+			uint32_t base		: 32;
+			uint16_t selector	: 16;	// TR, LDTRのみ
+		};
+//		uint64_t _reg64 : 64;
+	};
 
-template<typename T>
-uint32_t operator-(Register32 reg32, T val){
-	return reg32.Get32() - val;
-}
+	const std::string GetDataByString() const {
+		std::stringstream ss;
 
-template<typename T>
-uint32_t operator-(T val, Register32 reg32){
-	return val - reg32.Get32();
-}
-*/
+		if(GetSize() != sizeof(uint64_t) && selector != 0x00)
+				throw "selector is not zero";
+
+		ss	<< std::hex
+			<< std::setfill('0');
+
+		if(GetSize()==sizeof(uint64_t))
+			ss << "0x" << std::setw(4) << selector;
+		else
+			ss << "    0x";
+
+		ss	<< std::setw(8) << base
+			<< std::setw(4) << limit;
+
+		ss	<< " = (";
+
+		if(GetSize() == sizeof(uint64_t))
+			ss << "selector=0x" << std::setw(4) << selector << ", ";
+
+		ss	<< "base=0x" << std::setw(8) << base
+			<< ", limit=0x" << std::setw(4) << limit
+			<< ")";
+		return ss.str();
+	}
+};
+
+// base for CR0~CR4
+class CRegister : public ::RegisterBase {
+public:
+	CRegister() : ::RegisterBase(sizeof(uint32_t)) {}
+};
+
+class CR0_t : public CRegister {
+public:
+	union {
+		struct {
+			bool PE  : 1; // 保護イネーブル
+			bool MP  : 1; // モニタ・コプロセッサ
+			bool EM  : 1; // エミュレーション
+			bool TS  : 1; // タスクスイッチ
+			bool ET  : 1; // 拡張タイプ
+			bool NE  : 1; // 数値演算エラー
+			uint16_t : 10;
+			bool WP  : 1; // 書き込み保護
+			bool     : 1;
+			bool AM  : 1; // アラインメント・マスク
+			uint16_t : 10;
+			bool NW  : 1; // ノット・ライトスルー
+			bool CD  : 1; // キャッシュ・ディスエーブル
+			bool PG  : 1; // ページング
+		};
+		uint32_t reg32;
+	};
+
+	const std::string GetDataByString() const {
+		std::stringstream ss;
+		ss << "0x"
+			<< std::hex
+			<< std::setfill('0')
+			<< std::setw(8)
+			<< reg32;
+		return ss.str();
+	}
+};
 
 }
 

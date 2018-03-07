@@ -8,6 +8,8 @@ EmulatorBase::EmulatorBase(){
 EmulatorBase::~EmulatorBase(){
 	delete insn;
 	delete memory;
+	delete io;
+	delete bios;
 }
 
 void EmulatorBase::Init(){
@@ -15,6 +17,7 @@ void EmulatorBase::Init(){
 	InitInstructions();
 	InitRegisters();
 	InitMemory();
+	InitIO();
 }
 
 void EmulatorBase::SetBios(BIOS::Base *bios){

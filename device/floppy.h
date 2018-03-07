@@ -1,30 +1,53 @@
 #ifndef DEVICE_FLOPPY_H_
 #define DEVICE_FLOPPY_H_
 
-#include <cstdio>
-#include <sys/stat.h>
+#include <fstream>
 
 #include "device.h"
 #include "../memory.h"
 
+// http://softwaretechnique.jp/OS_Development/kernel_development11.html
+
 namespace Device {
 
-class Floppy : public Device::Base { // block deviceのクラスを作った方が良い？
+class Floppy : public Device::Base {
 public:
-	Floppy() : fp(nullptr) {}
-	Floppy(const char *fname) : fp(nullptr) { SetFile(fname); }
+	Floppy() : Base("Floppy") {}
+	Floppy(const std::string fname) : Base("Floppy"), fname(fname) { Open(fname); }
+	~Floppy(){}
 
-	~Floppy(){
-		if(fp != nullptr)
-			fclose(fp);
+	void InitDevName(){ name = "floppy"; }
+
+	void Open(const std::string &fname);
+	void Open(){ Open(fname); }
+
+	struct Setting {
+		uint8_t drive;
+		bool head;		// 0(表), 1(裏)
+		uint16_t cylinder;	// 0〜79
+		uint8_t sector : 5;	// 1〜18
+	};
+
+	void Reset(){
+		Setting set = {
+			.drive = 0,
+			.head = 0,
+			.cylinder = 0,
+			.sector = 1
+		};
+		Seek(set);
 	}
-
-	void InitDevName(){
-		dev_name = (const char*)"floppy";
+	bool Seek(const Setting &set);
+	bool Read(Memory *mem, uint32_t addr, uint8_t sector_num);
+	bool Read(const Setting &set, Memory *mem, uint32_t addr, uint8_t sector_num){
+		if(!Seek(set)) return false;
+		if(!Read(mem, addr, sector_num)) return false;
+		return true;
 	}
 
 	void SetFile(const char *fname){
-		struct stat st;
+		throw "not implemented: SetFile";
+/*		struct stat st;
 		if(stat(fname, &st) != 0)
 			throw "No such floppy file";
 		if(fp != nullptr)
@@ -32,13 +55,17 @@ public:
 		fp = fopen(fname, "rb");
 		if(fp == nullptr)
 			throw "could not open image file.";
+*/
 	}
 
-	void Load(Memory *mem, uint32_t addr, size_t size){
-		mem->LoadBinary(fp, addr, size);
-	}
+	void Load(Memory *mem, uint32_t addr, uint32_t size);
+//		throw "not implemented: Load";
+//		mem->LoadBinary(fp, addr, size);
+//	}
 private:
-	FILE *fp;
+	std::string fname;
+	std::fstream fs;
+	Setting set;
 };
 
 }

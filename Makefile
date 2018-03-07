@@ -1,15 +1,26 @@
+# default build type
+BUILD_TYPE = Debug
+
 TARGET	:= emu
 OBJS	:= main.o emulator_base.o emulator.o register_base.o memory.o
 OBJS	+= device/device.a
 OBJS	+= font/font.o
 #OBJS	+= shell/shell.a
 #OBJS	+= gui/gui.a
+OBJS	+= gui.o
 OBJS	+= arch/arch.a
+OBJS	+= debug.o
 
 LDFLAGS	+= -pthread -lglfw -lGL
 
-EMU_BIN	:= helloos.img
-RUNFLAGS:= --arch x86 --junk-bios --memory-size 1 --fda sample/$(EMU_BIN)
+EMU_BIN	:= haribote.img
+ARCH	:= x86
+MEMSIZE	:= 4
+BIOS	:= --junk-bios
+FLOPPY	:= --fda sample/$(EMU_BIN)
+DEV	:= $(FLOPPY)
+UI	:= --gui
+RUNFLAGS:= --arch $(ARCH) --memory-size $(MEMSIZE) $(BIOS) $(DEV) $(UI)
 
 default:
 	make $(TARGET)
@@ -22,7 +33,7 @@ run: $(TARGET) sample/$(EMU_BIN)
 	./$(TARGET) $(RUNFLAGS)
 
 clean : _clean
-	make -C gui clean
+	#make -C gui clean
 	#make -C shell clean
 	make -C font clean
 	make -C device clean
