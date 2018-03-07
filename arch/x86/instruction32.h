@@ -75,21 +75,15 @@ private:
 
 	void code_83(){
 		switch(idata->modrm.reg){
-		case 0:
-			add_rm32_imm8();
-			break;
-		case 1:
-			or_rm32_imm8();
-			break;
-		case 5:
-			sub_rm32_imm8();
-			break;
+		case 0: add_rm32_imm8(); break;
+		case 1: or_rm32_imm8(); break;
+		case 4: and_rm32_imm8(); break;
+		case 5: sub_rm32_imm8(); break;
 		default:
 			std::stringstream ss;
-			ss<<"not implemented: 83 "<<std::hex<<(uint32_t)idata->modrm.reg;
+			ss<<"not implemented: 83 /"<<std::hex<<(uint32_t)idata->modrm.reg;
 			throw ss.str();
 		}
-
 	}
 		void add_rm32_imm8(){
 			uint32_t rm32 = idata->GetRM32();
@@ -102,6 +96,12 @@ private:
 			uint64_t set = rm32 | idata->imm8;
 			idata->SetRM32(set);
 			EFLAGS.UpdateOr(rm32, idata->imm8, set);
+		}
+		void and_rm32_imm8(){
+			uint32_t rm32 = idata->GetRM32();
+			uint64_t set = rm32 & idata->imm8;
+			idata->SetRM32(set);
+			EFLAGS.UpdateAnd(rm32, idata->imm8, set);
 		}
 		void sub_rm32_imm8(){
 			uint32_t rm32 = idata->GetRM32();
