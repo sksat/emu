@@ -178,6 +178,10 @@ public:
 			SetOverflow((v1>>(size-1)) & 1);
 	}
 
+	inline void UpdateXor(){
+		CF = OF = 0;
+	}
+
 	const uint32_t GetData32() const {
 		uint32_t ret = 0x00;
 		ret |= CF;
