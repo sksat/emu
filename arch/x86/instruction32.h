@@ -20,6 +20,14 @@ private:
 		DOUT(" = 0x"<<EAX);
 	}
 
+	void xor_rm32_r32(){
+		uint32_t rm32 = idata->GetRM32();
+		auto& r = emu->reg[idata->modrm.reg];
+		uint32_t result = rm32 ^ r.reg32;
+		idata->SetRM32(result);
+		EFLAGS.UpdateXor();
+	}
+
 	void cmp_r32_rm32(){
 		uint32_t r32  = emu->reg[idata->modrm.reg].reg32;
 		uint32_t rm32 = idata->GetRM32();
