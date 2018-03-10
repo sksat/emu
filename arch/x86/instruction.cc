@@ -46,6 +46,7 @@ void Instruction::Init(){
 	SETINSN(0xe4, in_al_imm8,		Flag::Imm8);
 	SETINSN(0xe6, out_imm8_al,		Flag::Imm8);
 	SETINSN(0xeb, short_jump,		Flag::Imm8);
+	SETINSN(0xee, out_dx_al,		Flag::None);
 	SETINSN(0xf4, hlt,			Flag::None);
 	SETINSN(0xfa, cli,			Flag::None);
 }

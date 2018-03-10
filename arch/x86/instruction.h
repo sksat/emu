@@ -224,6 +224,10 @@ void j ## flag ## _rel8(){ \
 		IP += static_cast<uint16_t>(idata->imm8);
 	}
 
+	void out_dx_al(){
+		emu->io->out8(DX, AL);
+	}
+
 	void hlt(){
 		std::cout<<"hlt"<<std::endl;
 		emu->halt_flg = true;
