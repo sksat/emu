@@ -17,11 +17,13 @@ void Instruction32::Init(){
 		SETINSN(0x50+i, push_r32,		Flag::None);
 		SETINSN(0x58+i, pop_r32,		Flag::None);
 	}
+	SETINSN(0x68, push_imm32,			Flag::Imm32);
 	SETINSN(0x69, imul_r32_rm32_imm32,		Flag::ModRM | Flag::Imm32); // = imul_r32_imm32
 	SETINSN(0x81, code_81,				Flag::ModRM | Flag::Imm32);
 	SETINSN(0x83, code_83,				Flag::ModRM | Flag::Imm8);
 	SETINSN(0x89, mov_rm32_r32,			Flag::ModRM);
 	SETINSN(0x8B, mov_r32_rm32,			Flag::ModRM);
+	SETINSN(0x9c, pushfd,				Flag::None);
 	for(int i=0;i<8;i++)
 		SETINSN(0xB8+i, mov_r32_imm32,		Flag::Imm32);
 	SETINSN(0xC1, code_c1,				Flag::ModRM | Flag::Imm8);

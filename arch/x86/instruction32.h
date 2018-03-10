@@ -51,6 +51,10 @@ private:
 		emu->reg[idata->opcode - 0x58].reg32 = emu->pop32();
 	}
 
+	void push_imm32(){
+		emu->push32(idata->imm32);
+	}
+
 	void imul_r32_rm32_imm32(){
 		auto& reg = emu->reg[idata->modrm.reg];
 		int32_t s_rm32 = idata->GetRM32();
@@ -129,6 +133,11 @@ private:
 		DOUT(__func__<<": "<<reg.GetName()<<" <- 0x"<<std::hex<<idata->GetRM32()<<std::endl);
 		reg.reg32 = idata->GetRM32();
 	}
+
+	void pushfd(){
+		emu->push32(EFLAGS.reg32);
+	}
+
 	void mov_r32_imm32(){
 		auto& reg = emu->reg[idata->opcode - 0xb8];
 		DOUT(__func__<<": "<<reg.GetName()<<" <- "<<std::hex<<idata->imm32);
