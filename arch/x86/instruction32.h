@@ -11,7 +11,11 @@ public:
 	void Init();
 private:
 	void add_rm32_r32(){
-		idata->SetRM32(idata->GetRM32() + emu->reg[idata->modrm.reg].reg32);
+		auto rm32 = idata->GetRM32();
+		auto& reg  = emu->reg[idata->modrm.reg];
+		uint64_t set = rm32 + reg.reg32;
+		idata->SetRM32(set);
+		EFLAGS.UpdateAdd(rm32, reg.reg32, set);
 	}
 
 	void and_eax_imm32(){

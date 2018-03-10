@@ -7,7 +7,7 @@ namespace x86 {
 void Instruction32::Init(){
 	Instruction::Init();
 
-//	SETINSN(0x01, add_rm32_r32,			1);
+	SETINSN(0x01, add_rm32_r32,			Flag::ModRM);
 	SETINSN(0x25, and_eax_imm32,			Flag::Imm32);
 	SETINSN(0x31, xor_rm32_r32,			Flag::ModRM);
 //	SETINSN(0x3B, cmp_r32_rm32,			1);
