@@ -69,6 +69,7 @@ try{
 		disp.LoadFont(font_file);
 		disp.RegisterVRAM(emu->memory, 0xa0000, 0xffff);
 		emu->ConnectDevice(disp);
+		emu->io->port[0x03c8] = emu->io->port[0x03c9] = &disp;
 
 		gui = std::make_unique<Gui>();
 		gui->onExit = [&](){ emu->finish_flg = true; };
