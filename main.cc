@@ -64,12 +64,13 @@ try{
 
 	std::unique_ptr<Gui> gui;
 	Device::Display disp;
+	auto& port = emu->io->port;
+	port[0x03c8] = port[0x03c9] = &disp;
 	bool halt_exit = false;
 	if(set.gui){
 		disp.LoadFont(font_file);
 		disp.RegisterVRAM(emu->memory, 0xa0000, 0xffff);
 		emu->ConnectDevice(disp);
-		emu->io->port[0x03c8] = emu->io->port[0x03c9] = &disp;
 
 		gui = std::make_unique<Gui>();
 		gui->onExit = [&](){ emu->finish_flg = true; };
