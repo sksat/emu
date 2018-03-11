@@ -38,6 +38,7 @@ protected:
 		case 0x01: code_0f01(); break;
 		case 0x20: mov_r32_crn(); break;
 		case 0x22: mov_crn_r32(); break;
+		case 0xb6: (idata->is_op32 ? movzx_r32_rm8() : movzx_r16_rm8()); break;
 		default:
 			throw "not implemented: 0x0f subop";
 		}
@@ -91,6 +92,15 @@ protected:
 				DOUT(std::endl<<"Protect Enable");
 			if(emu->CR0.PG)
 				throw "not implemented: paging";
+		}
+		void movzx_r32_rm8(){
+			auto& reg = emu->reg[idata->RM];
+			auto rm8 = idata->GetRM8();
+			DOUT(std::endl<<__func__<<": "<<reg.GetName()<<" <- ZeroExtended(0x"<<static_cast<uint32_t>(rm8)<<")"<<std::endl);
+			reg.reg32 = rm8;
+		}
+		void movzx_r16_rm8(){
+			throw __func__;
 		}
 
 	void and_al_imm8(){
