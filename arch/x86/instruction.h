@@ -114,10 +114,6 @@ protected:
 		EFLAGS.Cmp(al, idata->imm8);
 	}
 
-	void push_imm8(){
-		emu->push8(idata->imm8);
-	}
-
 // Jump if Condition Is Met
 #define DEF_JCC_REL8(flag, is_flag) \
 void j ## flag ## _rel8(){ \
