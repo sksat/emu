@@ -39,6 +39,7 @@ void Instruction::Init(){
 	SETINSN(0xa2, mov_moffs8_al,		Flag::Moffs);
 	for(auto i=0;i<8;i++)
 		SETINSN(0xb0+i, mov_r8_imm8,	Flag::Imm8);
+	SETINSN(0xc0, code_c0,			Flag::ModRM | Flag::Imm8);
 	SETINSN(0xc6, mov_rm8_imm8,		Flag::ModRM | Flag::Imm8);
 	SETINSN(0xcd, int_imm8,			Flag::Imm8);
 //	SETINSN(0xe9, near_jump,	0); // TODO: 32bitだったので32bitの方に移す

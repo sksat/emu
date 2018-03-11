@@ -197,6 +197,23 @@ void j ## flag ## _rel8(){ \
 		SET_REG8(reg8, idata->imm8);
 	}
 
+	void code_c0(){
+		switch(idata->modrm.reg){
+		case 5: shr_rm8_imm8(); break;
+		default:
+			std::stringstream ss;
+			ss << "not implemented: 0xc0 /"
+				<< std::dec << static_cast<uint32_t>(idata->modrm.reg);
+			throw ss.str();
+		}
+	}
+		void shr_rm8_imm8(){
+			uint8_t rm8 = idata->GetRM8();
+			uint64_t result = rm8 >> idata->imm8;
+			idata->SetRM8(result);
+			EFLAGS.UpdateShr(rm8, idata->imm8, result);
+		}
+
 	void mov_rm8_imm8(){
 		idata->SetRM8(idata->imm8);
 	}
