@@ -32,6 +32,15 @@ private:
 		EFLAGS.UpdateXor();
 	}
 
+	void cmp_rm32_r32(){
+		uint32_t rm32 = idata->GetRM32();
+		auto& reg = emu->reg[idata->modrm.reg];
+		uint32_t r32 = reg.reg32;
+		DOUT(__func__<<": rm32=0x"<<std::hex<<rm32<<", r32=0x"<<r32<<std::endl);
+		getchar();
+		EFLAGS.Cmp(rm32, r32);
+	}
+
 	void cmp_r32_rm32(){
 		uint32_t r32  = emu->reg[idata->modrm.reg].reg32;
 		uint32_t rm32 = idata->GetRM32();
@@ -65,6 +74,11 @@ private:
 			EFLAGS.CF = EFLAGS.OF = 1;
 		else
 			EFLAGS.CF = EFLAGS.OF = 0;
+	}
+
+	void push_imm8(){
+		uint32_t tmp32 = idata->imm8;
+		emu->push32(tmp32);
 	}
 
 	void code_81(){
@@ -134,8 +148,19 @@ private:
 		reg.reg32 = idata->GetRM32();
 	}
 
+	void lea_r32_m(){
+		auto& reg = emu->reg[idata->modrm.reg];
+		auto m = idata->CalcMemAddr();
+		reg.reg32 = m;
+		DOUT("lea: r32:"<<reg.GetName()<<" <- 0x"<<std::hex<<m<<std::endl);
+	}
+
 	void pushfd(){
 		emu->push32(EFLAGS.reg32);
+	}
+
+	void popfd(){
+		EFLAGS.reg32 = emu->pop32();
 	}
 
 	void mov_r32_imm32(){
@@ -173,11 +198,12 @@ private:
 		idata->SetRM32(idata->imm32);
 //		idata->SetRM32(emu->GetCode32(-4));
 	}
+
 	void leave32(){
-		ESP = EBP;
+		ESP = EBP; // if StackAddressSize = 32
 		EBP = emu->pop32();
-		EIP++;
 	}
+
 	void call_rel32(){
 		emu->push32(EIP);
 		EIP += idata->imm32;
