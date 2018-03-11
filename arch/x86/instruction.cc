@@ -99,50 +99,81 @@ not_impl:
 
 no_prefix:
 	EIP++;
-
+/*
 	if(idata->opcode == 0x0f){
-		uint8_t flgs = Flag::None;
+		auto flgs = insn_flgs[idata->opcode];
 		idata->subopcode = emu->GetCode8(0);
 		switch(idata->subopcode){
 		case 0x01:
 		case 0x20:
 		case 0x22:
-			flgs = Flag::ModRM;
+		case 0xb6:
+			flgs |= Flag::ModRM;
+			std::cout<<std::endl<<std::endl;
 			break;
 		default:
-			{
-				std::stringstream ss;
-				ss << "not implemented 0x0f: subop=0x"
-					<< std::hex
-					<< static_cast<uint32_t>(idata->subopcode);
-				throw ss.str();
-			}
+			std::stringstream ss;
+			ss << "not implemented 0x0f: subop=0x"
+				<< std::hex
+				<< static_cast<uint32_t>(idata->subopcode);
+			throw ss.str();
 			break;
 		}
-		insn_flgs[0x0f] = flgs;
+
+		insn_flgs[idata->opcode] = flgs;
+		if(insn_flgs[idata->opcode] & Flag::ModRM) DOUT("modrm"<<std::endl);
+
 		EIP++;
 	}
+*/
 }
 
 void Instruction::Decode(){
 	DOUT("opcode = 0x"
 		<< std::setw(2) << std::setfill('0') << std::hex
-		<< (uint32_t)idata->opcode
+		<< static_cast<uint32_t>(idata->opcode)
 		<< ": " << insn_name[idata->opcode]
 		<< "\t"
 	);
 
-	auto& flgs = insn_flgs[idata->opcode];
+	if(idata->opcode == 0x0f){
+		auto flgs = insn_flgs[idata->opcode];
+		idata->subopcode = emu->GetCode8(0);
+		switch(idata->subopcode){
+		case 0x01:
+		case 0x20:
+		case 0x22:
+		case 0xb6:
+			flgs |= Flag::ModRM;
+			std::cout<<std::endl<<std::endl;
+			break;
+		default:
+			std::stringstream ss;
+			ss << "not implemented 0x0f: subop=0x"
+				<< std::hex
+				<< static_cast<uint32_t>(idata->subopcode);
+			throw ss.str();
+			break;
+		}
+
+		insn_flgs[idata->opcode] = flgs;
+		EIP++;
+	}
+
+	const auto flgs = insn_flgs[idata->opcode];
+
 	//if ModR/M
 	if(flgs & Flag::ModRM){
 		idata->_modrm = emu->GetCode8(0);
-		DOUT("ModRM: Mod=0x" << std::hex
+		DOUT("ModRM=0x" << std::hex
+				<< static_cast<uint32_t>(idata->_modrm)
+				<< "(Mod=0x"
 				<< static_cast<uint32_t>(idata->MOD)
 				<< " REG=0x"
 				<< static_cast<uint32_t>(idata->modrm.reg)
 				<< " RM=0x"
 				<< static_cast<uint32_t>(idata->RM)
-				<< "  ");
+				<< ") ");
 		EIP++;
 		if(idata->is_addr32)
 			idata->ParseModRM32();
