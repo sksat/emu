@@ -37,7 +37,7 @@ private:
 		auto& reg = emu->reg[idata->modrm.reg];
 		uint32_t r32 = reg.reg32;
 		DOUT(__func__<<": rm32=0x"<<std::hex<<rm32<<", r32=0x"<<r32<<std::endl);
-		getchar();
+//		getchar();
 		EFLAGS.Cmp(rm32, r32);
 	}
 

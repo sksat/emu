@@ -145,7 +145,6 @@ void Instruction::Decode(){
 		case 0x22:
 		case 0xb6:
 			flgs |= Flag::ModRM;
-			std::cout<<std::endl<<std::endl;
 			break;
 		default:
 			std::stringstream ss;

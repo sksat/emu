@@ -238,6 +238,8 @@ void j ## flag ## _rel8(){ \
 	}
 
 	void out_dx_al(){
+		DOUT(__func__<<": port[0x"<<std::hex<<DX
+			<< "] <- 0x"<<static_cast<uint32_t>(AL)<<std::endl);
 		emu->io->out8(DX, AL);
 	}
 
