@@ -34,12 +34,19 @@ void Display::out8(const uint16_t &port, const uint8_t &data){
 	switch(port){
 	case 0x03c8:
 		p_num = data;
+		std::cout<<"p_num="<<std::dec<<static_cast<uint32_t>(p_num)<<std::endl;
 		break;
 	case 0x03c9:
 		if(old_port == port) col++;
-		if(col >= 3) col = 0;
-		palette[p_num*3 + col] = data;
-		std::cout<<"palette: num="<<std::dec<<p_num<<", col="<<(col==0 ? "Red" : (col==1 ? "Green" : "Blue"))<<std::endl;
+		if(col == 3){
+			col = 0;
+			p_num++;
+		}
+		palette[p_num*3 + col] = data << 2;
+		std::cout<<"palette: num="<<std::dec<<(int)p_num
+			<<", col="<<(col==0 ? "Red" : (col==1 ? "Green" : "Blue"))
+			<<std::hex<<"0x"<<static_cast<uint32_t>(data << 2)
+			<<std::endl;
 		break;
 	default:
 		std::stringstream ss;
