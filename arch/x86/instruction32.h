@@ -42,7 +42,8 @@ private:
 	}
 
 	void cmp_r32_rm32(){
-		uint32_t r32  = emu->reg[idata->modrm.reg].reg32;
+		auto& reg = emu->reg[idata->modrm.reg];
+		uint32_t r32  = reg.reg32;
 		uint32_t rm32 = idata->GetRM32();
 		uint64_t res  = (uint64_t)r32 - (uint64_t)rm32;
 		emu->eflags.UpdateSub(r32, rm32, res);

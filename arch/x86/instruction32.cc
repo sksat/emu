@@ -11,7 +11,7 @@ void Instruction32::Init(){
 	SETINSN(0x25, and_eax_imm32,			Flag::Imm32);
 	SETINSN(0x31, xor_rm32_r32,			Flag::ModRM);
 	SETINSN(0x39, cmp_rm32_r32,			Flag::ModRM);
-//	SETINSN(0x3B, cmp_r32_rm32,			1);
+	SETINSN(0x3b, cmp_r32_rm32,			Flag::ModRM);
 	for(int i=0;i<8;i++)
 		SETINSN(0x40+i, inc_r32,		Flag::None);
 	for(int i=0;i<8;i++){
