@@ -23,6 +23,7 @@ void Display::Init(){
 	font_xsiz = 8;
 	font_ysiz = 16;
 	ChangeMode(scrnx, scrny);
+	SET_PALETTE(0, 0x00, 0x00, 0x00);
 	SET_PALETTE(15, 0xff, 0xff, 0xff);
 }
 
