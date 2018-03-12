@@ -3,7 +3,7 @@ OBJS	= startup.o main.o
 
 HARIB27F_APP = bball
 
-HARIB_VER = harib01b
+HARIB_VER = harib01h
 #HARIB_DAY = 02
 
 default:
