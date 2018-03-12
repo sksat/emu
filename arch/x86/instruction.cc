@@ -143,6 +143,7 @@ void Instruction::Decode(){
 		case 0x01:
 		case 0x20:
 		case 0x22:
+		case 0xaf:
 		case 0xb6:
 			flgs |= Flag::ModRM;
 			break;
