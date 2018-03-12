@@ -18,6 +18,15 @@ private:
 		EFLAGS.UpdateAdd(rm32, reg.reg32, set);
 	}
 
+	void add_r32_rm32(){
+		auto& reg = emu->reg[idata->modrm.reg];
+		auto rm32 = idata->GetRM32();
+		uint64_t result = reg.reg32 + rm32;
+		DOUT(reg.GetName()<<" <- "<<reg.GetName()<<"(0x"<<std::hex<<reg.reg32<<") + 0x"<<rm32<<std::endl);
+		EFLAGS.UpdateAdd(reg.reg32, rm32, result);
+		reg.reg32 = result;
+	}
+
 	void and_eax_imm32(){
 		DOUT(std::endl<<"EAX <- EAX(0x"<<std::hex<<EAX<<") & "<<idata->imm32);
 		EAX = EAX & idata->imm32;
