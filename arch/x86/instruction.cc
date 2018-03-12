@@ -15,7 +15,6 @@ void Instruction::Init(){
 	SETINSN(0x0f, code_0f,			Flag::None); // とりあえずNoneにしておく
 	SETINSN(0x24, and_al_imm8,		Flag::Imm8);
 	SETINSN(0x3c, cmp_al_imm8,		Flag::Imm8);
-	SETINSN(0x6a, push_imm8,		Flag::Imm8);
 	SETINSN(0x70, jo_rel8,			Flag::Imm8);
 	SETINSN(0x71, jno_rel8,			Flag::Imm8);
 	SETINSN(0x72, jb_rel8,			Flag::Imm8); // = jc,jnae
@@ -40,12 +39,14 @@ void Instruction::Init(){
 	SETINSN(0xa2, mov_moffs8_al,		Flag::Moffs);
 	for(auto i=0;i<8;i++)
 		SETINSN(0xb0+i, mov_r8_imm8,	Flag::Imm8);
+	SETINSN(0xc0, code_c0,			Flag::ModRM | Flag::Imm8);
 	SETINSN(0xc6, mov_rm8_imm8,		Flag::ModRM | Flag::Imm8);
 	SETINSN(0xcd, int_imm8,			Flag::Imm8);
 //	SETINSN(0xe9, near_jump,	0); // TODO: 32bitだったので32bitの方に移す
 	SETINSN(0xe4, in_al_imm8,		Flag::Imm8);
 	SETINSN(0xe6, out_imm8_al,		Flag::Imm8);
 	SETINSN(0xeb, short_jump,		Flag::Imm8);
+	SETINSN(0xee, out_dx_al,		Flag::None);
 	SETINSN(0xf4, hlt,			Flag::None);
 	SETINSN(0xfa, cli,			Flag::None);
 }
@@ -98,50 +99,81 @@ not_impl:
 
 no_prefix:
 	EIP++;
-
+/*
 	if(idata->opcode == 0x0f){
-		uint8_t flgs = Flag::None;
+		auto flgs = insn_flgs[idata->opcode];
 		idata->subopcode = emu->GetCode8(0);
 		switch(idata->subopcode){
 		case 0x01:
 		case 0x20:
 		case 0x22:
-			flgs = Flag::ModRM;
+		case 0xb6:
+			flgs |= Flag::ModRM;
+			std::cout<<std::endl<<std::endl;
 			break;
 		default:
-			{
-				std::stringstream ss;
-				ss << "not implemented 0x0f: subop=0x"
-					<< std::hex
-					<< static_cast<uint32_t>(idata->subopcode);
-				throw ss.str();
-			}
+			std::stringstream ss;
+			ss << "not implemented 0x0f: subop=0x"
+				<< std::hex
+				<< static_cast<uint32_t>(idata->subopcode);
+			throw ss.str();
 			break;
 		}
-		insn_flgs[0x0f] = flgs;
+
+		insn_flgs[idata->opcode] = flgs;
+		if(insn_flgs[idata->opcode] & Flag::ModRM) DOUT("modrm"<<std::endl);
+
 		EIP++;
 	}
+*/
 }
 
 void Instruction::Decode(){
 	DOUT("opcode = 0x"
 		<< std::setw(2) << std::setfill('0') << std::hex
-		<< (uint32_t)idata->opcode
+		<< static_cast<uint32_t>(idata->opcode)
 		<< ": " << insn_name[idata->opcode]
 		<< "\t"
 	);
 
-	auto& flgs = insn_flgs[idata->opcode];
+	if(idata->opcode == 0x0f){
+		auto flgs = insn_flgs[idata->opcode];
+		idata->subopcode = emu->GetCode8(0);
+		switch(idata->subopcode){
+		case 0x01:
+		case 0x20:
+		case 0x22:
+		case 0xaf:
+		case 0xb6:
+			flgs |= Flag::ModRM;
+			break;
+		default:
+			std::stringstream ss;
+			ss << "not implemented 0x0f: subop=0x"
+				<< std::hex
+				<< static_cast<uint32_t>(idata->subopcode);
+			throw ss.str();
+			break;
+		}
+
+		insn_flgs[idata->opcode] = flgs;
+		EIP++;
+	}
+
+	const auto flgs = insn_flgs[idata->opcode];
+
 	//if ModR/M
 	if(flgs & Flag::ModRM){
 		idata->_modrm = emu->GetCode8(0);
-		DOUT("ModRM: Mod=0x" << std::hex
+		DOUT("ModRM=0x" << std::hex
+				<< static_cast<uint32_t>(idata->_modrm)
+				<< "(Mod=0x"
 				<< static_cast<uint32_t>(idata->MOD)
 				<< " REG=0x"
 				<< static_cast<uint32_t>(idata->modrm.reg)
 				<< " RM=0x"
 				<< static_cast<uint32_t>(idata->RM)
-				<< "  ");
+				<< ") ");
 		EIP++;
 		if(idata->is_addr32)
 			idata->ParseModRM32();

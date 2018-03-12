@@ -12,6 +12,9 @@ public:
 
 	void Init();
 
+//	uint8_t in8(const uint16_t &port);
+	void out8(const uint16_t &port, const uint8_t &data);
+
 	void LoadFont(const std::string &fname);
 	void RegisterVRAM(Memory *mem, const uint32_t addr, const uint32_t size){
 		this->memory = mem;
@@ -47,6 +50,23 @@ private:
 	uint32_t vram_start, vram_size;
 
 	bool txtmode_flg;
+
+/*
+	class VideoDAConverter {
+	public:
+		void set_palette(const uint8_t &num){}
+
+		enum class Mode {
+			read,
+			write,
+		};
+		Mode mode;
+	private:
+		uint8_t palette[0xff * 3]; // パレット
+	};
+
+	VideoDAConverter converter;
+*/
 	unsigned char palette[0xff * 3]; // パレット
 	unsigned char *img;		// ウィンドウに実際に渡すイメージ
 	size_t scrnx, scrny;	// 縦、横サイズ

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include "display.h"
 
 using namespace Device;
@@ -22,7 +23,40 @@ void Display::Init(){
 	font_xsiz = 8;
 	font_ysiz = 16;
 	ChangeMode(scrnx, scrny);
+	SET_PALETTE(0, 0x00, 0x00, 0x00);
 	SET_PALETTE(15, 0xff, 0xff, 0xff);
+}
+
+void Display::out8(const uint16_t &port, const uint8_t &data){
+	static uint16_t old_port = 0x00;
+	static uint8_t p_num = 0;
+	static uint8_t col = 0;
+
+	switch(port){
+	case 0x03c8:
+		p_num = data;
+		std::cout<<"p_num="<<std::dec<<static_cast<uint32_t>(p_num)<<std::endl;
+		break;
+	case 0x03c9:
+		if(old_port == port) col++;
+		if(col == 3){
+			col = 0;
+			p_num++;
+		}
+		palette[p_num*3 + col] = data << 2;
+		std::cout<<"palette: num="<<std::dec<<(int)p_num
+			<<", col="<<(col==0 ? "Red" : (col==1 ? "Green" : "Blue"))
+			<<std::hex<<"0x"<<static_cast<uint32_t>(data << 2)
+			<<std::endl;
+		break;
+	default:
+		std::stringstream ss;
+		ss << "not implemented port=0x" << std::hex
+			<< port << " in " << GetDevName();
+		throw ss.str();
+	}
+
+	old_port = port;
 }
 
 void Display::LoadFont(const std::string &fname){
@@ -91,7 +125,7 @@ void Display::FlushImage(){
 			SET_RGB(x, y, r, g, b);
 
 			x++;
-			if(x>scrnx){
+			if(x>=scrnx){
 				x = 0;
 				y++;
 			}

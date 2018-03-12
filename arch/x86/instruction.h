@@ -32,76 +32,98 @@ protected:
 
 	void not_impl_insn();
 
-	void lgdt(){
-		uint32_t addr = idata->CalcMemAddr();
-		// GDTR.limit = SRC[0:15];
-		uint16_t limit;
-		uint32_t base;
-		if(!idata->is_op32){
-			uint16_t addr16 = static_cast<uint16_t>(addr);
-			addr = addr16;
-			limit = emu->memory->GetData16(addr16);
-			// GDTR.base  = SRC[16:47] & 0xffffff;
-			base  = emu->memory->GetData32(addr16+2) & 0xffffff;
-		}else{
-			limit = emu->memory->GetData16(addr);
-			// GDTR.base  = SRC[16:47];
-			base  = emu->memory->GetData32(addr+2);
-		}
-		emu->GDTR.limit = limit;
-		emu->GDTR.base  = base;
-
-		DOUT(std::endl<<"LGDT: GDTR <- [0x"<<std::hex<<addr<<"](limit=0x"<<std::hex<<limit<<", base=0x"<<std::hex<<base<<")");
-	}
-	void code_0f01(){
-		DOUT(" /"<<static_cast<uint32_t>(idata->modrm.reg));
-		switch(idata->modrm.reg){
-		case 2:
-			lgdt();
-			break;
-		default:
-			{
-				std::stringstream ss;
-				ss << "not implemented: 0x0f01 /"
-					<< static_cast<uint32_t>(idata->modrm.reg);
-				throw ss.str();
-			}
-			break;
-		}
-	}
-	void mov_r32_crn(){
-		auto& r32 = emu->reg[idata->RM];
-		auto n   = idata->modrm.reg;
-		uint32_t crn = GET_CRN(n);
-		r32.reg32 = crn;
-		DOUT(std::endl<<__func__<<": "<<r32.GetName()<<" <- CR"<<static_cast<uint32_t>(n)<<"(0x"<<std::hex<<crn<<")");
-	}
-	void mov_crn_r32(){
-		auto& r32 = emu->reg[idata->RM];
-		auto n = idata->modrm.reg;
-		SET_CRN(n, r32.reg32);
-		DOUT(std::endl<<__func__<<": CR"<<static_cast<uint32_t>(n)<<" <- "<<r32.GetName()<<"(0x"<<std::hex<<r32.reg32<<")");
-		if(emu->CR0.PE)
-			DOUT(std::endl<<"Protect Enable");
-		if(emu->CR0.PG)
-			throw "not implemented: paging";
-	}
 	void code_0f(){
 		DOUT(std::endl<<"subop=0x"<<std::hex<<static_cast<uint32_t>(idata->subopcode));
 		switch(idata->subopcode){
-		case 0x01:
-			code_0f01();
-			break;
-		case 0x20:
-			mov_r32_crn();
-			break;
-		case 0x22:
-			mov_crn_r32();
-			break;
+		case 0x01: code_0f01(); break;
+		case 0x20: mov_r32_crn(); break;
+		case 0x22: mov_crn_r32(); break;
+		case 0xaf: (idata->is_op32 ? imul_r32_rm32() : imul_r16_rm16()); break;
+		case 0xb6: (idata->is_op32 ? movzx_r32_rm8() : movzx_r16_rm8()); break;
 		default:
 			throw "not implemented: 0x0f subop";
 		}
 	}
+		void code_0f01(){
+			DOUT(" /"<<static_cast<uint32_t>(idata->modrm.reg));
+			switch(idata->modrm.reg){
+			case 2: lgdt(); break;
+			default:
+				std::stringstream ss;
+				ss << "not implemented: 0x0f01 /"
+					<< static_cast<uint32_t>(idata->modrm.reg);
+				throw ss.str();
+				break;
+			}
+		}
+			void lgdt(){
+				uint32_t addr = idata->CalcMemAddr();
+				// GDTR.limit = SRC[0:15];
+				uint16_t limit;
+				uint32_t base;
+				if(!idata->is_op32){
+					uint16_t addr16 = static_cast<uint16_t>(addr);
+					addr = addr16;
+					limit = emu->memory->GetData16(addr16);
+					// GDTR.base  = SRC[16:47] & 0xffffff;
+					base  = emu->memory->GetData32(addr16+2) & 0xffffff;
+				}else{
+					limit = emu->memory->GetData16(addr);
+					// GDTR.base  = SRC[16:47];
+					base  = emu->memory->GetData32(addr+2);
+				}
+				emu->GDTR.limit = limit;
+				emu->GDTR.base  = base;
+
+				DOUT(std::endl<<"LGDT: GDTR <- [0x"<<std::hex<<addr<<"](limit=0x"<<std::hex<<limit<<", base=0x"<<std::hex<<base<<")");
+			}
+		void mov_r32_crn(){
+			auto& r32 = emu->reg[idata->RM];
+			auto n   = idata->modrm.reg;
+			uint32_t crn = GET_CRN(n);
+			r32.reg32 = crn;
+			DOUT(std::endl<<__func__<<": "<<r32.GetName()<<" <- CR"<<static_cast<uint32_t>(n)<<"(0x"<<std::hex<<crn<<")");
+		}
+		void mov_crn_r32(){
+			auto& r32 = emu->reg[idata->RM];
+			auto n = idata->modrm.reg;
+			SET_CRN(n, r32.reg32);
+			DOUT(std::endl<<__func__<<": CR"<<static_cast<uint32_t>(n)<<" <- "<<r32.GetName()<<"(0x"<<std::hex<<r32.reg32<<")");
+			if(emu->CR0.PE)
+				DOUT(std::endl<<"Protect Enable");
+			if(emu->CR0.PG)
+				throw "not implemented: paging";
+		}
+		void imul_r32_rm32(){
+			auto& reg = emu->reg[idata->modrm.reg];
+			int32_t s_r32 = reg.reg32;
+			int32_t s_rm32 = idata->GetRM32();
+			int64_t temp = s_r32 * s_rm32;
+			reg.reg32 = temp;
+			DOUT(__func__ << ": "
+				<< reg.GetName() << " <- "
+				<< reg.GetName() << "(0x" << std::hex << s_r32 << ")"
+				<< " * 0x" << s_rm32
+				<< " = 0x" << temp
+				<< std::endl);
+			if(temp != reg.reg32){
+				if(EFLAGS.CF) EFLAGS.OF = 1;
+				else EFLAGS.OF = 0;
+			}
+			// throw __func__;
+		}
+		void imul_r16_rm16(){
+			throw __func__;
+		}
+		void movzx_r32_rm8(){
+			auto& reg = emu->reg[idata->RM];
+			auto rm8 = idata->GetRM8();
+			DOUT(std::endl<<__func__<<": "<<reg.GetName()<<" <- ZeroExtended(0x"<<static_cast<uint32_t>(rm8)<<")"<<std::endl);
+			reg.reg32 = rm8;
+		}
+		void movzx_r16_rm8(){
+			throw __func__;
+		}
 
 	void and_al_imm8(){
 		uint8_t al = AL;
@@ -112,10 +134,6 @@ protected:
 	void cmp_al_imm8(){
 		uint8_t al = AL;
 		EFLAGS.Cmp(al, idata->imm8);
-	}
-
-	void push_imm8(){
-		emu->push8(idata->imm8);
 	}
 
 // Jump if Condition Is Met
@@ -201,6 +219,23 @@ void j ## flag ## _rel8(){ \
 		SET_REG8(reg8, idata->imm8);
 	}
 
+	void code_c0(){
+		switch(idata->modrm.reg){
+		case 5: shr_rm8_imm8(); break;
+		default:
+			std::stringstream ss;
+			ss << "not implemented: 0xc0 /"
+				<< std::dec << static_cast<uint32_t>(idata->modrm.reg);
+			throw ss.str();
+		}
+	}
+		void shr_rm8_imm8(){
+			uint8_t rm8 = idata->GetRM8();
+			uint64_t result = rm8 >> idata->imm8;
+			idata->SetRM8(result);
+			EFLAGS.UpdateShr(rm8, idata->imm8, result);
+		}
+
 	void mov_rm8_imm8(){
 		idata->SetRM8(idata->imm8);
 	}
@@ -222,6 +257,12 @@ void j ## flag ## _rel8(){ \
 
 	void short_jump(){
 		IP += static_cast<uint16_t>(idata->imm8);
+	}
+
+	void out_dx_al(){
+		DOUT(__func__<<": port[0x"<<std::hex<<DX
+			<< "] <- 0x"<<static_cast<uint32_t>(AL)<<std::endl);
+		emu->io->out8(DX, AL);
 	}
 
 	void hlt(){

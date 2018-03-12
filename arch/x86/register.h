@@ -75,29 +75,32 @@ public:
 // EFLAGS
 class Eflags : public ::RegisterBase {
 public:
-	struct {
-		bool CF : 1;
-		bool    : 1;
-		bool PF : 1;
-		bool    : 1;
-		bool AF : 1;
-		bool    : 1;
-		bool ZF : 1;
-		bool SF : 1;
-		bool TF : 1;
-		bool IF : 1;
-		bool DF : 1;
-		bool OF : 1;
-		bool IOPL1 : 1;
-		bool IOPL2 : 1;
-		bool NT : 1;
-		bool    : 1;
-		bool RF : 1;
-		bool VM : 1;
-		bool AC : 1;
-		bool VIF: 1;
-		bool VIP: 1;
-		bool ID : 1;
+	union {
+		struct {
+			bool CF : 1;
+			bool    : 1;
+			bool PF : 1;
+			bool    : 1;
+			bool AF : 1;
+			bool    : 1;
+			bool ZF : 1;
+			bool SF : 1;
+			bool TF : 1;
+			bool IF : 1;
+			bool DF : 1;
+			bool OF : 1;
+			bool IOPL1 : 1;
+			bool IOPL2 : 1;
+			bool NT : 1;
+			bool    : 1;
+			bool RF : 1;
+			bool VM : 1;
+			bool AC : 1;
+			bool VIF: 1;
+			bool VIP: 1;
+			bool ID : 1;
+		};
+		uint32_t reg32;
 	};
 public:
 	Eflags() : RegisterBase(sizeof(uint32_t)) {}
@@ -176,6 +179,10 @@ public:
 		// OFは1bitシフトのときのみ影響を受ける
 		if(v2 == 1)
 			SetOverflow((v1>>(size-1)) & 1);
+	}
+
+	inline void UpdateXor(){
+		CF = OF = 0;
 	}
 
 	const uint32_t GetData32() const {

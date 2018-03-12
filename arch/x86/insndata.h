@@ -131,6 +131,7 @@ get_disp32:
 			DOUT("disp32: 0x"<<std::hex<<disp32);
 			break;
 		}
+		DOUT(std::endl);
 	}
 
 	inline uint32_t CalcMemAddr(){

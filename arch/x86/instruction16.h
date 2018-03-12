@@ -16,6 +16,11 @@ public:
 		EFLAGS.UpdateAdd(old, idata->imm16, AX);
 	}
 
+	void push_imm8(){
+		uint16_t tmp16 = idata->imm8;
+		emu->push16(tmp16);
+	}
+
 	void add_rm16_imm8(){
 		DOUT("\n\t"<<__func__<<" ");
 		uint16_t rm16 = idata->GetRM16();
