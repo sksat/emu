@@ -229,11 +229,9 @@ private:
 
 	void code_ff(){
 		switch(idata->modrm.reg){
-		case 0:
-			inc_rm32();
-			break;
+		case 0: inc_rm32(); break;
 		default:
-			throw "not implemented: FF "+std::to_string((int)idata->opcode);
+			throw "not implemented: 0xff /"+std::to_string((int)idata->modrm.reg);
 		}
 	}
 		void inc_rm32(){
