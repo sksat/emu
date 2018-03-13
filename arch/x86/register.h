@@ -203,6 +203,19 @@ public:
 		CF = OF = 0;
 	}
 
+	template<typename T>
+	inline void UpdateTest(T v1, T v2){
+		T temp = v1 & v2;
+
+		auto size = sizeof(T)*8;
+		bool sign = (temp >> (size-1)) & 1;
+
+		SetSign(sign);
+		SetZero(temp == 0);
+		SetCarry(0);
+		SetOverflow(0);
+	}
+
 	const uint32_t GetData32() const {
 		uint32_t ret = 0x00;
 		ret |= CF;
