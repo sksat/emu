@@ -58,6 +58,22 @@ public:
 		DOUT(std::endl<<"\t"<<reg.GetName()<<"=0x"<<idata->imm16);
 	}
 
+	void code_c1(){
+		switch(idata->modrm.reg){
+		case 4: sal_rm16_imm8(); break;
+		default:
+			std::stringstream ss;
+			ss << "not implemented: 0xc1 /" << static_cast<uint32_t>(idata->modrm.reg);
+			throw ss.str();
+		}
+	}
+		void sal_rm16_imm8(){
+			uint16_t rm16 = idata->GetRM16();
+			uint32_t result = rm16 << idata->imm8;
+			EFLAGS.UpdateSal(rm16, idata->imm8, result);
+			idata->SetRM16(result);
+		}
+
 	void ret(){
 		IP = emu->pop16();
 		debug::out_flg = true;
