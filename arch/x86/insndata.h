@@ -214,6 +214,7 @@ get_disp32:
 					case 0b100: // SIB
 						return CalcSibAddr();
 					case 0b101:
+						return disp32;
 						throw "not implemented: Mod=0b00,RM=0b101";
 					default:
 						return emu->reg[RM].reg32;
