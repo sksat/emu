@@ -124,6 +124,7 @@ private:
 		case 1: or_rm32_imm8(); break;
 		case 4: and_rm32_imm8(); break;
 		case 5: sub_rm32_imm8(); break;
+		case 7: cmp_rm32_imm8(); break;
 		default:
 			std::stringstream ss;
 			ss<<"not implemented: 83 /"<<std::hex<<(uint32_t)idata->modrm.reg;
@@ -154,6 +155,12 @@ private:
 			idata->SetRM32(set);
 			EFLAGS.UpdateSub(rm32, idata->imm8, set);
 		}
+		void cmp_rm32_imm8(){
+			uint32_t rm32 = idata->GetRM32();
+			uint8_t imm8 = idata->imm8;
+			EFLAGS.Cmp(rm32, imm8);
+		}
+
 	void mov_rm32_r32(){
 		idata->SetRM32(emu->reg[idata->modrm.reg].reg32);
 	}
