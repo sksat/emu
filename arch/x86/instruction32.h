@@ -230,12 +230,17 @@ private:
 	void code_ff(){
 		switch(idata->modrm.reg){
 		case 0: inc_rm32(); break;
+		case 6: push_rm32(); break;
 		default:
 			throw "not implemented: 0xff /"+std::to_string((int)idata->modrm.reg);
 		}
 	}
 		void inc_rm32(){
 			idata->SetRM32(idata->GetRM32() + 1);
+		}
+		void push_rm32(){
+			auto rm32 = idata->GetRM32();
+			emu->push32(rm32);
 		}
 };
 
