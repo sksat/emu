@@ -190,6 +190,12 @@ void j ## flag ## _rel8(){ \
 		}
 	}
 
+	void test_rm8_r8(){
+		uint8_t rm8 = idata->GetRM8();
+		uint8_t r8 = GET_REG8(idata->modrm.reg);
+		EFLAGS.UpdateTest(rm8, r8);
+	}
+
 	void mov_rm8_r8(){
 		uint8_t reg8 = GET_REG8(idata->modrm.reg);
 		DOUT(__func__<<": "<<GET_REG8_NAME(idata->modrm.reg)<<"=0x"<<std::hex<<reg8);

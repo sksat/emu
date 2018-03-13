@@ -32,6 +32,7 @@ void Instruction::Init(){
 	SETINSN(0x7e, jle_rel8,			Flag::Imm8); // = jng
 	SETINSN(0x7f, jg_rel8,			Flag::Imm8); // = jnle
 	SETINSN(0x80, code_80,			Flag::ModRM | Flag::Imm8);
+	SETINSN(0x84, test_rm8_r8,		Flag::ModRM);
 	SETINSN(0x88, mov_rm8_r8,		Flag::ModRM);
 	SETINSN(0x8a, mov_r8_rm8,		Flag::ModRM);
 	SETINSN(0x8e, mov_sreg_rm16,		Flag::ModRM);
