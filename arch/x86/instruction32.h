@@ -62,6 +62,11 @@ private:
 		emu->reg[r].reg32++;
 	}
 
+	void dec_r32(){
+		uint8_t r = idata->opcode - 0x48;
+		emu->reg[r].reg32--;
+	}
+
 	void push_r32(){
 		emu->push32(emu->reg[idata->opcode-0x50].reg32);
 	}
