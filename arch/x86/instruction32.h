@@ -195,7 +195,7 @@ private:
 	void code_c1(){
 		switch(idata->modrm.reg){
 		case 5:
-			shr_rm16_imm8();
+			shr_rm32_imm8();
 			break;
 		default:
 			std::stringstream ss;
@@ -203,11 +203,11 @@ private:
 			throw ss.str();
 		}
 	}
-		void shr_rm16_imm8(){
-			uint16_t rm16 = idata->GetRM16();
-			uint32_t result = rm16 >> idata->imm8;
-			idata->SetRM16(result);
-			EFLAGS.UpdateShr(rm16, idata->imm8, result);
+		void shr_rm32_imm8(){
+			uint32_t rm32 = idata->GetRM32();
+			uint64_t result = rm32 >> idata->imm8;
+			idata->SetRM32(result);
+			EFLAGS.UpdateShr(rm32, idata->imm8, result);
 		}
 
 	void ret32(){
