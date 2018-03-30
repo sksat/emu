@@ -19,7 +19,17 @@ try{
 	sksat::optparse o;
 	string arch_str;
 	string fda_file; // A drive (floppy)
-	string font_file = "./font/hankaku.bin";
+	string font_file = "font/hankaku.bin";
+
+	{
+		string exe_dir = argv[0];
+		auto end = exe_dir.size();
+		for(;;end--){
+			if(exe_dir[end] == '/') break;
+		}
+		auto path = exe_dir.substr(0, end);
+		font_file = path + '/' + font_file;
+	}
 
 	o.add_opt(arch_str, 'a', "arch", "architecture");
 	o.add_opt(set.junk_bios, "junk-bios", "enable junk BIOS");
