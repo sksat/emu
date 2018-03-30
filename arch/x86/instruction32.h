@@ -194,15 +194,20 @@ private:
 
 	void code_c1(){
 		switch(idata->modrm.reg){
-		case 5:
-			shr_rm32_imm8();
-			break;
+		case 4: sal_rm32_imm8(); break; // = shl_rm32_imm8
+		case 5: shr_rm32_imm8(); break;
 		default:
 			std::stringstream ss;
 			ss << "not implemented: 0xc1 /"<<std::dec<<static_cast<uint32_t>(idata->modrm.reg);
 			throw ss.str();
 		}
 	}
+		void sal_rm32_imm8(){
+			uint32_t rm32 = idata->GetRM32();
+			uint64_t result = rm32 << idata->imm8;
+			EFLAGS.UpdateSal(rm32, idata->imm8, result);
+			idata->SetRM32(result);
+		}
 		void shr_rm32_imm8(){
 			uint32_t rm32 = idata->GetRM32();
 			uint64_t result = rm32 >> idata->imm8;
