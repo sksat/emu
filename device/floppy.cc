@@ -25,7 +25,8 @@ void Floppy::Open(const std::string &fname){
 		size = end - start;
 	}
 	DOUT("Floppy: file size="<<size/KB<<"KB"<<std::endl);
-	if(size/KB != 1440) throw "Floppy: file size is not 1440KB";
+	if(size != 1440 * KB)
+		std::cerr<<"warning: Floppy: file size is not 1440KB"<<std::endl;
 }
 
 bool Floppy::Seek(const Floppy::Setting &set){
