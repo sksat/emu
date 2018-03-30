@@ -27,6 +27,13 @@ private:
 		reg.reg32 = result;
 	}
 
+	void add_eax_imm32(){
+		DOUT(std::endl<<"EAX <= EAX(0x"<<std::hex<<EAX<<") + 0x"<<idata->imm32);
+		uint64_t result = EAX + idata->imm32;
+		EFLAGS.UpdateAdd(EAX, idata->imm32, result);
+		EAX = result;
+	}
+
 	void and_eax_imm32(){
 		DOUT(std::endl<<"EAX <- EAX(0x"<<std::hex<<EAX<<") & "<<idata->imm32);
 		EAX = EAX & idata->imm32;
