@@ -40,6 +40,7 @@ protected:
 		case 0x22: mov_crn_r32(); break;
 		case 0xaf: (idata->is_op32 ? imul_r32_rm32() : imul_r16_rm16()); break;
 		case 0xb6: (idata->is_op32 ? movzx_r32_rm8() : movzx_r16_rm8()); break;
+		case 0xbe: (idata->is_op32 ? movsx_r32_rm8() : movsx_r16_rm8()); break;
 		case 0xbf: movsx_r32_rm16(); break;
 		default:
 			throw "not implemented: 0x0f subop";
@@ -123,6 +124,16 @@ protected:
 			reg.reg32 = rm8;
 		}
 		void movzx_r16_rm8(){
+			throw __func__;
+		}
+		void movsx_r32_rm8(){
+			auto& reg = emu->reg[idata->modrm.reg];
+			int8_t s_rm8 = idata->GetRM8();
+			int32_t set = static_cast<int32_t>(s_rm8);
+			DOUT(__func__<<": "<<reg.GetName()<<" <- SignExtended(0x"<<std::hex<<static_cast<int32_t>(s_rm8)<<") = 0x"<<set<<std::endl);
+			reg.reg32 = set;
+		}
+		void movsx_r16_rm8(){
 			throw __func__;
 		}
 		void movsx_r32_rm16(){
