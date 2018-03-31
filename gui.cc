@@ -47,7 +47,7 @@ void Gui::proc(){
 //		}
 
 		glfwSwapBuffers(win);
-		glfwWaitEvents();
+		glfwPollEvents();
 	}
 
 	glfwDestroyWindow(win);
