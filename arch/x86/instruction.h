@@ -118,7 +118,7 @@ protected:
 			throw __func__;
 		}
 		void movzx_r32_rm8(){
-			auto& reg = emu->reg[idata->RM];
+			auto& reg = emu->reg[idata->modrm.reg];
 			auto rm8 = idata->GetRM8();
 			DOUT(std::endl<<__func__<<": "<<reg.GetName()<<" <- ZeroExtended(0x"<<static_cast<uint32_t>(rm8)<<")"<<std::endl);
 			reg.reg32 = rm8;
