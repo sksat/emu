@@ -210,9 +210,9 @@ private:
 		}
 	}
 		void sal_rm32_imm8(){
-			uint32_t rm32 = idata->GetRM32();
-			uint64_t result = rm32 << idata->imm8;
-			EFLAGS.UpdateSal(rm32, idata->imm8, result);
+			int32_t s_rm32 = idata->GetRM32();
+			int64_t result = s_rm32 << idata->imm8;
+			EFLAGS.UpdateSal(s_rm32, idata->imm8, result);
 			idata->SetRM32(result);
 		}
 		void shr_rm32_imm8(){
