@@ -168,6 +168,12 @@ private:
 			EFLAGS.Cmp(rm32, imm8);
 		}
 
+	void test_rm32_r32(){
+		uint32_t rm32 = idata->GetRM32();
+		auto& reg = emu->reg[idata->modrm.reg];
+		EFLAGS.UpdateTest(rm32, reg.reg32);
+	}
+
 	void mov_rm32_r32(){
 		idata->SetRM32(emu->reg[idata->modrm.reg].reg32);
 	}

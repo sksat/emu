@@ -25,6 +25,7 @@ void Instruction32::Init(){
 	SETINSN(0x6a, push_imm8,			Flag::Imm8);
 	SETINSN(0x81, code_81,				Flag::ModRM | Flag::Imm32);
 	SETINSN(0x83, code_83,				Flag::ModRM | Flag::Imm8);
+	SETINSN(0x85, test_rm32_r32,			Flag::ModRM);
 	SETINSN(0x89, mov_rm32_r32,			Flag::ModRM);
 	SETINSN(0x8B, mov_r32_rm32,			Flag::ModRM);
 	SETINSN(0x8d, lea_r32_m,			Flag::ModRM);
