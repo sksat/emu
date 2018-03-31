@@ -40,6 +40,7 @@ void Instruction32::Init(){
 	SETINSN(0xE8, call_rel32,			Flag::Imm32);
 	SETINSN(0xe9, jmp_rel32,			Flag::Imm32); // near jump
 	SETINSN(0xea, jmp_ptr16_32,			Flag::Ptr16 | Flag::Imm32); // far jump
+	SETINSN(0xf7, code_f7,				Flag::ModRM);
 	SETINSN(0xff, code_ff,				Flag::ModRM);
 }
 

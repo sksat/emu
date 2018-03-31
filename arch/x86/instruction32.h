@@ -257,6 +257,29 @@ private:
 		emu->far_jmp(idata->ptr16, idata->imm32);
 	}
 
+	void code_f7(){
+		switch(idata->modrm.reg){
+		case 2: not_rm32(); break;
+		case 6: div_rm32(); break;
+		default:
+			throw "not implemented: 0xf7 /"+std::to_string((int)idata->modrm.reg);
+		}
+	}
+		void not_rm32(){
+			uint32_t rm32 = idata->GetRM32();
+			idata->SetRM32(~rm32);
+		}
+		void div_rm32(){
+			uint32_t rm32 = idata->GetRM32();
+			uint64_t val; // EDX:EAX
+			val = EDX;
+			val = val << 32;
+			val = val | EAX;
+			if(rm32 == 0) throw __func__+std::string(": divided by zero");
+			EAX = val/rm32;
+			EDX = val%rm32;
+		}
+
 	void code_ff(){
 		switch(idata->modrm.reg){
 		case 0: inc_rm32(); break;
