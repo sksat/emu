@@ -40,6 +40,14 @@ private:
 		DOUT(" = 0x"<<EAX);
 	}
 
+	void sub_rm32_r32(){
+		uint32_t rm32 = idata->GetRM32();
+		auto& r = emu->reg[idata->modrm.reg];
+		uint32_t result = rm32 - r.reg32;
+		EFLAGS.UpdateSub(rm32, r.reg32, result);
+		idata->SetRM32(result);
+	}
+
 	void xor_rm32_r32(){
 		uint32_t rm32 = idata->GetRM32();
 		auto& r = emu->reg[idata->modrm.reg];
