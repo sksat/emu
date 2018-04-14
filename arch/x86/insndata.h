@@ -188,13 +188,36 @@ get_disp32:
 	inline uint32_t CalcSibAddr(){
 		uint32_t addr = 0x00;
 
-		uint32_t base = 0x00, index;
+		if(sib.base == 0b101){ // [*]
+			if(MOD == 0b00) addr += disp32;
+			else{
+				sreg = &SS;
+				addr += EBP;
+			}
+		}else{
+			auto& base_r32 = emu->reg[sib.base].reg32;
+			if(sib.base == 0b100) sreg = &SS; // base_r32 = ESP
+			addr += base_r32;
+		}
 
+		if(sib.index != 0b100){
+			auto& index_r32 = emu->reg[sib.index].reg32;
+			if(sib.index == 0b101) sreg = &SS; // index_r32 = EBP
+			addr += index_r32 * (1 << sib.scale); // scaled index
+		}
+
+		return addr;
+/*
+		uint32_t base = 0x00, index;
 		if(sib.base == 0b100)
 			sreg = &SS;
-		if(sib.base == 0b101)
-			throw "not implemented: SIB.base=0b101";
-		else
+		if(sib.base == 0b101){
+//			throw "not implemented: SIB.base=0b101";
+			std::cout<<std::endl<<"sib!"<<std::endl;
+			getchar();
+			if(MOD == 0b00) addr += disp32;
+			else addr += EBP;
+		}else
 			base = emu->reg[sib.base].reg32;
 
 		if(sib.index == 0b100)
@@ -202,9 +225,10 @@ get_disp32:
 		else
 			index = emu->reg[sib.index].reg32;
 
-		addr = base + (index * (1<<sib.scale));
+		addr += base + (index * (1<<sib.scale));
 		DOUT(std::endl<<__func__<<"=0x"<<std::hex<<addr<<std::endl);
 		return addr;
+*/
 	}
 
 	inline uint32_t CalcMemAddr32(){
@@ -215,20 +239,23 @@ get_disp32:
 						return CalcSibAddr();
 					case 0b101:
 						return disp32;
-						throw "not implemented: Mod=0b00,RM=0b101";
 					default:
 						return emu->reg[RM].reg32;
 				}
 			case 0b01:
 				if(RM == 0b100) // SIB
 					return CalcSibAddr() + disp8;
-				else
+				else{
+					if(RM == 0b101) sreg = &SS; // EBP
 					return emu->reg[RM].reg32 + disp8;
+				}
 			case 0b10:
 				if(RM == 0b100) // SIB
 					return CalcSibAddr() + disp32;
-				else
+				else{
+					if(RM == 0b101) sreg = &SS; // EBP
 					return emu->reg[RM].reg32 + disp32;
+				}
 			case 0b11:
 				break;
 		}
