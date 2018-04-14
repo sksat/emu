@@ -218,19 +218,11 @@ void j ## flag ## _rel32(){ \
 	DEF_JCC(le, EFLAGS.ZF || (EFLAGS.SF != EFLAGS.OF));	// jle=jng
 	DEF_JCC(g,  !EFLAGS.ZF && (EFLAGS.SF == EFLAGS.OF));	// jg = jnle
 
-	void add_rm8_imm8(){
-		auto rm8 = idata->GetRM8();
-		uint8_t tmp = rm8 + idata->imm8;
-		idata->SetRM8(tmp);
-		EFLAGS.UpdateAdd(rm8, idata->imm8, tmp);
-	}
-	void cmp_rm8_imm8(){
-		EFLAGS.Cmp(idata->GetRM8(), idata->imm8);
-	}
 	void code_80(){
 		DOUT(" REG="<<static_cast<uint32_t>(idata->modrm.reg)<<" ");
 		switch(idata->modrm.reg){
 		case 0:	add_rm8_imm8();	break;
+		case 4: and_rm8_imm8(); break;
 		case 7: cmp_rm8_imm8();	break;
 		default:
 		{
@@ -240,6 +232,21 @@ void j ## flag ## _rel32(){ \
 		}
 		}
 	}
+		void add_rm8_imm8(){
+			auto rm8 = idata->GetRM8();
+			uint16_t tmp = rm8 + idata->imm8;
+			idata->SetRM8(static_cast<uint8_t>(tmp));
+			EFLAGS.UpdateAdd(rm8, idata->imm8, tmp);
+		}
+		void and_rm8_imm8(){
+			auto rm8 = idata->GetRM8();
+			uint16_t tmp = rm8 & idata->imm8;
+			idata->SetRM8(static_cast<uint8_t>(tmp));
+			EFLAGS.UpdateAnd(rm8, idata->imm8, tmp);
+		}
+		void cmp_rm8_imm8(){
+			EFLAGS.Cmp(idata->GetRM8(), idata->imm8);
+		}
 
 	void test_rm8_r8(){
 		uint8_t rm8 = idata->GetRM8();
