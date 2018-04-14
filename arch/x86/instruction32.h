@@ -127,7 +127,7 @@ private:
 	}
 		void sub_rm32_imm32(){
 			uint32_t rm32 = idata->GetRM32();
-			uint64_t set = rm32 - static_cast<uint32_t>(idata->imm32);
+			uint64_t set = rm32 - idata->imm32;
 			DOUT(std::endl<<__func__<<": RM32=0x"<<std::hex<<rm32<<", imm32=0x"<<idata->imm32<<", set=0x"<<set);
 
 			idata->SetRM32(set);
