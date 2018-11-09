@@ -13,9 +13,10 @@ private:
 	void add_rm32_r32(){
 		auto rm32 = idata->GetRM32();
 		auto& reg  = emu->reg[idata->modrm.reg];
-		uint64_t set = rm32 + reg.reg32;
+		uint32_t r32 = reg.reg32;
+		uint64_t set = rm32 + r32;
 		idata->SetRM32(set);
-		EFLAGS.UpdateAdd(rm32, reg.reg32, set);
+		EFLAGS.UpdateAdd(rm32, r32, set);
 	}
 
 	void add_r32_rm32(){
@@ -27,10 +28,28 @@ private:
 		reg.reg32 = result;
 	}
 
+	void add_eax_imm32(){
+		DOUT(std::endl<<"EAX <= EAX(0x"<<std::hex<<EAX<<") + 0x"<<idata->imm32);
+		uint64_t result = EAX + idata->imm32;
+		EFLAGS.UpdateAdd(EAX, idata->imm32, result);
+		EAX = result;
+	}
+
 	void and_eax_imm32(){
 		DOUT(std::endl<<"EAX <- EAX(0x"<<std::hex<<EAX<<") & "<<idata->imm32);
-		EAX = EAX & idata->imm32;
-		DOUT(" = 0x"<<EAX);
+		uint64_t result = EAX & idata->imm32;
+		DOUT(" = 0x"<<result);
+		EFLAGS.UpdateAnd(EAX, idata->imm32, result);
+		EAX = result;
+	}
+
+	void sub_rm32_r32(){
+		uint32_t rm32 = idata->GetRM32();
+		auto& r = emu->reg[idata->modrm.reg];
+		auto r32 = r.reg32;
+		uint32_t result = rm32 - r32;
+		idata->SetRM32(result);
+		EFLAGS.UpdateSub(rm32, r32, result);
 	}
 
 	void xor_rm32_r32(){
@@ -54,12 +73,17 @@ private:
 		auto& reg = emu->reg[idata->modrm.reg];
 		uint32_t r32  = reg.reg32;
 		uint32_t rm32 = idata->GetRM32();
-		uint64_t res  = (uint64_t)r32 - (uint64_t)rm32;
-		emu->eflags.UpdateSub(r32, rm32, res);
+
+		EFLAGS.Cmp(r32, rm32);
 	}
 	void inc_r32(){
 		uint8_t r = idata->opcode - 0x40;
 		emu->reg[r].reg32++;
+	}
+
+	void dec_r32(){
+		uint8_t r = idata->opcode - 0x48;
+		emu->reg[r].reg32--;
 	}
 
 	void push_r32(){
@@ -97,14 +121,15 @@ private:
 		case 7: cmp_rm32_imm32(); break;
 		default:
 			std::stringstream ss;
-			ss << "not implemented: 0x83 /" << static_cast<uint32_t>(idata->modrm.reg);
+			ss << "not implemented: 0x81 /" << static_cast<uint32_t>(idata->modrm.reg);
 			throw ss.str();
 		}
 	}
 		void sub_rm32_imm32(){
 			uint32_t rm32 = idata->GetRM32();
-			int32_t set = static_cast<int32_t>(rm32) - idata->imm32;
-			DOUT(std::endl<<"neko: RM32=0x"<<std::hex<<static_cast<int32_t>(rm32)<<", imm32=0x"<<idata->imm32<<", set=0x"<<set);
+			uint64_t set = rm32 - idata->imm32;
+			DOUT(std::endl<<__func__<<": RM32=0x"<<std::hex<<rm32<<", imm32=0x"<<idata->imm32<<", set=0x"<<set);
+
 			idata->SetRM32(set);
 			EFLAGS.UpdateSub(rm32, idata->imm32, set);
 		}
@@ -119,6 +144,7 @@ private:
 		case 1: or_rm32_imm8(); break;
 		case 4: and_rm32_imm8(); break;
 		case 5: sub_rm32_imm8(); break;
+		case 7: cmp_rm32_imm8(); break;
 		default:
 			std::stringstream ss;
 			ss<<"not implemented: 83 /"<<std::hex<<(uint32_t)idata->modrm.reg;
@@ -127,28 +153,40 @@ private:
 	}
 		void add_rm32_imm8(){
 			uint32_t rm32 = idata->GetRM32();
-			uint64_t set = rm32 + idata->imm8;
+			uint64_t set = rm32 + static_cast<int8_t>(idata->imm8);
 			idata->SetRM32(set);
 			EFLAGS.UpdateAdd(rm32, idata->imm8, set);
 		}
 		void or_rm32_imm8(){
 			uint32_t rm32 = idata->GetRM32();
-			uint64_t set = rm32 | idata->imm8;
+			uint64_t set = rm32 | static_cast<int8_t>(idata->imm8);
 			idata->SetRM32(set);
 			EFLAGS.UpdateOr(rm32, idata->imm8, set);
 		}
 		void and_rm32_imm8(){
 			uint32_t rm32 = idata->GetRM32();
-			uint64_t set = rm32 & idata->imm8;
+			uint64_t set = rm32 & static_cast<int8_t>(idata->imm8);
 			idata->SetRM32(set);
 			EFLAGS.UpdateAnd(rm32, idata->imm8, set);
 		}
 		void sub_rm32_imm8(){
 			uint32_t rm32 = idata->GetRM32();
-			uint64_t set = rm32 - idata->imm8;
-			idata->SetRM32(set);
+			int64_t set = rm32 - static_cast<int8_t>(idata->imm8);
+			idata->SetRM32(static_cast<int32_t>(set));
 			EFLAGS.UpdateSub(rm32, idata->imm8, set);
 		}
+		void cmp_rm32_imm8(){
+			uint32_t rm32 = idata->GetRM32();
+			int8_t imm8 = idata->imm8;
+			EFLAGS.Cmp(rm32, imm8);
+		}
+
+	void test_rm32_r32(){
+		uint32_t rm32 = idata->GetRM32();
+		auto& reg = emu->reg[idata->modrm.reg];
+		EFLAGS.UpdateTest(rm32, reg.reg32);
+	}
+
 	void mov_rm32_r32(){
 		idata->SetRM32(emu->reg[idata->modrm.reg].reg32);
 	}
@@ -182,31 +220,33 @@ private:
 
 	void code_c1(){
 		switch(idata->modrm.reg){
-		case 5:
-			shr_rm16_imm8();
-			break;
+		case 4: sal_rm32_imm8(); break; // = shl_rm32_imm8
+		case 5: shr_rm32_imm8(); break;
 		default:
 			std::stringstream ss;
 			ss << "not implemented: 0xc1 /"<<std::dec<<static_cast<uint32_t>(idata->modrm.reg);
 			throw ss.str();
 		}
 	}
-		void shr_rm16_imm8(){
-			uint16_t rm16 = idata->GetRM16();
-			uint32_t result = rm16 >> idata->imm8;
-			idata->SetRM16(result);
-			EFLAGS.UpdateShr(rm16, idata->imm8, result);
+		void sal_rm32_imm8(){
+			int32_t s_rm32 = idata->GetRM32();
+			int64_t result = s_rm32 << idata->imm8;
+			EFLAGS.UpdateSal(s_rm32, idata->imm8, result);
+			idata->SetRM32(result);
+		}
+		void shr_rm32_imm8(){
+			uint32_t rm32 = idata->GetRM32();
+			uint64_t result = rm32 >> idata->imm8;
+			idata->SetRM32(result);
+			EFLAGS.UpdateShr(rm32, idata->imm8, result);
 		}
 
 	void ret32(){
 		EIP = emu->pop32();
 	}
 	void mov_rm32_imm32(){
-//		uint32_t val = emu->GetCode32(0);
 		DOUT("mov_rm32_imm32: val="<<idata->imm32<<std::endl);
-//		EIP += 4;
 		idata->SetRM32(idata->imm32);
-//		idata->SetRM32(emu->GetCode32(-4));
 	}
 
 	void leave32(){
@@ -227,17 +267,43 @@ private:
 		emu->far_jmp(idata->ptr16, idata->imm32);
 	}
 
+	void code_f7(){
+		switch(idata->modrm.reg){
+		case 2: not_rm32(); break;
+		case 6: div_rm32(); break;
+		default:
+			throw "not implemented: 0xf7 /"+std::to_string((int)idata->modrm.reg);
+		}
+	}
+		void not_rm32(){
+			uint32_t rm32 = idata->GetRM32();
+			idata->SetRM32(~rm32);
+		}
+		void div_rm32(){
+			uint32_t rm32 = idata->GetRM32();
+			uint64_t val; // EDX:EAX
+			val = EDX;
+			val = val << 32;
+			val = val | EAX;
+			if(rm32 == 0) throw __func__+std::string(": divided by zero");
+			EAX = val/rm32;
+			EDX = val%rm32;
+		}
+
 	void code_ff(){
 		switch(idata->modrm.reg){
-		case 0:
-			inc_rm32();
-			break;
+		case 0: inc_rm32(); break;
+		case 6: push_rm32(); break;
 		default:
-			throw "not implemented: FF "+std::to_string((int)idata->opcode);
+			throw "not implemented: 0xff /"+std::to_string((int)idata->modrm.reg);
 		}
 	}
 		void inc_rm32(){
 			idata->SetRM32(idata->GetRM32() + 1);
+		}
+		void push_rm32(){
+			auto rm32 = idata->GetRM32();
+			emu->push32(rm32);
 		}
 };
 

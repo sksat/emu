@@ -169,6 +169,8 @@ public:
 
 	template<typename T>
 	inline void UpdateShr(T v1, uint8_t v2, uint64_t result){
+		if(v2 == 0) return;
+
 		auto size = sizeof(T)*8;
 		bool signr = (result >> (size-1)) & 1;
 
@@ -181,8 +183,37 @@ public:
 			SetOverflow((v1>>(size-1)) & 1);
 	}
 
+	template<typename T>
+	inline void UpdateSal(T dest, uint8_t count, uint64_t result){
+		if(count == 0) return;
+
+		auto size = sizeof(T)*8;
+		bool signr = (result >> (size-1)) & 1;
+
+		SetCarry((result>>size) & 1);
+		SetZero(result == 0);
+		SetSign(signr);
+
+		// OFは1bitシフトのときのみ影響を受ける
+		if(count == 1)
+			SetOverflow(CF != ((result>>(size-1)) & 1));
+	}
+
 	inline void UpdateXor(){
 		CF = OF = 0;
+	}
+
+	template<typename T>
+	inline void UpdateTest(T v1, T v2){
+		T temp = v1 & v2;
+
+		auto size = sizeof(T)*8;
+		bool sign = (temp >> (size-1)) & 1;
+
+		SetSign(sign);
+		SetZero(temp == 0);
+		SetCarry(0);
+		SetOverflow(0);
 	}
 
 	const uint32_t GetData32() const {

@@ -38,8 +38,32 @@ protected:
 		case 0x01: code_0f01(); break;
 		case 0x20: mov_r32_crn(); break;
 		case 0x22: mov_crn_r32(); break;
+
+		// Jcc
+		#define SET_JCC(subop, opname) \
+		case subop: (idata->is_op32 ? opname ## _rel32() : opname ## _rel16()); break;
+
+		SET_JCC(0x80, jo);
+		SET_JCC(0x81, jno);
+		SET_JCC(0x82, jb);	// = jc,jnae
+		SET_JCC(0x83, jae);	// = jnb,jnc
+		SET_JCC(0x84, je);	// = jz
+		SET_JCC(0x85, jne);	// = jnz
+		SET_JCC(0x86, jbe);	// = jna
+		SET_JCC(0x87, ja);	// = jnbe
+		SET_JCC(0x88, js);
+		SET_JCC(0x89, jns);
+		SET_JCC(0x8a, jp);	// = jpe
+		SET_JCC(0x8b, jpo);
+		SET_JCC(0x8c, jl);	// = jnge
+		SET_JCC(0x8d, jge);	// = jnl
+		SET_JCC(0x8e, jle);	// = jng
+		SET_JCC(0x8f, jg);	// = jnle
+
 		case 0xaf: (idata->is_op32 ? imul_r32_rm32() : imul_r16_rm16()); break;
 		case 0xb6: (idata->is_op32 ? movzx_r32_rm8() : movzx_r16_rm8()); break;
+		case 0xbe: (idata->is_op32 ? movsx_r32_rm8() : movsx_r16_rm8()); break;
+		case 0xbf: movsx_r32_rm16(); break;
 		default:
 			throw "not implemented: 0x0f subop";
 		}
@@ -94,6 +118,11 @@ protected:
 			if(emu->CR0.PG)
 				throw "not implemented: paging";
 		}
+
+		// Jcc: Jump if Condition Is Met
+		// j*_rel32
+		// j*_rel16
+
 		void imul_r32_rm32(){
 			auto& reg = emu->reg[idata->modrm.reg];
 			int32_t s_r32 = reg.reg32;
@@ -116,13 +145,30 @@ protected:
 			throw __func__;
 		}
 		void movzx_r32_rm8(){
-			auto& reg = emu->reg[idata->RM];
+			auto& reg = emu->reg[idata->modrm.reg];
 			auto rm8 = idata->GetRM8();
 			DOUT(std::endl<<__func__<<": "<<reg.GetName()<<" <- ZeroExtended(0x"<<static_cast<uint32_t>(rm8)<<")"<<std::endl);
 			reg.reg32 = rm8;
 		}
 		void movzx_r16_rm8(){
 			throw __func__;
+		}
+		void movsx_r32_rm8(){
+			auto& reg = emu->reg[idata->modrm.reg];
+			int8_t s_rm8 = idata->GetRM8();
+			int32_t set = static_cast<int32_t>(s_rm8);
+			DOUT(__func__<<": "<<reg.GetName()<<" <- SignExtended(0x"<<std::hex<<static_cast<int32_t>(s_rm8)<<") = 0x"<<set<<std::endl);
+			reg.reg32 = set;
+		}
+		void movsx_r16_rm8(){
+			throw __func__;
+		}
+		void movsx_r32_rm16(){
+			auto& reg = emu->reg[idata->modrm.reg];
+			int16_t s_rm16 = idata->GetRM16();
+			int32_t set = static_cast<int32_t>(s_rm16);
+			DOUT(__func__<<": "<<reg.GetName()<<" <- SignExtended(0x"<<std::hex<<s_rm16<<") = 0x"<<set<<std::endl);
+			reg.reg32 = set;
 		}
 
 	void and_al_imm8(){
@@ -139,39 +185,44 @@ protected:
 // Jump if Condition Is Met
 #define DEF_JCC_REL8(flag, is_flag) \
 void j ## flag ## _rel8(){ \
-	if(is_flag) EIP += static_cast<int8_t>(idata->imm8); \
+	if(is_flag) EIP += idata->imm8; \
+}
+#define DEF_JCC_REL16(flag, is_flag) \
+void j ## flag ## _rel16(){ \
+	if(is_flag) EIP += idata->imm16; \
+}
+#define DEF_JCC_REL32(flag, is_flag) \
+void j ## flag ## _rel32(){ \
+	if(is_flag) EIP += idata->imm32; \
 }
 
-	DEF_JCC_REL8(o,  EFLAGS.OF);
-	DEF_JCC_REL8(no, !EFLAGS.OF);
-	DEF_JCC_REL8(b,  EFLAGS.CF);					// jb =jc =jnae
-	DEF_JCC_REL8(ae, !EFLAGS.CF);					// jae=jnb=jnc
-	DEF_JCC_REL8(e,  EFLAGS.ZF);					// je =jz
-	DEF_JCC_REL8(ne, !EFLAGS.ZF);					// jne=jnz
-	DEF_JCC_REL8(be, EFLAGS.CF || EFLAGS.ZF);			// jbe=jna
-	DEF_JCC_REL8(a,  !EFLAGS.CF && !EFLAGS.ZF);			// ja =jnbe
-	DEF_JCC_REL8(s,  EFLAGS.SF);
-	DEF_JCC_REL8(ns, !EFLAGS.SF);
-	DEF_JCC_REL8(p,  EFLAGS.PF);					// jp =jpe
-	DEF_JCC_REL8(po, !EFLAGS.PF);
-	DEF_JCC_REL8(l,  EFLAGS.SF != EFLAGS.OF);			// jl =jnge
-	DEF_JCC_REL8(ge, EFLAGS.SF == EFLAGS.OF);			// jge=jnl
-	DEF_JCC_REL8(le, EFLAGS.ZF || (EFLAGS.SF != EFLAGS.OF));	// jle=jng
-	DEF_JCC_REL8(g,  !EFLAGS.ZF && (EFLAGS.SF == EFLAGS.OF));	// jg = jnle
+#define DEF_JCC(flag, is_flag) \
+	DEF_JCC_REL8(flag, is_flag); \
+	DEF_JCC_REL16(flag, is_flag); \
+	DEF_JCC_REL32(flag, is_flag);
 
-	void add_rm8_imm8(){
-		auto rm8 = idata->GetRM8();
-		uint8_t tmp = rm8 + idata->imm8;
-		idata->SetRM8(tmp);
-		EFLAGS.UpdateAdd(rm8, idata->imm8, tmp);
-	}
-	void cmp_rm8_imm8(){
-		EFLAGS.Cmp(idata->GetRM8(), idata->imm8);
-	}
+	DEF_JCC(o,  EFLAGS.OF);
+	DEF_JCC(no, !EFLAGS.OF);
+	DEF_JCC(b,  EFLAGS.CF);					// jb =jc =jnae
+	DEF_JCC(ae, !EFLAGS.CF);					// jae=jnb=jnc
+	DEF_JCC(e,  EFLAGS.ZF);					// je =jz
+	DEF_JCC(ne, !EFLAGS.ZF);					// jne=jnz
+	DEF_JCC(be, EFLAGS.CF || EFLAGS.ZF);			// jbe=jna
+	DEF_JCC(a,  !EFLAGS.CF && !EFLAGS.ZF);			// ja =jnbe
+	DEF_JCC(s,  EFLAGS.SF);
+	DEF_JCC(ns, !EFLAGS.SF);
+	DEF_JCC(p,  EFLAGS.PF);					// jp =jpe
+	DEF_JCC(po, !EFLAGS.PF);
+	DEF_JCC(l,  EFLAGS.SF != EFLAGS.OF);			// jl =jnge
+	DEF_JCC(ge, EFLAGS.SF == EFLAGS.OF);			// jge=jnl
+	DEF_JCC(le, EFLAGS.ZF || (EFLAGS.SF != EFLAGS.OF));	// jle=jng
+	DEF_JCC(g,  !EFLAGS.ZF && (EFLAGS.SF == EFLAGS.OF));	// jg = jnle
+
 	void code_80(){
 		DOUT(" REG="<<static_cast<uint32_t>(idata->modrm.reg)<<" ");
 		switch(idata->modrm.reg){
 		case 0:	add_rm8_imm8();	break;
+		case 4: and_rm8_imm8(); break;
 		case 7: cmp_rm8_imm8();	break;
 		default:
 		{
@@ -180,6 +231,27 @@ void j ## flag ## _rel8(){ \
 			throw ss.str();
 		}
 		}
+	}
+		void add_rm8_imm8(){
+			auto rm8 = idata->GetRM8();
+			uint16_t tmp = rm8 + idata->imm8;
+			idata->SetRM8(static_cast<uint8_t>(tmp));
+			EFLAGS.UpdateAdd(rm8, idata->imm8, tmp);
+		}
+		void and_rm8_imm8(){
+			auto rm8 = idata->GetRM8();
+			uint16_t tmp = rm8 & idata->imm8;
+			idata->SetRM8(static_cast<uint8_t>(tmp));
+			EFLAGS.UpdateAnd(rm8, idata->imm8, tmp);
+		}
+		void cmp_rm8_imm8(){
+			EFLAGS.Cmp(idata->GetRM8(), idata->imm8);
+		}
+
+	void test_rm8_r8(){
+		uint8_t rm8 = idata->GetRM8();
+		uint8_t r8 = GET_REG8(idata->modrm.reg);
+		EFLAGS.UpdateTest(rm8, r8);
 	}
 
 	void mov_rm8_r8(){

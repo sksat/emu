@@ -1,3 +1,4 @@
+#include <iostream>
 #include <sstream>
 #include "floppy.h"
 
@@ -24,7 +25,8 @@ void Floppy::Open(const std::string &fname){
 		size = end - start;
 	}
 	DOUT("Floppy: file size="<<size/KB<<"KB"<<std::endl);
-	if(size/KB != 1440) throw "Floppy: file size is not 1440KB";
+	if(size != 1440 * KB)
+		std::cerr<<"warning: Floppy: file size is not 1440KB"<<std::endl;
 }
 
 bool Floppy::Seek(const Floppy::Setting &set){
@@ -36,7 +38,8 @@ bool Floppy::Seek(const Floppy::Setting &set){
 		DOUT("Floppy: sector error: "<<static_cast<uint32_t>(set.sector)<<std::endl);
 		return false;
 	}
-	DOUT("Floppy: Seek: drive="<<static_cast<uint32_t>(set.drive)
+
+	DOUT("Floppy: Seek: drive="<<std::dec<<static_cast<uint32_t>(set.drive)
 			<<", head="<<set.head
 			<<", cylinder="<<static_cast<uint32_t>(set.cylinder)
 			<<", sector="<<static_cast<uint32_t>(set.sector)
@@ -44,9 +47,12 @@ bool Floppy::Seek(const Floppy::Setting &set){
 	this->set = set;
 
 	fs.seekg(0, std::fstream::beg);
-	if(set.head) fs.seekg(512*18, std::fstream::cur);
-	if(set.cylinder) fs.seekg(512*18*set.cylinder, std::fstream::cur);
+	if(set.head)
+		fs.seekg(512*18, std::fstream::cur);
+	if(set.cylinder)
+		fs.seekg(set.cylinder*512*36, std::fstream::cur);
 	fs.seekg(512*(set.sector-1), std::fstream::cur);
+//	std::cout<<set.head*18 + set.cylinder*36 + (set.sector -1)<<std::endl;
 	if(fs.fail()) return false;
 	return true;
 }

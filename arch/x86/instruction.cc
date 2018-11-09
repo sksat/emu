@@ -32,6 +32,7 @@ void Instruction::Init(){
 	SETINSN(0x7e, jle_rel8,			Flag::Imm8); // = jng
 	SETINSN(0x7f, jg_rel8,			Flag::Imm8); // = jnle
 	SETINSN(0x80, code_80,			Flag::ModRM | Flag::Imm8);
+	SETINSN(0x84, test_rm8_r8,		Flag::ModRM);
 	SETINSN(0x88, mov_rm8_r8,		Flag::ModRM);
 	SETINSN(0x8a, mov_r8_rm8,		Flag::ModRM);
 	SETINSN(0x8e, mov_sreg_rm16,		Flag::ModRM);
@@ -143,9 +144,20 @@ void Instruction::Decode(){
 		case 0x01:
 		case 0x20:
 		case 0x22:
+			flgs = Flag::ModRM;
+			break;
+			// Jcc rel16/rel32
+			case 0x80: case 0x81: case 0x82: case 0x83:
+			case 0x84: case 0x85: case 0x86: case 0x87:
+			case 0x88: case 0x89: case 0x8a: case 0x8b:
+			case 0x8c: case 0x8d: case 0x8e: case 0x8f:
+				flgs = (idata->is_op32 ? Flag::Imm32 : Flag::Imm16);
+				break;
 		case 0xaf:
+		case 0xbf:
 		case 0xb6:
-			flgs |= Flag::ModRM;
+		case 0xbe:
+			flgs = Flag::ModRM;
 			break;
 		default:
 			std::stringstream ss;
