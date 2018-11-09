@@ -107,6 +107,38 @@ void Emulator::RunStep(){
 	else		// プロテクトモード
 		is_32 = GetDesc(CS).D_B; // TODO: ディスクリプタ・キャッシュから取ってくる
 
+	static bool break_flg = false;
+
+	if(break_flg) getchar();
+
+	std::string func;
+	switch(L2P(CS, EIP) - 0x280000){
+	case 0x35c:
+		func = "putfont8"; break;
+	case 0x3e2:
+		func = "putfont8_asc"; break;
+	case 0x48e:
+		func = "sprintf"; break;
+	case 0x4de:
+		func = "strtoul0"; break;
+	case 0x5d9:
+		func = "vsprintf"; break;
+	case 0x5d9 + (0x3e - 0x28):
+		func = "vsprintf.L7";
+		break;
+	case 0x5d9 + (0x209 - 0x28):
+		func = "vsprintf.L11";
+		break;
+	case 0x5d9 + (0x146 - 0x28):
+		func = "vsprintf.L30";
+		break;
+	case 0x5d9 + (0x120 - 0x28):
+		func = "vsprintf.L79";
+		break;
+	}
+	if(!func.empty()) std::cout<<func<<std::endl;
+//	if(func[0] == 'v') getchar();
+
 	insn->Fetch();
 
 	idata->is_op32		= is_32 ^ idata->chsiz_op;

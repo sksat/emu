@@ -1,15 +1,13 @@
 # default build type
 BUILD_TYPE = Debug
 
-TARGET	:= emu
-OBJS	:= main.o emulator_base.o emulator.o register_base.o memory.o
-OBJS	+= device/device.a
-OBJS	+= font/font.o
-#OBJS	+= shell/shell.a
-#OBJS	+= gui/gui.a
-OBJS	+= gui.o
-OBJS	+= arch/arch.a
-OBJS	+= debug.o
+TARGET	= emu
+OBJS	= main.o emulator_base.o emulator.o register_base.o memory.o \
+		  device/device.a \
+		  font/font.o \
+		  gui.o \
+		  arch/arch.a \
+		  debug.o
 
 LDFLAGS	+= -pthread -lglfw -lGL
 
