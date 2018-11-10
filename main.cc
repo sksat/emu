@@ -12,26 +12,26 @@ int main(int argc, char **argv){
 		emu.load_binary(argv[1]);
 		auto& cpu = emu.cpu;
 		auto& memory = emu.memory;
-		cpu.eip = 0x00;
+		EIP = 0x00;
 
 		std::cout << "emulation start." << std::endl;
 
 		while(true){
-			auto op = emu.memory[cpu.eip++];
+			auto op = memory[EIP++];
 			std::cout
-				<< "EIP="<< std::hex <<cpu.eip
+				<< "EIP="<< std::hex << EIP
 				<< " opcode: " << static_cast<uint32_t>(op) << std::endl;
 			switch(op){
 				case 0xeb:
 					std::cout << "\tshort jmp!" << std::endl;
 					{
-						int8_t rel8 = emu.memory[cpu.eip++];
+						int8_t rel8 = memory[EIP++];
 						std::cout<<"rel8="<<std::dec<<(int)rel8<<std::endl;
-						cpu.eip = cpu.eip + static_cast<int32_t>(rel8);
+						EIP = EIP + static_cast<int32_t>(rel8);
 					}
 					break;
 				default:
-					throw std::runtime_error("unknwon opcode: ");
+					throw std::runtime_error("unknwon opcode");
 			}
 		}
 
@@ -41,8 +41,8 @@ int main(int argc, char **argv){
 		std::cerr
 			<< "*** EXCEPTION CATCHED ***" << std::endl
 			<< e.what() << std::endl
-			<< "EIP: " << std::hex << emu.cpu.eip << std::endl
 			<< "*************************" << std::endl;
+		emu.dump_registers();
 		std::exit(1);
 	}
 }

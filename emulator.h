@@ -2,18 +2,16 @@
 #define EMUlATOR_H_
 
 #include <vector>
+#include "cpu.h"
 
 class Emulator {
 public:
 	Emulator() : memory(std::vector<uint8_t>()) {}
 
 	void load_binary(const std::string &fname);
+	void dump_registers();
 
-	class CPU {
-	public:
-		uint32_t eip;
-		uint32_t reg[8];
-	} cpu;
+	CPU cpu;
 	std::vector<uint8_t> memory;
 };
 
