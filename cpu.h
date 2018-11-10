@@ -18,10 +18,50 @@ struct Register {
 	};
 };
 
+struct InsnData {
+	struct ModRM {
+		uint8_t rm  : 3;
+		uint8_t reg : 3;
+		uint8_t mod : 2;
+	};
+	struct SIB {
+		uint8_t base  : 3;
+		uint8_t index : 3;
+		uint8_t scale : 2;
+	};
+
+	uint8_t prefix;
+	uint8_t opcode;
+
+	union {
+		uint8_t _modrm;
+		ModRM modrm;
+	};
+
+	union {
+		uint8_t _sib;
+		SIB sib;
+	};
+
+	union {
+		uint8_t  disp8;
+		uint16_t disp16;
+		uint32_t disp32;
+	};
+
+	union {
+		uint8_t  imm8;
+		uint16_t imm16;
+		uint32_t imm32;
+	};
+};
+
 class CPU {
 public:
 	Register pc; // program counter
 	Register reg[8];
+
+	InsnData idata;
 };
 
 #define REG cpu.reg
