@@ -1,6 +1,8 @@
 EMU = emu
+OBJS= main.o emulator.o
 
-OBJS	= main.o
+CXXFLAGS= -std=c++1z -Wall
+LDFLAGS = -lstdc++fs
 
 %.o: %.cc
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
@@ -21,5 +23,5 @@ clean:
 	rm -f $(EMU)
 	rm -f $(OBJS)
 
-$(EMU): $(OBJS)
-	$(CXX) -o $@ $^ $(LDFLAGS)
+$(EMU): $(OBJS) *.h
+	$(CXX) -o $@ $(OBJS) $(LDFLAGS)
