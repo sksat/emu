@@ -1,6 +1,8 @@
 EMU = emu
 OBJS= main.o emulator.o
 
+BIN=test/loop.bin
+
 CXXFLAGS= -std=c++1z -Wall
 LDFLAGS = -lstdc++fs
 
@@ -23,5 +25,5 @@ clean:
 	rm -f $(EMU)
 	rm -f $(OBJS)
 
-$(EMU): $(OBJS) *.h
+$(EMU): $(OBJS) $(shell ls *.h)
 	$(CXX) -o $@ $(OBJS) $(LDFLAGS)
