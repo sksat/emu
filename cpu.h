@@ -1,6 +1,9 @@
 #ifndef CPU_H_
 #define CPU_H_
 
+#include <cstdint>
+#include <vector>
+
 struct Register {
 	explicit Register() : r32(0x00) {}
 	union {
@@ -58,16 +61,28 @@ struct InsnData {
 
 class CPU {
 public:
-	Register pc; // program counter
+	void fetch(std::vector<uint8_t> &memory);
+//	void decode();
+//	void exec(std::vector<uint8_t> &memory);
+
+	Register reg_pc; // program counter
 	Register reg[8];
 
 	InsnData idata;
 };
 
-#define REG cpu.reg
+#ifndef REG
+	#define REG cpu.reg
+#endif
+
+// join macro
+#define JOIN(a, b) JOIN_INTERNAL(a, b)
+#define JOIN_INTERNAL(a, b) a ## b
 
 // 32bit register access
-#define EIP cpu.pc.r32
+#define EIP JOIN(REG, _pc.r32)
+
+//#define EIP REG ## _pc.r32
 #define EAX	REG[0].r32
 #define ECX REG[1].r32
 #define EDX REG[2].r32
@@ -78,7 +93,7 @@ public:
 #define EDI REG[7].r32
 
 // 16bit register access
-#define IP cpu.pc.r16
+#define IP J(REG, _pc.r16)
 #define AX REG[0].r16
 #define CX REG[1].r16
 #define DX REG[2].r16
