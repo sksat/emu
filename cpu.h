@@ -62,7 +62,7 @@ struct InsnData {
 class CPU {
 public:
 	void fetch(std::vector<uint8_t> &memory);
-//	void decode();
+	void decode();
 //	void exec(std::vector<uint8_t> &memory);
 
 	Register reg_pc; // program counter

@@ -19,7 +19,7 @@ int main(int argc, char **argv){
 
 		while(true){
 			cpu.fetch(memory);
-			EIP++;
+			cpu.decode();
 		}
 
 		std::cout << "emulation end." << std::endl;
