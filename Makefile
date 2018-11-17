@@ -6,7 +6,7 @@ BIN=test/loop.bin
 CXXFLAGS= -std=c++1z -Wall
 LDFLAGS = -lstdc++fs
 
-%.o: %.cc
+%.o: %.cc $(shell ls *.h)
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
 .PHONY: default run test clean
