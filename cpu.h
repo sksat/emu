@@ -33,7 +33,7 @@ struct InsnData {
 		uint8_t scale : 2;
 	};
 
-	uint8_t prefix;
+	uint8_t prefix, prefix2;
 	uint8_t opcode;
 
 	union {
@@ -61,7 +61,8 @@ struct InsnData {
 
 class CPU {
 public:
-	void fetch(std::vector<uint8_t> &memory);
+	void fetch_prefix(const std::vector<uint8_t> &memory, const int n);
+	void fetch(const std::vector<uint8_t> &memory);
 	void decode();
 //	void exec(std::vector<uint8_t> &memory);
 

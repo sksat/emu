@@ -3,10 +3,9 @@
 #include "cpu.h"
 #include "util.h"
 
-void CPU::fetch(std::vector<uint8_t> &memory){
-	uint8_t opcode = memory[EIP];
-
-	switch(opcode){
+void CPU::fetch_prefix(const std::vector<uint8_t> &memory, int n=0){
+	uint8_t prefix = memory[EIP];
+	switch(prefix){
 		case 0xf0:
 		case 0xf2:
 		case 0xf3:
@@ -18,9 +17,28 @@ void CPU::fetch(std::vector<uint8_t> &memory){
 		case 0x65:
 		case 0x66:
 		case 0x67:
-			idata.prefix = opcode;
-			idata.opcode = memory[EIP+1];
-			throw std::runtime_error("unknown prefix: "+hex2str(opcode, 1));
+			goto unknown;
+ok:
+			if(n==0) idata.prefix = prefix;
+			else idata.prefix2= prefix;
+			EIP++;
+			fetch_prefix(memory, n+1);
+			break;
+unknown:
+			throw std::runtime_error("unknown prefix: "
+					+(n==0 ? hex2str(prefix,1) : (hex2str(idata.prefix,1)+","+hex2str(prefix,1))));
+		default:
+			return;
+	}
+}
+
+void CPU::fetch(const std::vector<uint8_t> &memory){
+	idata = {};
+	fetch_prefix(memory);
+
+	const uint8_t opcode = memory[EIP];
+
+	switch(opcode){
 		case 0x0f:
 			throw std::runtime_error("two byte insn");
 		default:
