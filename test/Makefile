@@ -1,10 +1,11 @@
-ASM_TESTS=loop
-
-SRC=$(ASM_TESTS:=.asm)
-BIN=$(ASM_TESTS:=.bin)
+SRC=$(shell ls *.asm)
+BIN=$(SRC:.asm=.bin)
 
 %.bin:%.asm
 	nasm -o $@ $<
 
 default:
 	make $(BIN)
+
+clean:
+	rm -f *.bin

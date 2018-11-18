@@ -19,7 +19,7 @@ run: $(EMU)
 
 test:
 	make -C test
-	ls test/*.bin | xargs -i make run BIN="{}"
+	./test.sh
 
 clean:
 	rm -f $(EMU)
