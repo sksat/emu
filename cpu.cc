@@ -33,7 +33,7 @@ unknown:
 	}
 }
 
-void CPU::fetch(const std::vector<uint8_t> &memory){
+void CPU::fetch_decode(const std::vector<uint8_t> &memory){
 	idata = {};
 	fetch_prefix(memory);
 
@@ -59,21 +59,16 @@ void CPU::fetch(const std::vector<uint8_t> &memory){
 	}
 }
 
-void CPU::decode(){
+void CPU::exec(std::vector<uint8_t> &memory){
 	const auto &op = idata.opcode;
 
 	std::cout << "opcode: " << hex2str(op, 1) << std::endl;
 
 	switch(op){
-		case 0x06: // PUSH ES
-		case 0x07: // POP  ES
-		case 0x0e: // PUSH CS
-		case 0x16: // PUSH SS
-		case 0x17: // POP  SS
-		case 0x1e: // PUSH DS
-		case 0x1f: // POP  DS
 		case 0x90: // NOP
+			break;
 		case 0xf4: // HLT
+			halt_flag = true;
 			break;
 	}
 }

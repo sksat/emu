@@ -62,14 +62,15 @@ struct InsnData {
 class CPU {
 public:
 	void fetch_prefix(const std::vector<uint8_t> &memory, const int n);
-	void fetch(const std::vector<uint8_t> &memory);
-	void decode();
-//	void exec(std::vector<uint8_t> &memory);
+	void fetch_decode(const std::vector<uint8_t> &memory);
+	void exec(std::vector<uint8_t> &memory);
 
 	Register reg_pc; // program counter
 	Register reg[8];
 
 	InsnData idata;
+
+	bool halt_flag;
 };
 
 #ifndef REG

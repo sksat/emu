@@ -17,9 +17,9 @@ int main(int argc, char **argv){
 
 		std::cout << "emulation start." << std::endl;
 
-		while(true){
-			cpu.fetch(memory);
-			cpu.decode();
+		while(!cpu.halt_flag){
+			cpu.fetch_decode(memory);
+			cpu.exec(memory);
 		}
 
 		std::cout << "emulation end." << std::endl;
