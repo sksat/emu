@@ -33,6 +33,8 @@ struct InsnData {
 		uint8_t scale : 2;
 	};
 
+	uint32_t size = 0;
+
 	uint8_t prefix, prefix2;
 	uint8_t opcode;
 
@@ -70,7 +72,7 @@ public:
 
 	InsnData idata;
 
-	bool halt_flag;
+	bool halt_flag = false;
 };
 
 #ifndef REG

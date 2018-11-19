@@ -25,6 +25,7 @@ int main(int argc, char **argv){
 		}
 
 		std::cout << "emulation end." << std::endl;
+		emu.dump_registers();
 
 	}catch(std::exception& e){
 		std::cerr

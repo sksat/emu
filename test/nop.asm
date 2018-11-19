@@ -1,2 +1,3 @@
 BITS 32
 	NOP
+	HLT

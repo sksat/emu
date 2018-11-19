@@ -6,7 +6,8 @@
 #include "util.h"
 
 void CPU::fetch_prefix(const std::vector<uint8_t> &memory, int n=0){
-	uint8_t prefix = memory[EIP];
+	auto& size = idata.size;
+	uint8_t prefix = memory[EIP+size];
 	switch(prefix){
 		case 0xf0:
 		case 0xf2:
@@ -23,7 +24,7 @@ void CPU::fetch_prefix(const std::vector<uint8_t> &memory, int n=0){
 ok:
 			if(n==0) idata.prefix = prefix;
 			else idata.prefix2= prefix;
-			EIP++;
+			size++;
 			fetch_prefix(memory, n+1);
 			break;
 unknown:
@@ -36,18 +37,23 @@ unknown:
 
 void CPU::fetch_decode(const std::vector<uint8_t> &memory){
 	idata = {};
+	if(EIP >= memory.size())
+		throw std::runtime_error("memory over");
 	fetch_prefix(memory);
+	auto& size = idata.size;
 
-	idata.opcode = memory[EIP];
+	idata.opcode = memory[EIP+size];
 	const auto &op = idata.opcode;
 
 	switch(insn::flag[op]){
 		case insn::none:
-			EIP++;
+			size++;
 			break;
 		default:
 			throw std::runtime_error("unknown flag: "+hex2str(insn::flag[op],1));
 	}
+
+	EIP = EIP + size;
 }
 
 void CPU::exec(std::vector<uint8_t> &memory){

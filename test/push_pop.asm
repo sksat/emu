@@ -7,3 +7,4 @@ BITS 32
 	POP		SS
 	PUSH	DS
 	POP		DS
+	HLT
