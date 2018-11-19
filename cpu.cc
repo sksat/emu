@@ -2,6 +2,7 @@
 #include <stdexcept>
 #define REG this->reg
 #include "cpu.h"
+#include "insn.h"
 #include "util.h"
 
 void CPU::fetch_prefix(const std::vector<uint8_t> &memory, int n=0){
@@ -40,22 +41,12 @@ void CPU::fetch_decode(const std::vector<uint8_t> &memory){
 	idata.opcode = memory[EIP];
 	const auto &op = idata.opcode;
 
-	switch(op){
-		case 0x06: // PUSH ES
-		case 0x07: // POP  ES
-		case 0x0e: // PUSH CS
-		case 0x16: // PUSH SS
-		case 0x17: // POP  SS
-		case 0x1e: // PUSH DS
-		case 0x1f: // POP  DS
-		case 0x90: // NOP
-		case 0xf4: // HLT
+	switch(insn::flag[op]){
+		case insn::none:
 			EIP++;
 			break;
-		case 0x0f:
-			throw std::runtime_error("two byte insn");
 		default:
-			throw std::runtime_error("unknown opcode: " + hex2str(op, 1));
+			throw std::runtime_error("unknown flag: "+hex2str(insn::flag[op],1));
 	}
 }
 
@@ -64,11 +55,5 @@ void CPU::exec(std::vector<uint8_t> &memory){
 
 	std::cout << "opcode: " << hex2str(op, 1) << std::endl;
 
-	switch(op){
-		case 0x90: // NOP
-			break;
-		case 0xf4: // HLT
-			halt_flag = true;
-			break;
-	}
+	insn::func[op](*this, memory);
 }

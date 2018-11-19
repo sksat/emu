@@ -1,11 +1,11 @@
 #!/bin/bash
 
 for b in `ls test/*.bin`; do
-	echo -ne "$b\t"
 	make run BIN=$b >& /dev/null
 	if [ $? != 0 ]; then
-		echo "failed"
+		echo -ne "[ \e[31mfailed\e[m ]  "
 	else
-		echo "ok"
+		echo -ne "[ \e[32mok\e[m ]      "
 	fi
+	echo -e "$b\t"
 done

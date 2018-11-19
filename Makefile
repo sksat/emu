@@ -1,5 +1,5 @@
 EMU = emu
-OBJS= main.o emulator.o cpu.o
+OBJS= main.o emulator.o cpu.o insn.o
 
 BIN=test/loop.bin
 

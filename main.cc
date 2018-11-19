@@ -1,5 +1,6 @@
 #include <iostream>
 #include "emulator.h"
+#include "insn.h"
 
 int main(int argc, char **argv){
 	Emulator emu;
@@ -14,6 +15,7 @@ int main(int argc, char **argv){
 		auto& memory = emu.memory;
 		cpu.reg_pc.r32 = 0x00;
 		EIP = 0x00;
+		insn::init();
 
 		std::cout << "emulation start." << std::endl;
 
