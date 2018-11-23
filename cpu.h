@@ -117,4 +117,17 @@ public:
 #define DH REG[2].r8
 #define BH REG[3].r8
 
+// insn data access
+#define IDATA	cpu.idata
+#define _MODRM	IDATA._modrm
+#define MODRM	IDATA.modrm
+#define _SIB	IDATA._sib
+#define SIB		IDATA.sib
+#define DISP8	IDATA.disp8
+#define DISP16	IDATA.disp16
+#define DISP32	IDATA.disp32
+#define IMM8	IDATA.imm8
+#define IMM16	IDATA.imm16
+#define IMM32	IDATA.imm32
+
 #endif

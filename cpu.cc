@@ -43,14 +43,14 @@ void CPU::fetch_decode(const std::vector<uint8_t> &memory){
 	auto& size = idata.size;
 
 	idata.opcode = memory[EIP+size];
-	const auto &op = idata.opcode;
+	size++;
 
-	switch(insn::flag[op]){
-		case insn::none:
-			size++;
-			break;
-		default:
-			throw std::runtime_error("unknown flag: "+hex2str(insn::flag[op],1));
+	const auto &op = idata.opcode;
+	const auto &flag = insn::flag[op];
+
+	if(flag & insn::imm8){
+		idata.imm8 = memory[EIP+size];
+		size++;
 	}
 
 	EIP = EIP + size;
@@ -59,7 +59,8 @@ void CPU::fetch_decode(const std::vector<uint8_t> &memory){
 void CPU::exec(std::vector<uint8_t> &memory){
 	const auto &op = idata.opcode;
 
-	std::cout << "opcode: " << hex2str(op, 1) << std::endl;
+	std::cout << "[" << hex2str(op, 1) << "] "
+		<< insn::name[op] << std::endl;
 
 	insn::func[op](*this, memory);
 }
