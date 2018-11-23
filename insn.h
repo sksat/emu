@@ -11,6 +11,9 @@ namespace insn {
 		imm8 = 0b0001,
 		imm16= 0b0010,
 		imm32= 0b0100,
+		rel8 = imm8,
+		rel16= imm16,
+		rel32= imm32,
 	};
 
 	using ifunc_t = std::function<void(CPU&,std::vector<uint8_t>&)>;

@@ -1,7 +1,7 @@
 EMU = emu
 OBJS= main.o emulator.o cpu.o insn.o
 
-BIN=test/loop.bin
+BIN=test/jmp.bin
 
 CXXFLAGS= -std=c++1z -Wall
 LDFLAGS = -lstdc++fs

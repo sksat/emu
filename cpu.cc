@@ -45,22 +45,21 @@ void CPU::fetch_decode(const std::vector<uint8_t> &memory){
 	idata.opcode = memory[EIP+size];
 	size++;
 
+	std::cout << "[" << hex2str(idata.opcode,1) << "] "
+		<< insn::name[idata.opcode] << std::endl;
+
 	const auto &op = idata.opcode;
 	const auto &flag = insn::flag[op];
 
 	if(flag & insn::imm8){
 		idata.imm8 = memory[EIP+size];
 		size++;
+		std::cout << "\timm8: " + hex2str(idata.imm8, 1) << std::endl;
 	}
 
 	EIP = EIP + size;
 }
 
 void CPU::exec(std::vector<uint8_t> &memory){
-	const auto &op = idata.opcode;
-
-	std::cout << "[" << hex2str(op, 1) << "] "
-		<< insn::name[op] << std::endl;
-
-	insn::func[op](*this, memory);
+	insn::func[idata.opcode](*this, memory);
 }
