@@ -24,6 +24,6 @@ void insn::init(){
 	INSN(0x24, and_al_imm8,	imm8, { AL = AL & IMM8; });
 	INSN(0x2c, sub_al_imm8,	imm8, { AL = AL - IMM8; });
 	INSN(0x90, nop,			none, {});
-	INSN(0xeb, jmp_rel8,	rel8, { int8_t rel8=IMM8; EIP= EIP + static_cast<int32_t>(rel8); });
+	INSN(0xeb, jmp_rel8,	rel8, { EIP= EIP + static_cast<int32_t>(IMM32); });
 	INSN(0xf4, hlt, none, { cpu.halt_flag=true; });
 }

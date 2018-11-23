@@ -51,13 +51,13 @@ struct InsnData {
 	union {
 		uint8_t  disp8;
 		uint16_t disp16;
-		uint32_t disp32;
+		uint32_t disp32 =0x00;
 	};
 
 	union {
 		uint8_t  imm8;
 		uint16_t imm16;
-		uint32_t imm32;
+		uint32_t imm32 = 0x00;
 	};
 };
 
