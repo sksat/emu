@@ -10,7 +10,7 @@ void insn::init(){
 
 	for(size_t op=0x00;op<=0xff;op++){
 		name[op] = "unknown";
-		flag[op] = none;
+		flag[op] = None;
 		func[op] = [](CPU &cpu, std::vector<uint8_t> &memory) NOT_IMPL;
 	}
 
@@ -19,11 +19,12 @@ void insn::init(){
 	flag[op] = f; \
 	func[op] = [](CPU &cpu, std::vector<uint8_t> &memory) block;
 
-	INSN(0x04, add_al_imm8,	imm8, { AL = AL + IMM8; });
-	INSN(0x0c, or_al_imm8,	imm8, { AL = AL | IMM8; });
-	INSN(0x24, and_al_imm8,	imm8, { AL = AL & IMM8; });
-	INSN(0x2c, sub_al_imm8,	imm8, { AL = AL - IMM8; });
-	INSN(0x90, nop,			none, {});
-	INSN(0xeb, jmp_rel8,	rel8, { EIP= EIP + static_cast<int32_t>(IMM32); });
-	INSN(0xf4, hlt, none, { cpu.halt_flag=true; });
+	INSN(0x00, add_rm8_r8,	ModRM,{ throw std::runtime_error("hoge");});
+	INSN(0x04, add_al_imm8,	Imm8, { AL = AL + IMM8; });
+	INSN(0x0c, or_al_imm8,	Imm8, { AL = AL | IMM8; });
+	INSN(0x24, and_al_imm8,	Imm8, { AL = AL & IMM8; });
+	INSN(0x2c, sub_al_imm8,	Imm8, { AL = AL - IMM8; });
+	INSN(0x90, nop,			None, {});
+	INSN(0xeb, jmp_rel8,	Rel8, { EIP= EIP + static_cast<int32_t>(IMM32); });
+	INSN(0xf4, hlt, None, { cpu.halt_flag=true; });
 }

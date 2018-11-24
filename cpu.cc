@@ -51,7 +51,17 @@ void CPU::fetch_decode(const std::vector<uint8_t> &memory){
 	const auto &op = idata.opcode;
 	const auto &flag = insn::flag[op];
 
-	if(flag & insn::imm8){
+	if(flag & insn::ModRM){
+		idata._modrm = memory[EIP+size];
+		size++;
+		std::cout << "\tModRM[" + hex2str(idata._modrm,1) << "] "
+			<< "(Mod=" << hex2str(idata.modrm.mod,1)
+			<< ", Reg/Op=" << hex2str(idata.modrm.reg,1)
+			<< ", RM=" << hex2str(idata.modrm.rm,1)
+			<< ")" << std::endl;
+	}
+
+	if(flag & insn::Imm8){
 		idata.imm8 = memory[EIP+size];
 		size++;
 		std::cout << "\timm8: " + hex2str(idata.imm8, 1) << std::endl;

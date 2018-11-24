@@ -7,11 +7,12 @@
 
 namespace insn {
 	enum iflag_t {
-		none = 0b00000000,
-		imm8 = 0b00000001, rel8=imm8,
-		imm  = 0b00000010,
-		imm16= 0b00000100,
-		imm32= 0b00001000,
+		None = 0b00000000,
+		ModRM= 0b00000001,
+		Imm8 = 0b00000010, Rel8=Imm8,
+		Imm  = 0b00000100,
+		Imm16= 0b00001000,
+		Imm32= 0b00010000,
 	};
 
 	using ifunc_t = std::function<void(CPU&,std::vector<uint8_t>&)>;
