@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <vector>
+#include "memory.h"
 
 struct Register {
 	explicit Register() : r32(0x00) {}
@@ -105,9 +106,9 @@ struct InsnData {
 
 class CPU {
 public:
-	void fetch_prefix(const std::vector<uint8_t> &memory, const int n);
-	void fetch_decode(const std::vector<uint8_t> &memory);
-	void exec(std::vector<uint8_t> &memory);
+	void fetch_prefix(const Memory &memory, const int n);
+	void fetch_decode(const Memory &memory);
+	void exec(Memory &memory);
 
 	Register	reg_pc; // program counter
 	Register	reg[8];

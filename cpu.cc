@@ -5,9 +5,9 @@
 #include "insn.h"
 #include "util.h"
 
-void CPU::fetch_prefix(const std::vector<uint8_t> &memory, int n=0){
+void CPU::fetch_prefix(const Memory &memory, int n=0){
 	auto& size = idata.size;
-	uint8_t prefix = memory[EIP+size];
+	uint8_t prefix = memory.get8(EIP+size);
 	switch(prefix){
 		case 0xf0:
 		case 0xf2:
@@ -35,14 +35,14 @@ unknown:
 	}
 }
 
-void CPU::fetch_decode(const std::vector<uint8_t> &memory){
+void CPU::fetch_decode(const Memory &memory){
 	idata = {};
-	if(EIP >= memory.size())
+	if(EIP >= memory.get_size())
 		throw std::runtime_error("memory over");
 	fetch_prefix(memory);
 	auto& size = idata.size;
 
-	idata.opcode = memory[EIP+size];
+	idata.opcode = memory.get8(EIP+size);
 	size++;
 
 	std::cout << "[" << hex2str(idata.opcode,1) << "] "
@@ -52,7 +52,7 @@ void CPU::fetch_decode(const std::vector<uint8_t> &memory){
 	const auto &flag = insn::flag[op];
 
 	if(flag & insn::ModRM){
-		idata._modrm = memory[EIP+size];
+		idata._modrm = memory.get8(EIP+size);
 		size++;
 		std::cout << "\tModRM[" + hex2str(idata._modrm,1) << "] "
 			<< "(Mod=" << hex2str(idata.modrm.mod,1)
@@ -62,7 +62,7 @@ void CPU::fetch_decode(const std::vector<uint8_t> &memory){
 	}
 
 	if(flag & insn::Imm8){
-		idata.imm8 = memory[EIP+size];
+		idata.imm8 = memory.get8(EIP+size);
 		size++;
 		std::cout << "\timm8: " + hex2str(idata.imm8, 1) << std::endl;
 	}
@@ -70,6 +70,6 @@ void CPU::fetch_decode(const std::vector<uint8_t> &memory){
 	EIP = EIP + size;
 }
 
-void CPU::exec(std::vector<uint8_t> &memory){
+void CPU::exec(Memory &memory){
 	insn::func[idata.opcode](*this, memory);
 }

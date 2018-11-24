@@ -4,6 +4,7 @@
 #include <functional>
 #include <array>
 #include "cpu.h"
+#include "memory.h"
 
 namespace insn {
 	enum iflag_t {
@@ -15,7 +16,7 @@ namespace insn {
 		Imm32= 0b00010000,
 	};
 
-	using ifunc_t = std::function<void(CPU&,std::vector<uint8_t>&)>;
+	using ifunc_t = std::function<void(CPU&, Memory&)>;
 	inline std::array<const char*, 256>	name;
 	inline std::array<iflag_t, 256>		flag;
 	inline std::array<ifunc_t,256>		func;

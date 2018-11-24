@@ -10,10 +10,10 @@ int main(int argc, char **argv){
 			return -1;
 		}
 
-		emu.load_binary(argv[1]);
 		auto& cpu = emu.cpu;
 		auto& memory = emu.memory;
 		cpu.reg_pc.r32 = 0x00;
+		memory.load_binary(0x00, argv[1]);
 		EIP = 0x00;
 		insn::init();
 
