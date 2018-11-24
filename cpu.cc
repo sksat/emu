@@ -1,6 +1,7 @@
 #include <iostream>
 #include <stdexcept>
 #define REG this->reg
+#define SREG this->sreg
 #include "cpu.h"
 #include "insn.h"
 #include "util.h"
@@ -78,8 +79,9 @@ void CPU::dump_registers() const {
 	using std::endl;
 	std::cout
 		<< "----- dump registers-----" << endl
-#define DUMP(reg) #reg": " << hex2str(reg) << endl
+#define DUMP(reg) #reg":\t" << hex2str(reg) << endl
 		<< DUMP(EIP)
+		<< "EFLAGS:\t" << hex2str(eflags.r32) << endl
 		<< DUMP(EAX)
 		<< DUMP(ECX)
 		<< DUMP(EDX)
@@ -88,5 +90,15 @@ void CPU::dump_registers() const {
 		<< DUMP(EBP)
 		<< DUMP(ESI)
 		<< DUMP(EDI)
-		<< "-------------------------" << std::endl;
+#define SDUMP(sreg) #sreg":\t" << hex2str(sreg.r16,2) \
+		<< " = (RPL=" + hex2str(sreg.RPL,1) \
+		+ ", TI="+hex2str(sreg.TI,1) \
+		+ ", index="+hex2str(sreg.index,2) + ")" << endl
+		<< SDUMP(ES)
+		<< SDUMP(CS)
+		<< SDUMP(SS)
+		<< SDUMP(DS)
+		<< SDUMP(FS)
+		<< SDUMP(GS)
+		<< "-------------------------" << endl;
 }
