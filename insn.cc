@@ -11,13 +11,13 @@ void insn::init(){
 	for(size_t op=0x00;op<=0xff;op++){
 		name[op] = "unknown";
 		flag[op] = None;
-		func[op] = [](CPU &cpu, Memory &memory) NOT_IMPL;
+		func[op] = [](CPU &cpu, std::shared_ptr<Memory> memory) NOT_IMPL;
 	}
 
 #define INSN(op, i, f, block) \
 	name[op] = #i; \
 	flag[op] = f; \
-	func[op] = [](CPU &cpu, Memory &memory) block;
+	func[op] = [](CPU &cpu, std::shared_ptr<Memory> memory) block;
 
 	INSN(0x00, add_rm8_r8,	ModRM,{ throw std::runtime_error("hoge");});
 	INSN(0x04, add_al_imm8,	Imm8, { AL = AL + IMM8; });

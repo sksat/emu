@@ -16,7 +16,7 @@ namespace insn {
 		Imm32= 0b00010000,
 	};
 
-	using ifunc_t = std::function<void(CPU&, Memory&)>;
+	using ifunc_t = std::function<void(CPU&, std::shared_ptr<Memory>)>;
 	inline std::array<const char*, 256>	name;
 	inline std::array<iflag_t, 256>		flag;
 	inline std::array<ifunc_t,256>		func;

@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <memory>
 #include "memory.h"
 
 struct Register {
@@ -112,11 +113,13 @@ struct CPU {
 
 	InsnData idata;
 
+	std::shared_ptr<Memory> memory;
+
 	bool halt_flag = false;
 
-	void fetch_prefix(const Memory &memory, const int n);
-	void fetch_decode(const Memory &memory);
-	void exec(Memory &memory);
+	void fetch_prefix(const int n);
+	void fetch_decode();
+	void exec();
 
 	void dump_registers() const;
 };
