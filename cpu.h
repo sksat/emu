@@ -21,6 +21,48 @@ struct Register {
 	};
 };
 
+struct SRegister {
+	explicit SRegister() : r16(0x00) {}
+	union {
+		uint16_t r16;
+		struct {
+			uint8_t  RPL	: 2;
+			uint8_t  TI		: 1;
+			uint16_t index	: 13;
+		};
+	};
+};
+
+struct Eflags {
+	explicit Eflags() : r32(0x00) {}
+	union {
+		uint32_t r32;
+		struct {
+			bool CF : 1;
+			bool _r1: 1;
+			bool PF : 1;
+			bool _r2: 1;
+			bool AF : 1;
+			bool _r3: 1;
+			bool ZF : 1;
+			bool SF : 1;
+			bool TF : 1;
+			bool IF : 1;
+			bool DF : 1;
+			bool OF : 1;
+			uint8_t IOPL : 2;
+			bool NT : 1;
+			bool _r4: 1;
+			bool RF : 1;
+			bool VM : 1;
+			bool AC : 1;
+			bool VIF: 1;
+			bool VIP: 1;
+			bool ID : 1;
+		};
+	};
+};
+
 struct InsnData {
 	struct ModRM {
 		uint8_t rm  : 3;
@@ -67,8 +109,10 @@ public:
 	void fetch_decode(const std::vector<uint8_t> &memory);
 	void exec(std::vector<uint8_t> &memory);
 
-	Register reg_pc; // program counter
-	Register reg[8];
+	Register	reg_pc; // program counter
+	Register	reg[8];
+	Eflags		eflags;
+	SRegister	sreg[6]; // segment register
 
 	InsnData idata;
 
@@ -78,6 +122,9 @@ public:
 #ifndef REG
 	#define REG cpu.reg
 #endif
+#ifndef SREG
+	#define SREG cpu.sreg
+#endif
 
 // join macro
 #define JOIN(a, b) JOIN_INTERNAL(a, b)
@@ -86,7 +133,6 @@ public:
 // 32bit register access
 #define EIP JOIN(REG, _pc.r32)
 
-//#define EIP REG ## _pc.r32
 #define EAX	REG[0].r32
 #define ECX REG[1].r32
 #define EDX REG[2].r32
@@ -116,6 +162,14 @@ public:
 #define CH REG[1].r8
 #define DH REG[2].r8
 #define BH REG[3].r8
+
+// segment register access
+#define ES SREG[0]
+#define CS SREG[1]
+#define SS SREG[2]
+#define DS SREG[3]
+#define FS SREG[4]
+#define GS SREG[5]
 
 // insn data access
 #define IDATA	cpu.idata
