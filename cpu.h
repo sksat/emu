@@ -104,12 +104,7 @@ struct InsnData {
 	};
 };
 
-class CPU {
-public:
-	void fetch_prefix(const Memory &memory, const int n);
-	void fetch_decode(const Memory &memory);
-	void exec(Memory &memory);
-
+struct CPU {
 	Register	reg_pc; // program counter
 	Register	reg[8];
 	Eflags		eflags;
@@ -118,6 +113,12 @@ public:
 	InsnData idata;
 
 	bool halt_flag = false;
+
+	void fetch_prefix(const Memory &memory, const int n);
+	void fetch_decode(const Memory &memory);
+	void exec(Memory &memory);
+
+	void dump_registers() const;
 };
 
 #ifndef REG

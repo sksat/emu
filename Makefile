@@ -1,5 +1,5 @@
 EMU = emu
-OBJS= main.o emulator.o cpu.o memory.o insn.o
+OBJS= main.o cpu.o memory.o insn.o
 
 BIN=test/jmp.bin
 

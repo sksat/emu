@@ -1,17 +1,17 @@
 #include <iostream>
-#include "emulator.h"
+#include "cpu.h"
+#include "memory.h"
 #include "insn.h"
 
 int main(int argc, char **argv){
-	Emulator emu;
+	CPU cpu;
+	Memory memory;
 	try{
 		if(argc != 2){
 			std::cout << "usage> ./emu <bin>" << std::endl;
 			return -1;
 		}
 
-		auto& cpu = emu.cpu;
-		auto& memory = emu.memory;
 		cpu.reg_pc.r32 = 0x00;
 		memory.load_binary(0x00, argv[1]);
 		EIP = 0x00;
@@ -25,14 +25,14 @@ int main(int argc, char **argv){
 		}
 
 		std::cout << "emulation end." << std::endl;
-		emu.dump_registers();
+		cpu.dump_registers();
 
 	}catch(std::exception& e){
 		std::cerr
 			<< "*** EXCEPTION CATCHED ***" << std::endl
 			<< e.what() << std::endl
 			<< "*************************" << std::endl;
-		emu.dump_registers();
+		cpu.dump_registers();
 		std::exit(1);
 	}
 }

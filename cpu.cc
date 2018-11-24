@@ -73,3 +73,20 @@ void CPU::fetch_decode(const Memory &memory){
 void CPU::exec(Memory &memory){
 	insn::func[idata.opcode](*this, memory);
 }
+
+void CPU::dump_registers() const {
+	using std::endl;
+	std::cout
+		<< "----- dump registers-----" << endl
+#define DUMP(reg) #reg": " << hex2str(reg) << endl
+		<< DUMP(EIP)
+		<< DUMP(EAX)
+		<< DUMP(ECX)
+		<< DUMP(EDX)
+		<< DUMP(EBX)
+		<< DUMP(ESP)
+		<< DUMP(EBP)
+		<< DUMP(ESI)
+		<< DUMP(EDI)
+		<< "-------------------------" << std::endl;
+}
