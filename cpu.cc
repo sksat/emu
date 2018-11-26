@@ -53,13 +53,9 @@ void CPU::fetch_decode(){
 	const auto &flag = insn::flag[op];
 
 	if(flag & insn::ModRM){
-		idata._modrm = memory->get8(EIP+size);
+		idata.modrm.raw = memory->get8(EIP+size);
 		size++;
-		std::cout << "\tModRM[" + hex2str(idata._modrm,1) << "] "
-			<< "(Mod=" << hex2str(idata.modrm.mod,1)
-			<< ", Reg/Op=" << hex2str(idata.modrm.reg,1)
-			<< ", RM=" << hex2str(idata.modrm.rm,1)
-			<< ")" << std::endl;
+		parse_modrm();
 	}
 
 	if(flag & insn::Imm8){
@@ -73,6 +69,95 @@ void CPU::fetch_decode(){
 
 void CPU::exec(){
 	insn::func[idata.opcode](*this, memory);
+}
+
+void CPU::parse_modrm(){
+	auto& modrm = idata.modrm;
+	std::cout << "\tModRM[" << hex2str(modrm.raw,1) << "]"
+		<< "(Mod=" << hex2str(modrm.mod,1)
+		<< ", Reg/Op=" << hex2str(modrm.reg,1)
+		<< ", RM=" << hex2str(modrm.rm,1)
+		<< ")" << std::endl;
+	parse_modrm32();
+	std::cout << "\t -> ";
+	if(modrm.is_reg)
+		std::cout << "reg[" << static_cast<int>(modrm.rm) << "]";
+	else
+		std::cout << "mem[" << hex2str(modrm.addr) << "]";
+	std::cout << std::endl;
+}
+
+void CPU::parse_modrm32(){
+	auto& size	= idata.size;
+	auto& modrm	= idata.modrm;
+	auto& sib	= idata.sib;
+#define MOD	modrm.mod
+#define RM	modrm.rm
+
+	if(MOD != 0b11 && RM == 0b100){
+		throw std::runtime_error("sib");
+	}
+
+	// (MOD, RM)
+	// (00, 100) -> [sib]
+	// (00, 101) -> [disp32]
+	// (00,   *) -> [reg(modrm.reg)]
+	// (01, 100) -> [sib+disp8]
+	// (01, 101) -> [SS:EBP+disp8]
+	// (01,   *) -> [reg(modrm.reg)+disp8]
+	// (10, 100) -> [sib+disp32]
+	// (10, 101) -> [SS:EBP+disp8]
+	// (11,   *) -> reg(rm)
+
+	if(MOD==0b11){ // reg(rm)
+		modrm.is_reg = true;
+		return;
+	}
+	modrm.is_reg = false;
+	modrm.addr = 0x00000000;
+
+	if(RM==0b100){ // SIB
+		idata.sib.raw = memory->get8(EIP+size);
+		size++;
+		std::cout << "\tSIB[" << hex2str(sib.raw,1) << "]"
+			<< "(scale=" << hex2str(sib.scale,1)
+			<< ", index=" << hex2str(sib.index,1)
+			<< ", base=" << hex2str(sib.base,1)
+			<< ")" << std::endl;
+		// TODO: calc SIB addr
+		// modrm.addr = calc_sib_addr();
+		if(MOD==0b00) return;
+		if(MOD==0b01){
+			idata.disp32 = 0x00;
+			idata.disp8 = memory->get8(EIP+size);
+			size++;
+		}else if(MOD==0b10){
+			idata.disp32= memory->get32(EIP+size);
+			size+=4;
+		}
+		modrm.addr += idata.disp32;
+		return;
+	}else if(RM==0b101){
+		if(MOD==0b00){
+			idata.disp32 = memory->get32(EIP+size);
+			size+=4;
+			modrm.addr = idata.disp32;
+			return;
+		}
+		idata.disp8 = memory->get8(EIP+size);
+		size++;
+		modrm.addr = EBP + idata.disp8;
+		//TODO: sreg=SS
+		return;
+	}
+
+	if(MOD==0b01){
+		idata.disp8 = memory->get8(EIP+size);
+		size++;
+		modrm.addr = idata.disp8;
+	}
+
+	modrm.addr += reg[modrm.reg].r32;
 }
 
 void CPU::dump_registers() const {

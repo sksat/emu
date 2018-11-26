@@ -67,14 +67,26 @@ struct Eflags {
 
 struct InsnData {
 	struct ModRM {
-		uint8_t rm  : 3;
-		uint8_t reg : 3;
-		uint8_t mod : 2;
+		bool is_reg;
+		Memory::addr_t addr;
+		union {
+			uint8_t raw;
+			struct {
+				uint8_t rm  : 3;
+				uint8_t reg : 3;
+				uint8_t mod : 2;
+			};
+		};
 	};
 	struct SIB {
-		uint8_t base  : 3;
-		uint8_t index : 3;
-		uint8_t scale : 2;
+		union {
+			uint8_t raw;
+			struct {
+				uint8_t base  : 3;
+				uint8_t index : 3;
+				uint8_t scale : 2;
+			};
+		};
 	};
 
 	uint32_t size = 0;
@@ -82,15 +94,8 @@ struct InsnData {
 	uint8_t prefix, prefix2;
 	uint8_t opcode;
 
-	union {
-		uint8_t _modrm;
-		ModRM modrm;
-	};
-
-	union {
-		uint8_t _sib;
-		SIB sib;
-	};
+	ModRM modrm;
+	SIB sib;
 
 	union {
 		uint8_t  disp8;
@@ -120,6 +125,9 @@ struct CPU {
 	void fetch_prefix(const int n);
 	void fetch_decode();
 	void exec();
+
+	void parse_modrm();
+	void parse_modrm32();
 
 	void dump_registers() const;
 };
