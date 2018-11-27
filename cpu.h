@@ -214,9 +214,9 @@ struct CPU {
 #define DL REG[2].r8
 #define BL REG[3].r8
 #define AH REG[0].h8
-#define CH REG[1].r8
-#define DH REG[2].r8
-#define BH REG[3].r8
+#define CH REG[1].h8
+#define DH REG[2].h8
+#define BH REG[3].h8
 
 // segment register access
 #define ES SREG[0]
