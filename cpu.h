@@ -217,6 +217,8 @@ struct CPU {
 #define CH REG[1].h8
 #define DH REG[2].h8
 #define BH REG[3].h8
+#define GET_R8(num) (num<4 ? REG[num].r8 : REG[num-4].h8)
+#define SET_R8(num,val) if(num<4){REG[num].r8=val;}else{REG[num-4].h8=val;}
 
 // segment register access
 #define ES SREG[0]
