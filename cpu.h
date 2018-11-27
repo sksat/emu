@@ -130,6 +130,48 @@ struct CPU {
 	void parse_modrm32();
 
 	void dump_registers() const;
+
+	// get,set rm8,16,32
+	inline uint8_t get_rm8() const {
+		const auto &modrm = idata.modrm;
+		if(modrm.is_reg){
+			if(modrm.rm < 4)
+				return reg[modrm.rm].r8;
+			else
+				return reg[modrm.rm-4].h8;
+		}
+		return memory->get8(modrm.addr);
+	}
+	inline uint16_t get_rm16() const {
+		const auto &modrm = idata.modrm;
+		if(modrm.is_reg) return reg[modrm.rm].r16;
+		return memory->get16(modrm.addr);
+	}
+	inline uint32_t get_rm32() const {
+		const auto &modrm = idata.modrm;
+		if(modrm.is_reg) return reg[modrm.rm].r32;
+		return memory->get32(modrm.addr);
+	}
+
+	inline void set_rm8(const uint8_t &val){
+		const auto &modrm = idata.modrm;
+		if(modrm.is_reg){
+			if(modrm.rm < 4) reg[modrm.rm].r8 = val;
+			else reg[modrm.rm-4].h8 = val;
+			return;
+		}
+		memory->set8(modrm.addr, val);
+	}
+	void set_rm16(const uint16_t &val){
+		const auto &modrm = idata.modrm;
+		if(modrm.is_reg) reg[modrm.rm].r16 = val;
+		else memory->set16(modrm.addr, val);
+	}
+	void set_rm32(const uint32_t &val){
+		const auto &modrm = idata.modrm;
+		if(modrm.is_reg) reg[modrm.rm].r32 = val;
+		else memory->set32(modrm.addr, val);
+	}
 };
 
 #ifndef REG
