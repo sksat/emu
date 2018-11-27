@@ -128,6 +128,7 @@ struct CPU {
 
 	void parse_modrm();
 	void parse_modrm32();
+	const Memory::addr_t calc_sib_addr() const;
 
 	void dump_registers() const;
 

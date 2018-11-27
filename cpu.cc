@@ -125,7 +125,7 @@ void CPU::parse_modrm32(){
 			<< ", base=" << hex2str(sib.base,1)
 			<< ")" << std::endl;
 		// TODO: calc SIB addr
-		// modrm.addr = calc_sib_addr();
+		modrm.addr = calc_sib_addr();
 		if(MOD==0b00) return;
 		if(MOD==0b01){
 			idata.disp32 = 0x00;
@@ -158,6 +158,29 @@ void CPU::parse_modrm32(){
 	}
 
 	modrm.addr += reg[modrm.reg].r32;
+}
+
+const Memory::addr_t CPU::calc_sib_addr() const {
+	Memory::addr_t addr = 0x00;
+	const auto& modrm = idata.modrm;
+	const auto& sib = idata.sib;
+
+	if(sib.base == 0b101){
+		if(modrm.mod != 0b00)
+			addr += EBP;
+	}else{
+		addr += REG[sib.base].r32;
+	}
+
+	if(sib.index == 0b100)
+		return addr;
+	else if(sib.index == 0b101){
+		//TODO: sreg=SS
+	}
+
+	const auto& index32 = REG[sib.index].r32;
+	addr += index32 * (1 << sib.scale);
+	return addr;
 }
 
 void CPU::dump_registers() const {
