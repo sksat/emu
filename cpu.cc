@@ -190,6 +190,11 @@ void CPU::dump_registers() const {
 #define DUMP(reg) #reg":\t" << hex2str(reg) << endl
 		<< DUMP(EIP)
 		<< "EFLAGS:\t" << hex2str(eflags.r32) << endl
+		<< "\t|CF|PF|AF|ZF|SF|TF|IF|DF|OF|IOPL|NT|RF|VM|AC|VIF|VIP|ID|" << endl
+#define F(f) (eflags.f ? "| 1" : "| 0")
+		<< "\t" <<F(CF)<<F(PF)<<F(AF)<<F(ZF)<<F(SF)<<F(TF)<<F(IF)<<F(DF)<<F(OF)
+		<< "|  " <<((eflags.IOPL>>1)?"1":"0")<<((eflags.IOPL&1)?"1":"0")
+		<<F(NT)<<F(RF)<<F(VM)<<F(AC)<<F(VIF)<<" "<<F(VIP)<<" "<<F(ID)<<"|"<<endl
 		<< DUMP(EAX)
 		<< DUMP(ECX)
 		<< DUMP(EDX)
