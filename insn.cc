@@ -13,6 +13,9 @@
 #define R16	(cpu.reg[REG_NUM].r16)
 #define R32	(cpu.reg[REG_NUM].r32)
 
+// EFLAGS
+#define ADD(v1,v2) cpu.eflags.update_add(v1,v2)
+
 void insn::init(){
 
 #define NOT_IMPL { \
@@ -31,8 +34,8 @@ void insn::init(){
 	flag[op] = f; \
 	func[op] = [](CPU &cpu, std::shared_ptr<Memory> memory) block;
 
-	INSN(0x00, add_rm8_r8,	ModRM,{ SET_RM8(GET_RM8() + GET_R8(REG_NUM)); });
-	INSN(0x04, add_al_imm8,	Imm8, { AL = AL + IMM8; });
+	INSN(0x00, add_rm8_r8,	ModRM,{ SET_RM8( ADD(GET_RM8(), GET_R8(REG_NUM)) ); });
+	INSN(0x04, add_al_imm8,	Imm8, { AL = ADD(AL, IMM8); });
 	INSN(0x0c, or_al_imm8,	Imm8, { AL = AL | IMM8; });
 	INSN(0x24, and_al_imm8,	Imm8, { AL = AL & IMM8; });
 	INSN(0x2c, sub_al_imm8,	Imm8, { AL = AL - IMM8; });
