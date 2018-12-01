@@ -83,6 +83,20 @@ struct Eflags {
 		OF = s1 != s2 && s1 != sr;
 		return static_cast<T>(result);
 	}
+
+	template<typename T>
+	inline T update_or(const T &v1, const uint32_t &v2){
+		uint64_t result = static_cast<uint64_t>(v1) | v2;
+		auto size = sizeof(T)*8;
+		bool sr = (result >> (size-1)) & 1;
+
+		CF = false;
+		PF = check_parity(result & 0xff);
+		ZF = !result;
+		SF = sr;
+		OF = false;
+		return static_cast<T>(result);
+	}
 };
 
 #endif
