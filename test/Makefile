@@ -1,11 +1,22 @@
-SRC=$(shell ls *.asm)
-BIN=$(SRC:.asm=.bin)
+ASM=$(shell ls *.asm)
+BIN=$(ASM:.asm=.bin)
+LOG=$(BIN:.bin=.log)
+
+EMU=../emu
 
 %.bin:%.asm
 	nasm -o $@ $<
 
-default:
+%.log:%.bin
+	@./test.sh $(EMU) $< $@
+
+.PHONY: test clean
+
+test:
+	rm -rf *.log
+	make -C ..
 	make $(BIN)
+	make $(LOG)
 
 clean:
-	rm -f *.bin
+	rm -f *.log *.bin

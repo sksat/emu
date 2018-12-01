@@ -19,7 +19,6 @@ run: $(EMU)
 
 test:
 	make -C test
-	./test.sh
 
 clean:
 	rm -f $(EMU)
