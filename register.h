@@ -32,6 +32,7 @@ struct SRegister {
 	};
 };
 
+// EFLAGS
 struct Eflags {
 	explicit Eflags() : r32(0x00) {}
 	union {
@@ -81,6 +82,36 @@ struct Eflags {
 		ZF = !result;
 		SF = sr;
 		OF = s1 != s2 && s1 != sr;
+		return static_cast<T>(result);
+	}
+
+	template<typename T>
+	inline T update_sub(const T &v1, const uint32_t &v2){
+		uint64_t result = static_cast<uint64_t>(v1) - v2;
+		auto size = sizeof(T)*8;
+		bool s1 = v1 >> (size-1);
+		bool s2 = v2 >> (size-1);
+		bool sr = (result >> (size-1)) & 1;
+
+		CF = result >> size;
+		PF = check_parity(result & 0xff);
+		ZF = !result;
+		SF = sr;
+		OF = s1 != s2 && s1 != sr;
+		return static_cast<T>(result);
+	}
+
+	template<typename T>
+	inline T update_and(const T &v1, const uint32_t &v2){
+		uint64_t result = static_cast<uint64_t>(v1) & v2;
+		auto size = sizeof(T)*8;
+		bool sr = (result >> (size-1)) & 1;
+
+		CF = false;
+		PF = check_parity(result & 0xff);
+		ZF = !result;
+		SF = sr;
+		OF = false;
 		return static_cast<T>(result);
 	}
 

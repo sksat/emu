@@ -15,6 +15,8 @@
 
 // EFLAGS
 #define ADD(v1,v2)	cpu.eflags.update_add(v1,v2)
+#define SUB(v1,v2)	cpu.eflags.update_sub(v1,v2)
+#define AND(v1,v2)	cpu.eflags.update_and(v1,v2)
 #define OR(v1,v2)	cpu.eflags.update_or(v1,v2)
 
 void insn::init(){
@@ -38,8 +40,8 @@ void insn::init(){
 	INSN(0x00, add_rm8_r8,	ModRM,{ SET_RM8( ADD(GET_RM8(), GET_R8(REG_NUM)) ); });
 	INSN(0x04, add_al_imm8,	Imm8, { AL = ADD(AL, IMM8); });
 	INSN(0x0c, or_al_imm8,	Imm8, { AL = OR( AL, IMM8); });
-	INSN(0x24, and_al_imm8,	Imm8, { AL = AL & IMM8; });
-	INSN(0x2c, sub_al_imm8,	Imm8, { AL = AL - IMM8; });
+	INSN(0x24, and_al_imm8,	Imm8, { AL = AND(AL, IMM8); });
+	INSN(0x2c, sub_al_imm8,	Imm8, { AL = SUB(AL, IMM8); });
 	INSN(0x90, nop,			None, {});
 	INSN(0xeb, jmp_rel8,	Rel8, { EIP= EIP + static_cast<int32_t>(IMM32); });
 	INSN(0xf4, hlt, None, { cpu.halt_flag=true; });

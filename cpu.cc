@@ -22,7 +22,6 @@ void CPU::fetch_prefix(int n=0){
 		case 0x66:
 		case 0x67:
 			goto unknown;
-ok:
 			if(n==0) idata.prefix = prefix;
 			else idata.prefix2= prefix;
 			size++;
