@@ -128,6 +128,11 @@ struct Eflags {
 		OF = false;
 		return static_cast<T>(result);
 	}
+
+	template<typename T>
+	inline void update_cmp(const T &v1, const uint32_t &v2){
+		update_sub(v1, v2);
+	}
 };
 
 #endif
