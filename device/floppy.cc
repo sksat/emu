@@ -6,12 +6,14 @@ using namespace Device;
 
 void Floppy::Open(const std::string &fname){
 	std::stringstream ss;
+	DOUT("opening floppy file"<<std::endl);
 	fs.open(fname, std::ios::in | std::ios::out |std::ios::binary);
 	if(fs.fail()){
 		ss << "Floppy: cannot open file \'"
 			<<fname
 			<<"\'";
-		throw ss.str();
+		DOUT(ss.str());
+//		throw ss.str();
 	}
 
 	// ファイルサイズのチェック

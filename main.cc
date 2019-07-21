@@ -38,6 +38,14 @@ try{
 	o.add_opt(fda_file, "fda", "floppy disk image file");
 	o.add_opt(font_file, "font", "font file");
 
+	// settings
+	arch_str = "x86";
+	set.junk_bios = true;
+	set.memsize = 4;
+	set.gui = true;
+	fda_file = "sample/haribote.img";
+
+/*
 	if(!o.parse(argc, argv)){
 		cout	<<"simple x86 emulator by sksat"<<endl
 			<<"repo:   https://github.com/sk2sat/emu"<<endl
@@ -46,6 +54,7 @@ try{
 		o.print_help();
 		return -1;
 	}
+*/
 
 	if(arch_str == "x86"){
 		set.arch = ARCH::x86;

@@ -26,6 +26,8 @@ SRCS=main.cc emulator.cc emulator_base.cc register_base.cc memory.cc \
 	 arch/osecpu/emulator.cc arch/osecpu/instruction.cc \
 	 arch/x86/emulator.cc arch/x86/register.cc arch/x86/insndata.cc arch/x86/instruction.cc arch/x86/instruction16.cc arch/x86/instruction32.cc
 
+CXXFLAGS+=-DDEBUG
+
 default:
 	#make -C arch
 	#make $(TARGET)

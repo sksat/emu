@@ -1,3 +1,7 @@
+emu.js
+*.wasm
+*.wasm.map
+*.wast
 emu
 *.bin
 *.o
