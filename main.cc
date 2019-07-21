@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <chrono>
-#include <sksat/cmdline.hpp> // https://github.com/sk2sat/libsksat
+#include "sksat/cmdline.hpp" // https://github.com/sk2sat/libsksat
 #include "emulator.h"
 #include "gui.h"
 

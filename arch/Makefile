@@ -8,7 +8,7 @@ include ../common.mk
 
 $(LIBARCH): $(ARCH_LIBS)
 	rm -f $@
-	ar cqT $@ $^
+	emar cqT $@ $^
 	printf "create $@\naddlib $@\nsave\nend" | ar -M
 
 clean: _clean

@@ -15,5 +15,5 @@ default:
 clean:
 	rm -f *.o *.bin $(MAKEFONT)
 
-$(MAKEFONT):$(MAKEFONT_OBJS)
-	$(CC) $^ -o $@
+$(MAKEFONT): makefont.c
+	gcc $^ -o $@

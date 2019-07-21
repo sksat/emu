@@ -31,25 +31,25 @@ void Gui::proc(){
 	glfwInit();
 
 	if(disp == nullptr) throw "display is null";
-	win = glfwCreateWindow(disp->GetSizeX(), disp->GetSizeY(), "emulator", nullptr, nullptr);
+//	win = glfwCreateWindow(disp->GetSizeX(), disp->GetSizeY(), "emulator", nullptr, nullptr);
 
-	glfwMakeContextCurrent(win);
+//	glfwMakeContextCurrent(win);
 
-	glPixelZoom(1,-1);
-	glRasterPos2f(-1,1);
+//	glPixelZoom(1,-1);
+//	glRasterPos2f(-1,1);
 
-	while(!glfwWindowShouldClose(win) && flg){
-		glClear(GL_COLOR_BUFFER_BIT);
+	while(/*!glfwWindowShouldClose(win) &&*/ flg){
+//		glClear(GL_COLOR_BUFFER_BIT);
 
 //		if(disp != nullptr){
 			disp->FlushImage();
-			glDrawPixels(disp->GetSizeX(), disp->GetSizeY(), GL_RGB, GL_UNSIGNED_BYTE, disp->GetImage());
+//			glDrawPixels(disp->GetSizeX(), disp->GetSizeY(), GL_RGB, GL_UNSIGNED_BYTE, disp->GetImage());
 //		}
 
-		glfwSwapBuffers(win);
-		glfwPollEvents();
+//		glfwSwapBuffers(win);
+//		glfwPollEvents();
 	}
 
-	glfwDestroyWindow(win);
+//	glfwDestroyWindow(win);
 	onExit();
 }
