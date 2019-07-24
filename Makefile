@@ -26,12 +26,14 @@ SRCS=main.cc emulator.cc emulator_base.cc register_base.cc memory.cc \
 	 arch/osecpu/emulator.cc arch/osecpu/instruction.cc \
 	 arch/x86/emulator.cc arch/x86/register.cc arch/x86/insndata.cc arch/x86/instruction.cc arch/x86/instruction16.cc arch/x86/instruction32.cc
 
-CXXFLAGS+=-DDEBUG
+CXXFLAGS+=-DNO_DEBUG \
+		  -s DISABLE_EXCEPTION_CATCHING=0
 
 default:
 	#make -C arch
 	#make $(TARGET)
-	emcc $(CXXFLAGS) $(SRCS) -s WASM=1 -o emu.html
+	make -C sample haribote.img
+	emcc $(CXXFLAGS) $(SRCS) -s WASM=1 -o emu.html --preload-file sample/haribote.img
 
 include common.mk
 export

@@ -42,7 +42,7 @@ try{
 	arch_str = "x86";
 	set.junk_bios = true;
 	set.memsize = 4;
-	set.gui = true;
+	set.gui = false;
 	fda_file = "sample/haribote.img";
 
 /*
