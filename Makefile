@@ -26,14 +26,18 @@ SRCS=main.cc emulator.cc emulator_base.cc register_base.cc memory.cc \
 	 arch/osecpu/emulator.cc arch/osecpu/instruction.cc \
 	 arch/x86/emulator.cc arch/x86/register.cc arch/x86/insndata.cc arch/x86/instruction.cc arch/x86/instruction16.cc arch/x86/instruction32.cc
 
-CXXFLAGS+=-DNO_DEBUG \
-		  -s DISABLE_EXCEPTION_CATCHING=0
+CXXFLAGS+=-DNO_DEBUG
+CXXFLAGS+=-s DISABLE_EXCEPTION_CATCHING=1
+CXXFLAGS+=-s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=2
+#CXXFLAGS+=-s LEGACY_GL_EMULATION=1 -s USE_GLFW=3
+CXXFLAGS+=-s ASYNCIFY
+CXXFLAGS+=--shell-file _emu.html
 
 default:
 	#make -C arch
 	#make $(TARGET)
 	make -C sample haribote.img
-	emcc $(CXXFLAGS) $(SRCS) -s WASM=1 -o emu.html --preload-file sample/haribote.img
+	emcc $(CXXFLAGS) $(SRCS) -s WASM=1 -o emu.html --preload-file sample/haribote.img --preload-file font/hankaku.bin
 
 include common.mk
 export

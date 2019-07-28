@@ -1,3 +1,4 @@
+#include <emscripten.h>
 #include <iostream>
 #include <string>
 #include <chrono>
@@ -42,7 +43,7 @@ try{
 	arch_str = "x86";
 	set.junk_bios = true;
 	set.memsize = 4;
-	set.gui = false;
+	set.gui = true;
 	fda_file = "sample/haribote.img";
 
 /*
@@ -85,15 +86,15 @@ try{
 	Device::Display disp;
 	auto& port = emu->io->port;
 	port[0x03c8] = port[0x03c9] = &disp;
-	bool halt_exit = false;
+	bool halt_exit = true;
 	if(set.gui){
 		disp.LoadFont(font_file);
 		disp.RegisterVRAM(emu->memory, 0xa0000, 0xffff);
 		emu->ConnectDevice(disp);
 
-		gui = std::make_unique<Gui>();
-		gui->onExit = [&](){ emu->finish_flg = true; };
-		gui->Start(disp);
+//		gui = std::make_unique<Gui>();
+//		gui->onExit = [&](){ emu->finish_flg = true; };
+//		gui->Start(disp);
 	}else{
 		halt_exit = true; // CLIだったらhaltした時に終了するようにする
 	}
@@ -115,6 +116,8 @@ try{
 
 	cout<<"emulation start"<<endl;
 
+	//emscripten_sleep(1);
+
 	auto start = std::chrono::system_clock::now();
 
 	emu->Run(halt_exit);
@@ -123,6 +126,42 @@ try{
 
 	emu->Dump();
 	if(set.gui) gui->End();
+
+	EM_ASM(
+		var c = document.createElement("canvas");
+		c.setAttribute("id", "vram");
+	);
+	disp.FlushImage();
+	auto img = disp.GetImage();
+	for(int x=0;x<320;x++){
+		for(int y=0;y<200;y++){
+			int pos = 320 * y + x;
+			unsigned char red	= img[pos*3];
+			unsigned char green	= img[pos*3 + 1];
+			unsigned char blue	= img[pos*3 + 2];
+			EM_ASM_(
+				function rgb2hex(rgb){
+					return "#" + rgb.map( function(value){
+						return ( "0" + value.toString(16)).slice(-2);
+					}).join("");
+				}
+
+				var canvas = document.getElementById("canvas");
+				var c = canvas.getContext("2d");
+				const col = rgb2hex([$2, $3, $4]);
+				c.fillStyle = col;
+				c.fillRect($0, $1, 2, 2);
+				console.log($0, $1, $2, $3, $4, c.fillStyle);
+			, x, y, red, green, blue);
+		}
+	}
+
+	EM_ASM(
+		var canvas = document.getElementById("canvas");
+		var c = canvas.getContext("2d");
+		c.fillStyle = 'rgb(255, 0, 0)';
+//		c.fillRect(0, 0, 100, 100);
+	);
 
 	std::cout<<"time: "<<(double)std::chrono::duration_cast<std::chrono::seconds>(end - start).count()<<"s"<<std::endl;
 

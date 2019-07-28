@@ -14,8 +14,10 @@ Font::~Font(){
 bool Font::LoadFile(const char *fname){
 	FILE *fp;
 	fp = fopen(fname, "rb");
-	if(fp == NULL)
+	if(fp == NULL){
+		std::cerr << "can't open font file!" << std::endl;
 		throw "can't open font file!";
+	}
 	
 	fscanf(fp, "%d", &xsize);
 	fscanf(fp, "%d", &ysize);

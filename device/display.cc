@@ -65,7 +65,8 @@ void Display::LoadFont(const std::string &fname){
 	if(!file){
 		std::string msg = __func__;
 		msg += ": can't open file.";
-		throw msg;
+		std::cerr<<msg<<std::endl;
+//		throw msg;
 	}
 	file.seekg(0, std::ios::end);
 	auto size = file.tellg();
@@ -73,6 +74,7 @@ void Display::LoadFont(const std::string &fname){
 	file.seekg(0, std::ios::beg);
 	font.resize(size);
 	file.read((char*)&font[0], size);
+	std::cout << "LoadFont finished" << std::endl;
 }
 
 void Display::ChangeMode(size_t scrnx, size_t scrny, bool txtmode_flg){
