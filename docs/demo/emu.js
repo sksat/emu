@@ -195,7 +195,7 @@ Module['FS_createPath']('/', 'font', true, true);
   }
 
  }
- loadPackage({"files": [{"filename": "/sample/haribote.img", "start": 0, "end": 1474560, "audio": 0}, {"filename": "/font/hankaku.bin", "start": 1474560, "end": 1478661, "audio": 0}], "remote_package_size": 1478661, "package_uuid": "337f8901-cd18-4128-b784-f2c2cae1cfb2"});
+ loadPackage({"files": [{"filename": "/sample/haribote.img", "start": 0, "end": 1474560, "audio": 0}, {"filename": "/font/hankaku.bin", "start": 1474560, "end": 1478661, "audio": 0}], "remote_package_size": 1478661, "package_uuid": "2f586c45-0048-4509-8f82-7f18f63e590c"});
 
 })();
 
@@ -251,18 +251,8 @@ if (Module['ENVIRONMENT']) {
 // 2) We could be the application main() thread proxied to worker. (with Emscripten -s PROXY_TO_WORKER=1) (ENVIRONMENT_IS_WORKER == true, ENVIRONMENT_IS_PTHREAD == false)
 // 3) We could be an application pthread running in a worker. (ENVIRONMENT_IS_WORKER == true and ENVIRONMENT_IS_PTHREAD == true)
 
-// ENVIRONMENT_IS_PTHREAD=true will have been preset in worker.js. Make it false in the main runtime thread.
-var ENVIRONMENT_IS_PTHREAD = Module.ENVIRONMENT_IS_PTHREAD || false;
-if (!ENVIRONMENT_IS_PTHREAD) {
-  var PthreadWorkerInit = {}; // Collects together variables that are needed at initialization time for the web workers that host pthreads.
-}
 
 
-
-
-// In MODULARIZE mode _scriptDir needs to be captured already at the very top of the page immediately when the page is parsed, so it is generated there
-// before the page load. In non-MODULARIZE modes generate it here.
-var _scriptDir = (typeof document !== 'undefined' && document.currentScript) ? document.currentScript.src : undefined;
 
 // `/` should be present at the end if `scriptDirectory` is not empty
 var scriptDirectory = '';
@@ -436,7 +426,6 @@ assert(typeof Module['memoryInitializerPrefixURL'] === 'undefined', 'Module.memo
 assert(typeof Module['pthreadMainPrefixURL'] === 'undefined', 'Module.pthreadMainPrefixURL option was removed, use Module.locateFile instead');
 assert(typeof Module['cdInitializerPrefixURL'] === 'undefined', 'Module.cdInitializerPrefixURL option was removed, use Module.locateFile instead');
 assert(typeof Module['filePackagePrefixURL'] === 'undefined', 'Module.filePackagePrefixURL option was removed, use Module.locateFile instead');
-assert(ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER, 'Pthreads do not work in non-browser environments yet (need Web Workers, or an alternative to them)');
 
 
 
@@ -461,7 +450,6 @@ function staticAlloc(size) {
 
 function dynamicAlloc(size) {
   assert(DYNAMICTOP_PTR);
-  assert(!ENVIRONMENT_IS_PTHREAD); // this function is not thread-safe
   var ret = HEAP32[DYNAMICTOP_PTR>>2];
   var end = (ret + size + 15) & -16;
   if (end > _emscripten_get_heap_size()) {
@@ -782,8 +770,6 @@ var wasmMemory;
 // Potentially used for direct table calls.
 var wasmTable;
 
-// For sending to workers.
-var wasmModule;
 
 //========================================
 // Runtime essentials
@@ -993,6 +979,7 @@ function stringToAscii(str, outPtr) {
 // Given a pointer 'ptr' to a null-terminated UTF8-encoded string in the given array that contains uint8 values, returns
 // a copy of that string as a Javascript String object.
 
+var UTF8Decoder = typeof TextDecoder !== 'undefined' ? new TextDecoder('utf8') : undefined;
 
 /**
  * @param {number} idx
@@ -1001,17 +988,23 @@ function stringToAscii(str, outPtr) {
  */
 function UTF8ArrayToString(u8Array, idx, maxBytesToRead) {
   var endIdx = idx + maxBytesToRead;
+  var endPtr = idx;
+  // TextDecoder needs to know the byte length in advance, it doesn't stop on null terminator by itself.
+  // Also, use the length info to avoid running tiny strings through TextDecoder, since .subarray() allocates garbage.
+  // (As a tiny code save trick, compare endPtr against endIdx using a negation, so that undefined means Infinity)
+  while (u8Array[endPtr] && !(endPtr >= endIdx)) ++endPtr;
 
+  if (endPtr - idx > 16 && u8Array.subarray && UTF8Decoder) {
+    return UTF8Decoder.decode(u8Array.subarray(idx, endPtr));
+  } else {
     var str = '';
-    while (!(idx >= endIdx)) {
+    // If building with TextDecoder, we have already computed the string length above, so test loop end condition against that
+    while (idx < endPtr) {
       // For UTF8 byte structure, see:
       // http://en.wikipedia.org/wiki/UTF-8#Description
       // https://www.ietf.org/rfc/rfc2279.txt
       // https://tools.ietf.org/html/rfc3629
       var u0 = u8Array[idx++];
-      // If not building with TextDecoder enabled, we don't know the string length, so scan for \0 byte.
-      // If building with TextDecoder, we know exactly at what byte index the string ends, so checking for nulls here would be redundant.
-      if (!u0) return str;
       if (!(u0 & 0x80)) { str += String.fromCharCode(u0); continue; }
       var u1 = u8Array[idx++] & 63;
       if ((u0 & 0xE0) == 0xC0) { str += String.fromCharCode(((u0 & 31) << 6) | u1); continue; }
@@ -1030,6 +1023,7 @@ function UTF8ArrayToString(u8Array, idx, maxBytesToRead) {
         str += String.fromCharCode(0xD800 | (ch >> 10), 0xDC00 | (ch & 0x3FF));
       }
     }
+  }
   return str;
 }
 
@@ -1136,8 +1130,19 @@ function lengthBytesUTF8(str) {
 // Given a pointer 'ptr' to a null-terminated UTF16LE-encoded string in the emscripten HEAP, returns
 // a copy of that string as a Javascript String object.
 
+var UTF16Decoder = typeof TextDecoder !== 'undefined' ? new TextDecoder('utf-16le') : undefined;
 function UTF16ToString(ptr) {
   assert(ptr % 2 == 0, 'Pointer passed to UTF16ToString must be aligned to two bytes!');
+  var endPtr = ptr;
+  // TextDecoder needs to know the byte length in advance, it doesn't stop on null terminator by itself.
+  // Also, use the length info to avoid running tiny strings through TextDecoder, since .subarray() allocates garbage.
+  var idx = endPtr >> 1;
+  while (HEAP16[idx]) ++idx;
+  endPtr = idx << 1;
+
+  if (endPtr - ptr > 32 && UTF16Decoder) {
+    return UTF16Decoder.decode(HEAPU8.subarray(ptr, endPtr));
+  } else {
     var i = 0;
 
     var str = '';
@@ -1148,6 +1153,7 @@ function UTF16ToString(ptr) {
       // fromCharCode constructs a character from a UTF-16 code unit, so we can pass the UTF16 string right through.
       str += String.fromCharCode(codeUnit);
     }
+  }
 }
 
 // Copies the given Javascript String object 'str' to the emscripten HEAP at address 'outPtr',
@@ -1401,19 +1407,17 @@ function updateGlobalBufferViews() {
   Module['HEAPF64'] = HEAPF64 = new Float64Array(buffer);
 }
 
-if (!ENVIRONMENT_IS_PTHREAD) { // Pthreads have already initialized these variables in src/worker.js, where they were passed to the thread worker at startup time
 
 var STATIC_BASE = 1024,
-    STACK_BASE = 35616,
+    STACK_BASE = 32048,
     STACKTOP = STACK_BASE,
-    STACK_MAX = 5278496,
-    DYNAMIC_BASE = 5278496,
-    DYNAMICTOP_PTR = 35584;
+    STACK_MAX = 5274928,
+    DYNAMIC_BASE = 5274928,
+    DYNAMICTOP_PTR = 32016;
 
 assert(STACK_BASE % 16 === 0, 'stack must start aligned');
 assert(DYNAMIC_BASE % 16 === 0, 'heap must start aligned');
 
-}
 
 
 var TOTAL_STACK = 5242880;
@@ -1432,8 +1436,6 @@ assert(typeof Int32Array !== 'undefined' && typeof Float64Array !== 'undefined' 
 
 
 
-if (ENVIRONMENT_IS_PTHREAD) {
-} else {
   if (Module['wasmMemory']) {
     wasmMemory = Module['wasmMemory'];
   } else {
@@ -1441,13 +1443,9 @@ if (ENVIRONMENT_IS_PTHREAD) {
       'initial': INITIAL_TOTAL_MEMORY / WASM_PAGE_SIZE
       ,
       'maximum': INITIAL_TOTAL_MEMORY / WASM_PAGE_SIZE
-      ,
-      'shared': true
     });
-    assert(wasmMemory.buffer instanceof SharedArrayBuffer, 'requested a shared WebAssembly.Memory but the returned buffer is not a SharedArrayBuffer, indicating that while the browser has SharedArrayBuffer it does not have WebAssembly threads support - you may need to set a flag');
   }
 
-}
 
 if (wasmMemory) {
   buffer = wasmMemory.buffer;
@@ -1459,9 +1457,7 @@ INITIAL_TOTAL_MEMORY = buffer.byteLength;
 assert(INITIAL_TOTAL_MEMORY % WASM_PAGE_SIZE === 0);
 updateGlobalBufferViews();
 
-if (!ENVIRONMENT_IS_PTHREAD) { // Pthreads have already initialized these variables in src/worker.js, where they were passed to the thread worker at startup time
 HEAP32[DYNAMICTOP_PTR>>2] = DYNAMIC_BASE;
-}
 
 
 // Initializes the stack cookie. Called at the startup of main and at the startup of each thread in pthreads mode.
@@ -1487,11 +1483,7 @@ function abortStackOverflow(allocSize) {
 }
 
 
-if (!ENVIRONMENT_IS_PTHREAD) {
   HEAP32[0] = 0x63736d65; /* 'emsc' */
-} else {
-  if (HEAP32[0] !== 0x63736d65) abort('Runtime error: The application has corrupted its heap memory area (address zero)!');
-}
 
 
 
@@ -1528,10 +1520,8 @@ var __ATPOSTRUN__ = []; // functions called after the main() is called
 var runtimeInitialized = false;
 var runtimeExited = false;
 
-if (ENVIRONMENT_IS_PTHREAD) runtimeInitialized = true; // The runtime is hosted in the main thread, and bits shared to pthreads via SharedArrayBuffer. No need to init again in pthread.
 
 function preRun() {
-  if (ENVIRONMENT_IS_PTHREAD) return; // PThreads reuse the runtime from the main thread.
   // compatibility - merge in anything from Module['preRun'] at this time
   if (Module['preRun']) {
     if (typeof Module['preRun'] == 'function') Module['preRun'] = [Module['preRun']];
@@ -1553,20 +1543,17 @@ TTY.init();
 
 function preMain() {
   checkStackCookie();
-  if (ENVIRONMENT_IS_PTHREAD) return; // PThreads reuse the runtime from the main thread.
   FS.ignorePermissions = false;
   callRuntimeCallbacks(__ATMAIN__);
 }
 
 function exitRuntime() {
   checkStackCookie();
-  if (ENVIRONMENT_IS_PTHREAD) return; // PThreads reuse the runtime from the main thread.
   runtimeExited = true;
 }
 
 function postRun() {
   checkStackCookie();
-  if (ENVIRONMENT_IS_PTHREAD) return; // PThreads reuse the runtime from the main thread.
   // compatibility - merge in anything from Module['postRun'] at this time
   if (Module['postRun']) {
     if (typeof Module['postRun'] == 'function') Module['postRun'] = [Module['postRun']];
@@ -1669,9 +1656,6 @@ function getUniqueRunDependency(id) {
 }
 
 function addRunDependency(id) {
-  // We should never get here in pthreads (could no-op this out if called in pthreads, but that might indicate a bug in caller side,
-  // so good to be very explicit)
-  assert(!ENVIRONMENT_IS_PTHREAD, "addRunDependency cannot be used in a pthread worker");
   runDependencies++;
   if (Module['monitorRunDependencies']) {
     Module['monitorRunDependencies'](runDependencies);
@@ -1736,8 +1720,6 @@ Module["preloadedAudios"] = {}; // maps url to audio data
 var memoryInitializer = null;
 
 
-// To work around https://bugzilla.mozilla.org/show_bug.cgi?id=1049079, warm up a worker pool before starting up the application.
-if (!ENVIRONMENT_IS_PTHREAD) addOnPreRun(function() { if (typeof SharedArrayBuffer !== 'undefined') { addRunDependency('pthreads'); PThread.allocateUnusedWorkers(2, function() { removeRunDependency('pthreads'); }); }});
 
 
 
@@ -1823,14 +1805,9 @@ function createWasm(env) {
   function receiveInstance(instance, module) {
     var exports = instance.exports;
     Module['asm'] = exports;
-    // Keep a reference to the compiled module so we can post it to the workers.
-    wasmModule = module;
-    // Instantiation is synchronous in pthreads and we assert on run dependencies.
-    if (!ENVIRONMENT_IS_PTHREAD) removeRunDependency('wasm-instantiate');
+    removeRunDependency('wasm-instantiate');
   }
-  if (!ENVIRONMENT_IS_PTHREAD) {
-    addRunDependency('wasm-instantiate'); // we can't run yet (except in a pthread, where we have a custom sync instantiator)
-  }
+  addRunDependency('wasm-instantiate');
 
 
   // Async compilation can be confusing when an error on the page overwrites Module
@@ -1842,7 +1819,9 @@ function createWasm(env) {
     // receiveInstance() will swap in the exports (to Module.asm) so they can be called
     assert(Module === trueModule, 'the Module object should not be replaced during async compilation - perhaps the order of HTML elements is wrong?');
     trueModule = null;
-    receiveInstance(output['instance'], output['module']);
+      // TODO: Due to Closure regression https://github.com/google/closure-compiler/issues/3193, the above line no longer optimizes out down to the following line.
+      // When the regression is fixed, can restore the above USE_PTHREADS-enabled path.
+    receiveInstance(output['instance']);
   }
 
 
@@ -1902,8 +1881,8 @@ Module['asm'] = function(global, env, providedBuffer) {
   ;
   // import table
   env['table'] = wasmTable = new WebAssembly.Table({
-    'initial': 12561,
-    'maximum': 12561,
+    'initial': 12544,
+    'maximum': 12544,
     'element': 'anyfunc'
   });
   // With the wasm backend __memory_base and __table_base and only needed for
@@ -1925,43 +1904,31 @@ var tempI64;
 
 var ASM_CONSTS = [function() { var c = document.createElement("canvas"); c.setAttribute("id", "vram"); },
  function($0, $1, $2, $3, $4) { function rgb2hex(rgb){ return "#" + rgb.map( function(value){ return ( "0" + value.toString(16)).slice(-2); }).join(""); } var canvas = document.getElementById("canvas"); var c = canvas.getContext("2d"); const col = rgb2hex([$2, $3, $4]); c.fillStyle = col; c.fillRect($0, $1, 2, 2); console.log($0, $1, $2, $3, $4, c.fillStyle); },
- function() { var canvas = document.getElementById("canvas"); var c = canvas.getContext("2d"); c.fillStyle = 'rgb(255, 0, 0)'; },
- function() { postMessage({cmd : 'processQueuedMainThreadWork'}) },
- function($0) { if (!ENVIRONMENT_IS_PTHREAD) { if (!PThread.pthreads[$0] || !PThread.pthreads[$0].worker) { return 0; } PThread.pthreads[$0].worker.postMessage({cmd : 'processThreadQueue'}); } else { postMessage({targetThread : $0, cmd : 'processThreadQueue'}); } return 1; },
- function() { return !!(Module['canvas']) },
- function() { Module['noExitRuntime'] = true },
- function() { throw 'Canceled!' }];
-
-function _emscripten_asm_const_i(code) {
-  return ASM_CONSTS[code]();
-}
+ function() { var canvas = document.getElementById("canvas"); var c = canvas.getContext("2d"); c.fillStyle = 'rgb(255, 0, 0)'; }];
 
 function _emscripten_asm_const_iiiiii(code, a0, a1, a2, a3, a4) {
   return ASM_CONSTS[code](a0, a1, a2, a3, a4);
 }
 
-function _emscripten_asm_const_ii(code, a0) {
-  return ASM_CONSTS[code](a0);
+function _emscripten_asm_const_i(code) {
+  return ASM_CONSTS[code]();
 }
-function _initPthreadsJS(){ PThread.initRuntime(); }
 
 
 
-// STATICTOP = STATIC_BASE + 34592;
-/* global initializers */ if (!ENVIRONMENT_IS_PTHREAD) __ATINIT__.push({ func: function() { globalCtors() } });
+
+// STATICTOP = STATIC_BASE + 31024;
+/* global initializers */  __ATINIT__.push({ func: function() { globalCtors() } });
 
 
-if (!ENVIRONMENT_IS_PTHREAD) {
-memoryInitializer = "emu.html.mem";
-}
+
 
 
 
 
 
 /* no memory initializer */
-var tempDoublePtr;
-if (!ENVIRONMENT_IS_PTHREAD) tempDoublePtr = 35600;
+var tempDoublePtr = 32032
 assert(tempDoublePtr % 8 == 0);
 
 function copyTempFloat(ptr) { // functions, because inlining this code increases code size too much
@@ -1984,292 +1951,6 @@ function copyTempDouble(ptr) {
 
 // {{PRE_LIBRARY}}
 
-
-  function ___assert_fail(condition, filename, line, func) {
-      abort('Assertion failed: ' + UTF8ToString(condition) + ', at: ' + [filename ? UTF8ToString(filename) : 'unknown filename', line, func ? UTF8ToString(func) : 'unknown function']);
-    }
-
-  
-  
-  var PROCINFO={ppid:1,pid:42,sid:42,pgid:42};
-  
-  
-  var __pthread_ptr=0;
-  
-  var __pthread_is_main_runtime_thread=0;
-  
-  var __pthread_is_main_browser_thread=0; 
-  
-  var ERRNO_CODES={EPERM:1,ENOENT:2,ESRCH:3,EINTR:4,EIO:5,ENXIO:6,E2BIG:7,ENOEXEC:8,EBADF:9,ECHILD:10,EAGAIN:11,EWOULDBLOCK:11,ENOMEM:12,EACCES:13,EFAULT:14,ENOTBLK:15,EBUSY:16,EEXIST:17,EXDEV:18,ENODEV:19,ENOTDIR:20,EISDIR:21,EINVAL:22,ENFILE:23,EMFILE:24,ENOTTY:25,ETXTBSY:26,EFBIG:27,ENOSPC:28,ESPIPE:29,EROFS:30,EMLINK:31,EPIPE:32,EDOM:33,ERANGE:34,ENOMSG:42,EIDRM:43,ECHRNG:44,EL2NSYNC:45,EL3HLT:46,EL3RST:47,ELNRNG:48,EUNATCH:49,ENOCSI:50,EL2HLT:51,EDEADLK:35,ENOLCK:37,EBADE:52,EBADR:53,EXFULL:54,ENOANO:55,EBADRQC:56,EBADSLT:57,EDEADLOCK:35,EBFONT:59,ENOSTR:60,ENODATA:61,ETIME:62,ENOSR:63,ENONET:64,ENOPKG:65,EREMOTE:66,ENOLINK:67,EADV:68,ESRMNT:69,ECOMM:70,EPROTO:71,EMULTIHOP:72,EDOTDOT:73,EBADMSG:74,ENOTUNIQ:76,EBADFD:77,EREMCHG:78,ELIBACC:79,ELIBBAD:80,ELIBSCN:81,ELIBMAX:82,ELIBEXEC:83,ENOSYS:38,ENOTEMPTY:39,ENAMETOOLONG:36,ELOOP:40,EOPNOTSUPP:95,EPFNOSUPPORT:96,ECONNRESET:104,ENOBUFS:105,EAFNOSUPPORT:97,EPROTOTYPE:91,ENOTSOCK:88,ENOPROTOOPT:92,ESHUTDOWN:108,ECONNREFUSED:111,EADDRINUSE:98,ECONNABORTED:103,ENETUNREACH:101,ENETDOWN:100,ETIMEDOUT:110,EHOSTDOWN:112,EHOSTUNREACH:113,EINPROGRESS:115,EALREADY:114,EDESTADDRREQ:89,EMSGSIZE:90,EPROTONOSUPPORT:93,ESOCKTNOSUPPORT:94,EADDRNOTAVAIL:99,ENETRESET:102,EISCONN:106,ENOTCONN:107,ETOOMANYREFS:109,EUSERS:87,EDQUOT:122,ESTALE:116,ENOTSUP:95,ENOMEDIUM:123,EILSEQ:84,EOVERFLOW:75,ECANCELED:125,ENOTRECOVERABLE:131,EOWNERDEAD:130,ESTRPIPE:86};var PThread={MAIN_THREAD_ID:1,mainThreadInfo:{schedPolicy:0,schedPrio:0},unusedWorkerPool:[],runningWorkers:[],initRuntime:function () {
-        // Pass the thread address inside the asm.js scope to store it for fast access that avoids the need for a FFI out.
-        // Global constructors trying to access this value will read the wrong value, but that is UB anyway.
-        __register_pthread_ptr(PThread.mainThreadBlock, /*isMainBrowserThread=*/!ENVIRONMENT_IS_WORKER, /*isMainRuntimeThread=*/1);
-        _emscripten_register_main_browser_thread_id(PThread.mainThreadBlock);
-      },initMainThreadBlock:function () {
-        if (ENVIRONMENT_IS_PTHREAD) return undefined;
-        PThread.mainThreadBlock = 34784;
-  
-        for (var i = 0; i < 244/4; ++i) HEAPU32[PThread.mainThreadBlock/4+i] = 0;
-  
-        // The pthread struct has a field that points to itself - this is used as a magic ID to detect whether the pthread_t
-        // structure is 'alive'.
-        HEAP32[(((PThread.mainThreadBlock)+(24))>>2)]=PThread.mainThreadBlock;
-  
-        // pthread struct robust_list head should point to itself.
-        var headPtr = PThread.mainThreadBlock + 168;
-        HEAP32[((headPtr)>>2)]=headPtr;
-  
-        // Allocate memory for thread-local storage.
-        var tlsMemory = 35040;
-        for (var i = 0; i < 128; ++i) HEAPU32[tlsMemory/4+i] = 0;
-        Atomics.store(HEAPU32, (PThread.mainThreadBlock + 116 ) >> 2, tlsMemory); // Init thread-local-storage memory array.
-        Atomics.store(HEAPU32, (PThread.mainThreadBlock + 52 ) >> 2, PThread.mainThreadBlock); // Main thread ID.
-        Atomics.store(HEAPU32, (PThread.mainThreadBlock + 56 ) >> 2, PROCINFO.pid); // Process ID.
-  
-      },pthreads:{},pthreadIdCounter:2,exitHandlers:null,setThreadStatus:function () {},runExitHandlers:function () {
-        if (PThread.exitHandlers !== null) {
-          while (PThread.exitHandlers.length > 0) {
-            PThread.exitHandlers.pop()();
-          }
-          PThread.exitHandlers = null;
-        }
-  
-        // Call into the musl function that runs destructors of all thread-specific data.
-        if (ENVIRONMENT_IS_PTHREAD && threadInfoStruct) ___pthread_tsd_run_dtors();
-      },threadExit:function (exitCode) {
-        var tb = _pthread_self();
-        if (tb) { // If we haven't yet exited?
-          Atomics.store(HEAPU32, (tb + 4 ) >> 2, exitCode);
-          // When we publish this, the main thread is free to deallocate the thread object and we are done.
-          // Therefore set threadInfoStruct = 0; above to 'release' the object in this worker thread.
-          Atomics.store(HEAPU32, (tb + 0 ) >> 2, 1);
-  
-          // Disable all cancellation so that executing the cleanup handlers won't trigger another JS
-          // canceled exception to be thrown.
-          Atomics.store(HEAPU32, (tb + 72 ) >> 2, 1/*PTHREAD_CANCEL_DISABLE*/);
-          Atomics.store(HEAPU32, (tb + 76 ) >> 2, 0/*PTHREAD_CANCEL_DEFERRED*/);
-          PThread.runExitHandlers();
-  
-          _emscripten_futex_wake(tb + 0, 2147483647);
-          __register_pthread_ptr(0, 0, 0); // Unregister the thread block also inside the asm.js scope.
-          threadInfoStruct = 0;
-          if (ENVIRONMENT_IS_PTHREAD) {
-            // Note: in theory we would like to return any offscreen canvases back to the main thread,
-            // but if we ever fetched a rendering context for them that would not be valid, so we don't try.
-            postMessage({ cmd: 'exit' });
-          }
-        }
-      },threadCancel:function () {
-        PThread.runExitHandlers();
-        Atomics.store(HEAPU32, (threadInfoStruct + 4 ) >> 2, -1/*PTHREAD_CANCELED*/);
-        Atomics.store(HEAPU32, (threadInfoStruct + 0 ) >> 2, 1); // Mark the thread as no longer running.
-        _emscripten_futex_wake(threadInfoStruct + 0, 2147483647); // wake all threads
-        threadInfoStruct = selfThreadId = 0; // Not hosting a pthread anymore in this worker, reset the info structures to null.
-        __register_pthread_ptr(0, 0, 0); // Unregister the thread block also inside the asm.js scope.
-        postMessage({ cmd: 'cancelDone' });
-      },terminateAllThreads:function () {
-        for (var t in PThread.pthreads) {
-          var pthread = PThread.pthreads[t];
-          if (pthread) {
-            PThread.freeThreadData(pthread);
-            if (pthread.worker) pthread.worker.terminate();
-          }
-        }
-        PThread.pthreads = {};
-        for (var t in PThread.unusedWorkerPool) {
-          var pthread = PThread.unusedWorkerPool[t];
-          if (pthread) {
-            PThread.freeThreadData(pthread);
-            if (pthread.worker) pthread.worker.terminate();
-          }
-        }
-        PThread.unusedWorkerPool = [];
-        for (var t in PThread.runningWorkers) {
-          var pthread = PThread.runningWorkers[t];
-          if (pthread) {
-            PThread.freeThreadData(pthread);
-            if (pthread.worker) pthread.worker.terminate();
-          }
-        }
-        PThread.runningWorkers = [];
-      },freeThreadData:function (pthread) {
-        if (!pthread) return;
-        if (pthread.threadInfoStruct) {
-          var tlsMemory = HEAP32[(((pthread.threadInfoStruct)+(116))>>2)];
-          HEAP32[(((pthread.threadInfoStruct)+(116))>>2)]=0;
-          _free(pthread.tlsMemory);
-          _free(pthread.threadInfoStruct);
-        }
-        pthread.threadInfoStruct = 0;
-        if (pthread.allocatedOwnStack && pthread.stackBase) _free(pthread.stackBase);
-        pthread.stackBase = 0;
-        if (pthread.worker) pthread.worker.pthread = null;
-      },returnWorkerToPool:function (worker) {
-        delete PThread.pthreads[worker.pthread.thread];
-        //Note: worker is intentionally not terminated so the pool can dynamically grow.
-        PThread.unusedWorkerPool.push(worker);
-        PThread.runningWorkers.splice(PThread.runningWorkers.indexOf(worker.pthread), 1); // Not a running Worker anymore
-        PThread.freeThreadData(worker.pthread);
-        worker.pthread = undefined; // Detach the worker from the pthread object, and return it to the worker pool as an unused worker.
-      },receiveObjectTransfer:function (data) {
-      },allocateUnusedWorkers:function (numWorkers, onFinishedLoading) {
-        if (typeof SharedArrayBuffer === 'undefined') return; // No multithreading support, no-op.
-  
-        var numWorkersLoaded = 0;
-        var pthreadMainJs = "emu.worker.js";
-        // Allow HTML module to configure the location where the 'worker.js' file will be loaded from,
-        // via Module.locateFile() function. If not specified, then the default URL 'worker.js' relative
-        // to the main html file is loaded.
-        pthreadMainJs = locateFile(pthreadMainJs);
-  
-        for (var i = 0; i < numWorkers; ++i) {
-          var worker = new Worker(pthreadMainJs);
-  
-          (function(worker) {
-            worker.onmessage = function(e) {
-              var d = e.data;
-              // Sometimes we need to backproxy events to the calling thread (e.g. HTML5 DOM events handlers such as emscripten_set_mousemove_callback()), so keep track in a globally accessible variable about the thread that initiated the proxying.
-              if (worker.pthread) PThread.currentProxiedOperationCallerThread = worker.pthread.threadInfoStruct;
-  
-              // If this message is intended to a recipient that is not the main thread, forward it to the target thread.
-              if (d.targetThread && d.targetThread != _pthread_self()) {
-                var thread = PThread.pthreads[d.targetThread];
-                if (thread) {
-                  thread.worker.postMessage(e.data, d.transferList);
-                } else {
-                  console.error('Internal error! Worker sent a message "' + d.cmd + '" to target pthread ' + d.targetThread + ', but that thread no longer exists!');
-                }
-                PThread.currentProxiedOperationCallerThread = undefined;
-                return;
-              }
-  
-              if (d.cmd === 'processQueuedMainThreadWork') {
-                // TODO: Must post message to main Emscripten thread in PROXY_TO_WORKER mode.
-                _emscripten_main_thread_process_queued_calls();
-              } else if (d.cmd === 'spawnThread') {
-                __spawn_thread(e.data);
-              } else if (d.cmd === 'cleanupThread') {
-                __cleanup_thread(d.thread);
-              } else if (d.cmd === 'killThread') {
-                __kill_thread(d.thread);
-              } else if (d.cmd === 'cancelThread') {
-                __cancel_thread(d.thread);
-              } else if (d.cmd === 'loaded') {
-                worker.loaded = true;
-                // If this Worker is already pending to start running a thread, launch the thread now
-                if (worker.runPthread) {
-                  worker.runPthread();
-                  delete worker.runPthread;
-                }
-                ++numWorkersLoaded;
-                if (numWorkersLoaded === numWorkers && onFinishedLoading) {
-                  onFinishedLoading();
-                }
-              } else if (d.cmd === 'print') {
-                out('Thread ' + d.threadId + ': ' + d.text);
-              } else if (d.cmd === 'printErr') {
-                err('Thread ' + d.threadId + ': ' + d.text);
-              } else if (d.cmd === 'alert') {
-                alert('Thread ' + d.threadId + ': ' + d.text);
-              } else if (d.cmd === 'exit') {
-                var detached = worker.pthread && Atomics.load(HEAPU32, (worker.pthread.thread + 80) >> 2);
-                if (detached) {
-                  PThread.returnWorkerToPool(worker);
-                }
-              } else if (d.cmd === 'exitProcess') {
-                // A pthread has requested to exit the whole application process (runtime).
-                Module['noExitRuntime'] = false;
-                exit(d.returnCode);
-              } else if (d.cmd === 'cancelDone') {
-                PThread.returnWorkerToPool(worker);
-              } else if (d.cmd === 'objectTransfer') {
-                PThread.receiveObjectTransfer(e.data);
-              } else if (e.data.target === 'setimmediate') {
-                worker.postMessage(e.data); // Worker wants to postMessage() to itself to implement setImmediate() emulation.
-              } else {
-                err("worker sent an unknown command " + d.cmd);
-              }
-              PThread.currentProxiedOperationCallerThread = undefined;
-            };
-  
-            worker.onerror = function(e) {
-              err('pthread sent an error! ' + e.filename + ':' + e.lineno + ': ' + e.message);
-            };
-          }(worker));
-  
-          // Allocate tempDoublePtr for the worker. This is done here on the worker's behalf, since we may need to do this statically
-          // if the runtime has not been loaded yet, etc. - so we just use getMemory, which is main-thread only.
-          var tempDoublePtr = getMemory(8); // TODO: leaks. Cleanup after worker terminates.
-  
-          // Ask the new worker to load up the Emscripten-compiled page. This is a heavy operation.
-          worker.postMessage({
-            cmd: 'load',
-            // If the application main .js file was loaded from a Blob, then it is not possible
-            // to access the URL of the current script that could be passed to a Web Worker so that
-            // it could load up the same file. In that case, developer must either deliver the Blob
-            // object in Module['mainScriptUrlOrBlob'], or a URL to it, so that pthread Workers can
-            // independently load up the same main application file.
-            urlOrBlob: Module['mainScriptUrlOrBlob'] || _scriptDir,
-            wasmMemory: wasmMemory,
-            wasmModule: wasmModule,
-            tempDoublePtr: tempDoublePtr,
-            DYNAMIC_BASE: DYNAMIC_BASE,
-            DYNAMICTOP_PTR: DYNAMICTOP_PTR,
-            PthreadWorkerInit: PthreadWorkerInit
-          });
-          PThread.unusedWorkerPool.push(worker);
-        }
-      },getNewWorker:function () {
-        if (PThread.unusedWorkerPool.length == 0) PThread.allocateUnusedWorkers(1);
-        if (PThread.unusedWorkerPool.length > 0) return PThread.unusedWorkerPool.pop();
-        else return null;
-      },busySpinWait:function (msecs) {
-        var t = performance.now() + msecs;
-        while(performance.now() < t) {
-          ;
-        }
-      }};function ___call_main(argc, argv) {
-      var returnCode = _main(argc, argv);
-      if (!Module['noExitRuntime']) postMessage({ cmd: 'exitProcess', returnCode: returnCode });
-      return returnCode;
-    }
-
-  
-  
-  function _emscripten_get_now() { abort() }
-  
-  function _emscripten_get_now_is_monotonic() {
-      // return whether emscripten_get_now is guaranteed monotonic; the Date.now
-      // implementation is not :(
-      return (0
-        || ENVIRONMENT_IS_NODE
-        || (typeof dateNow !== 'undefined')
-        || (typeof performance === 'object' && performance && typeof performance['now'] === 'function')
-        );
-    }
-  
-  function ___setErrNo(value) {
-      if (Module['___errno_location']) HEAP32[((Module['___errno_location']())>>2)]=value;
-      else err('failed to set errno from JS');
-      return value;
-    }function _clock_gettime(clk_id, tp) {
-      // int clock_gettime(clockid_t clk_id, struct timespec *tp);
-      var now;
-      if (clk_id === 0) {
-        now = Date.now();
-      } else if (clk_id === 1 && _emscripten_get_now_is_monotonic()) {
-        now = _emscripten_get_now();
-      } else {
-        ___setErrNo(22);
-        return -1;
-      }
-      HEAP32[((tp)>>2)]=(now/1000)|0; // seconds
-      HEAP32[(((tp)+(4))>>2)]=((now % 1000)*1000*1000)|0; // nanoseconds
-      return 0;
-    }function ___clock_gettime(a0,a1
-  /*``*/) {
-  return _clock_gettime(a0,a1);
-  }
 
   function ___cxa_allocate_exception(size) {
       return _malloc(size);
@@ -2357,7 +2038,12 @@ function copyTempDouble(ptr) {
 
   function ___lock() {}
 
-  function ___map_file(pathname, size) {
+  
+  function ___setErrNo(value) {
+      if (Module['___errno_location']) HEAP32[((Module['___errno_location']())>>2)]=value;
+      else err('failed to set errno from JS');
+      return value;
+    }function ___map_file(pathname, size) {
       ___setErrNo(1);
       return -1;
     }
@@ -3616,7 +3302,9 @@ function copyTempDouble(ptr) {
           return position;
         }}};
   
-  var ERRNO_MESSAGES={0:"Success",1:"Not super-user",2:"No such file or directory",3:"No such process",4:"Interrupted system call",5:"I/O error",6:"No such device or address",7:"Arg list too long",8:"Exec format error",9:"Bad file number",10:"No children",11:"No more processes",12:"Not enough core",13:"Permission denied",14:"Bad address",15:"Block device required",16:"Mount device busy",17:"File exists",18:"Cross-device link",19:"No such device",20:"Not a directory",21:"Is a directory",22:"Invalid argument",23:"Too many open files in system",24:"Too many open files",25:"Not a typewriter",26:"Text file busy",27:"File too large",28:"No space left on device",29:"Illegal seek",30:"Read only file system",31:"Too many links",32:"Broken pipe",33:"Math arg out of domain of func",34:"Math result not representable",35:"File locking deadlock error",36:"File or path name too long",37:"No record locks available",38:"Function not implemented",39:"Directory not empty",40:"Too many symbolic links",42:"No message of desired type",43:"Identifier removed",44:"Channel number out of range",45:"Level 2 not synchronized",46:"Level 3 halted",47:"Level 3 reset",48:"Link number out of range",49:"Protocol driver not attached",50:"No CSI structure available",51:"Level 2 halted",52:"Invalid exchange",53:"Invalid request descriptor",54:"Exchange full",55:"No anode",56:"Invalid request code",57:"Invalid slot",59:"Bad font file fmt",60:"Device not a stream",61:"No data (for no delay io)",62:"Timer expired",63:"Out of streams resources",64:"Machine is not on the network",65:"Package not installed",66:"The object is remote",67:"The link has been severed",68:"Advertise error",69:"Srmount error",70:"Communication error on send",71:"Protocol error",72:"Multihop attempted",73:"Cross mount point (not really error)",74:"Trying to read unreadable message",75:"Value too large for defined data type",76:"Given log. name not unique",77:"f.d. invalid for this operation",78:"Remote address changed",79:"Can   access a needed shared lib",80:"Accessing a corrupted shared lib",81:".lib section in a.out corrupted",82:"Attempting to link in too many libs",83:"Attempting to exec a shared library",84:"Illegal byte sequence",86:"Streams pipe error",87:"Too many users",88:"Socket operation on non-socket",89:"Destination address required",90:"Message too long",91:"Protocol wrong type for socket",92:"Protocol not available",93:"Unknown protocol",94:"Socket type not supported",95:"Not supported",96:"Protocol family not supported",97:"Address family not supported by protocol family",98:"Address already in use",99:"Address not available",100:"Network interface is not configured",101:"Network is unreachable",102:"Connection reset by network",103:"Connection aborted",104:"Connection reset by peer",105:"No buffer space available",106:"Socket is already connected",107:"Socket is not connected",108:"Can't send after socket shutdown",109:"Too many references",110:"Connection timed out",111:"Connection refused",112:"Host is down",113:"Host is unreachable",114:"Socket already connected",115:"Connection already in progress",116:"Stale file handle",122:"Quota exceeded",123:"No medium (in tape drive)",125:"Operation canceled",130:"Previous owner died",131:"State not recoverable"};var FS={root:null,mounts:[],devices:{},streams:[],nextInode:1,nameTable:null,currentPath:"/",initialized:false,ignorePermissions:true,trackingDelegate:{},tracking:{openFlags:{READ:1,WRITE:2}},ErrnoError:null,genericErrors:{},filesystems:null,syncFSRequests:0,handleFSError:function (e) {
+  var ERRNO_MESSAGES={0:"Success",1:"Not super-user",2:"No such file or directory",3:"No such process",4:"Interrupted system call",5:"I/O error",6:"No such device or address",7:"Arg list too long",8:"Exec format error",9:"Bad file number",10:"No children",11:"No more processes",12:"Not enough core",13:"Permission denied",14:"Bad address",15:"Block device required",16:"Mount device busy",17:"File exists",18:"Cross-device link",19:"No such device",20:"Not a directory",21:"Is a directory",22:"Invalid argument",23:"Too many open files in system",24:"Too many open files",25:"Not a typewriter",26:"Text file busy",27:"File too large",28:"No space left on device",29:"Illegal seek",30:"Read only file system",31:"Too many links",32:"Broken pipe",33:"Math arg out of domain of func",34:"Math result not representable",35:"File locking deadlock error",36:"File or path name too long",37:"No record locks available",38:"Function not implemented",39:"Directory not empty",40:"Too many symbolic links",42:"No message of desired type",43:"Identifier removed",44:"Channel number out of range",45:"Level 2 not synchronized",46:"Level 3 halted",47:"Level 3 reset",48:"Link number out of range",49:"Protocol driver not attached",50:"No CSI structure available",51:"Level 2 halted",52:"Invalid exchange",53:"Invalid request descriptor",54:"Exchange full",55:"No anode",56:"Invalid request code",57:"Invalid slot",59:"Bad font file fmt",60:"Device not a stream",61:"No data (for no delay io)",62:"Timer expired",63:"Out of streams resources",64:"Machine is not on the network",65:"Package not installed",66:"The object is remote",67:"The link has been severed",68:"Advertise error",69:"Srmount error",70:"Communication error on send",71:"Protocol error",72:"Multihop attempted",73:"Cross mount point (not really error)",74:"Trying to read unreadable message",75:"Value too large for defined data type",76:"Given log. name not unique",77:"f.d. invalid for this operation",78:"Remote address changed",79:"Can   access a needed shared lib",80:"Accessing a corrupted shared lib",81:".lib section in a.out corrupted",82:"Attempting to link in too many libs",83:"Attempting to exec a shared library",84:"Illegal byte sequence",86:"Streams pipe error",87:"Too many users",88:"Socket operation on non-socket",89:"Destination address required",90:"Message too long",91:"Protocol wrong type for socket",92:"Protocol not available",93:"Unknown protocol",94:"Socket type not supported",95:"Not supported",96:"Protocol family not supported",97:"Address family not supported by protocol family",98:"Address already in use",99:"Address not available",100:"Network interface is not configured",101:"Network is unreachable",102:"Connection reset by network",103:"Connection aborted",104:"Connection reset by peer",105:"No buffer space available",106:"Socket is already connected",107:"Socket is not connected",108:"Can't send after socket shutdown",109:"Too many references",110:"Connection timed out",111:"Connection refused",112:"Host is down",113:"Host is unreachable",114:"Socket already connected",115:"Connection already in progress",116:"Stale file handle",122:"Quota exceeded",123:"No medium (in tape drive)",125:"Operation canceled",130:"Previous owner died",131:"State not recoverable"};
+  
+  var ERRNO_CODES={EPERM:1,ENOENT:2,ESRCH:3,EINTR:4,EIO:5,ENXIO:6,E2BIG:7,ENOEXEC:8,EBADF:9,ECHILD:10,EAGAIN:11,EWOULDBLOCK:11,ENOMEM:12,EACCES:13,EFAULT:14,ENOTBLK:15,EBUSY:16,EEXIST:17,EXDEV:18,ENODEV:19,ENOTDIR:20,EISDIR:21,EINVAL:22,ENFILE:23,EMFILE:24,ENOTTY:25,ETXTBSY:26,EFBIG:27,ENOSPC:28,ESPIPE:29,EROFS:30,EMLINK:31,EPIPE:32,EDOM:33,ERANGE:34,ENOMSG:42,EIDRM:43,ECHRNG:44,EL2NSYNC:45,EL3HLT:46,EL3RST:47,ELNRNG:48,EUNATCH:49,ENOCSI:50,EL2HLT:51,EDEADLK:35,ENOLCK:37,EBADE:52,EBADR:53,EXFULL:54,ENOANO:55,EBADRQC:56,EBADSLT:57,EDEADLOCK:35,EBFONT:59,ENOSTR:60,ENODATA:61,ETIME:62,ENOSR:63,ENONET:64,ENOPKG:65,EREMOTE:66,ENOLINK:67,EADV:68,ESRMNT:69,ECOMM:70,EPROTO:71,EMULTIHOP:72,EDOTDOT:73,EBADMSG:74,ENOTUNIQ:76,EBADFD:77,EREMCHG:78,ELIBACC:79,ELIBBAD:80,ELIBSCN:81,ELIBMAX:82,ELIBEXEC:83,ENOSYS:38,ENOTEMPTY:39,ENAMETOOLONG:36,ELOOP:40,EOPNOTSUPP:95,EPFNOSUPPORT:96,ECONNRESET:104,ENOBUFS:105,EAFNOSUPPORT:97,EPROTOTYPE:91,ENOTSOCK:88,ENOPROTOOPT:92,ESHUTDOWN:108,ECONNREFUSED:111,EADDRINUSE:98,ECONNABORTED:103,ENETUNREACH:101,ENETDOWN:100,ETIMEDOUT:110,EHOSTDOWN:112,EHOSTUNREACH:113,EINPROGRESS:115,EALREADY:114,EDESTADDRREQ:89,EMSGSIZE:90,EPROTONOSUPPORT:93,ESOCKTNOSUPPORT:94,EADDRNOTAVAIL:99,ENETRESET:102,EISCONN:106,ENOTCONN:107,ETOOMANYREFS:109,EUSERS:87,EDQUOT:122,ESTALE:116,ENOTSUP:95,ENOMEDIUM:123,EILSEQ:84,EOVERFLOW:75,ECANCELED:125,ENOTRECOVERABLE:131,EOWNERDEAD:130,ESTRPIPE:86};var FS={root:null,mounts:[],devices:{},streams:[],nextInode:1,nameTable:null,currentPath:"/",initialized:false,ignorePermissions:true,trackingDelegate:{},tracking:{openFlags:{READ:1,WRITE:2}},ErrnoError:null,genericErrors:{},filesystems:null,syncFSRequests:0,handleFSError:function (e) {
         if (!(e instanceof FS.ErrnoError)) throw e + ' : ' + stackTrace();
         return ___setErrNo(e.errno);
       },lookupPath:function (path, opts) {
@@ -5444,9 +5132,7 @@ function copyTempDouble(ptr) {
         return low;
       },getZero:function () {
         assert(SYSCALLS.get() === 0);
-      }};function ___syscall140(which, varargs) {
-  if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(1, 1, which, varargs);
-  SYSCALLS.varargs = varargs;
+      }};function ___syscall140(which, varargs) {SYSCALLS.varargs = varargs;
   try {
    // llseek
       var stream = SYSCALLS.getStreamFromFD(), offset_high = SYSCALLS.get(), offset_low = SYSCALLS.get(), result = SYSCALLS.get(), whence = SYSCALLS.get();
@@ -5469,11 +5155,8 @@ function copyTempDouble(ptr) {
     return -e.errno;
   }
   }
-  
 
-  function ___syscall145(which, varargs) {
-  if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(2, 1, which, varargs);
-  SYSCALLS.varargs = varargs;
+  function ___syscall145(which, varargs) {SYSCALLS.varargs = varargs;
   try {
    // readv
       var stream = SYSCALLS.getStreamFromFD(), iov = SYSCALLS.get(), iovcnt = SYSCALLS.get();
@@ -5483,11 +5166,8 @@ function copyTempDouble(ptr) {
     return -e.errno;
   }
   }
-  
 
-  function ___syscall146(which, varargs) {
-  if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(3, 1, which, varargs);
-  SYSCALLS.varargs = varargs;
+  function ___syscall146(which, varargs) {SYSCALLS.varargs = varargs;
   try {
    // writev
       var stream = SYSCALLS.getStreamFromFD(), iov = SYSCALLS.get(), iovcnt = SYSCALLS.get();
@@ -5497,11 +5177,8 @@ function copyTempDouble(ptr) {
     return -e.errno;
   }
   }
-  
 
-  function ___syscall221(which, varargs) {
-  if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(4, 1, which, varargs);
-  SYSCALLS.varargs = varargs;
+  function ___syscall221(which, varargs) {SYSCALLS.varargs = varargs;
   try {
    // fcntl64
       var stream = SYSCALLS.getStreamFromFD(), cmd = SYSCALLS.get();
@@ -5557,11 +5234,8 @@ function copyTempDouble(ptr) {
     return -e.errno;
   }
   }
-  
 
-  function ___syscall5(which, varargs) {
-  if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(5, 1, which, varargs);
-  SYSCALLS.varargs = varargs;
+  function ___syscall5(which, varargs) {SYSCALLS.varargs = varargs;
   try {
    // open
       var pathname = SYSCALLS.getStr(), flags = SYSCALLS.get(), mode = SYSCALLS.get() // optional TODO
@@ -5572,11 +5246,8 @@ function copyTempDouble(ptr) {
     return -e.errno;
   }
   }
-  
 
-  function ___syscall54(which, varargs) {
-  if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(6, 1, which, varargs);
-  SYSCALLS.varargs = varargs;
+  function ___syscall54(which, varargs) {SYSCALLS.varargs = varargs;
   try {
    // ioctl
       var stream = SYSCALLS.getStreamFromFD(), op = SYSCALLS.get();
@@ -5629,11 +5300,8 @@ function copyTempDouble(ptr) {
     return -e.errno;
   }
   }
-  
 
-  function ___syscall6(which, varargs) {
-  if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(7, 1, which, varargs);
-  SYSCALLS.varargs = varargs;
+  function ___syscall6(which, varargs) {SYSCALLS.varargs = varargs;
   try {
    // close
       var stream = SYSCALLS.getStreamFromFD();
@@ -5644,7 +5312,6 @@ function copyTempDouble(ptr) {
     return -e.errno;
   }
   }
-  
 
   
   function __emscripten_syscall_munmap(addr, len) {
@@ -5664,9 +5331,7 @@ function copyTempDouble(ptr) {
         }
       }
       return 0;
-    }function ___syscall91(which, varargs) {
-  if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(8, 1, which, varargs);
-  SYSCALLS.varargs = varargs;
+    }function ___syscall91(which, varargs) {SYSCALLS.varargs = varargs;
   try {
    // munmap
       var addr = SYSCALLS.get(), len = SYSCALLS.get();
@@ -5676,7 +5341,6 @@ function copyTempDouble(ptr) {
     return -e.errno;
   }
   }
-  
 
   function ___unlock() {}
 
@@ -5684,618 +5348,41 @@ function copyTempDouble(ptr) {
       Module['abort']();
     }
 
+  
+  function _emscripten_get_now() { abort() }
+  
+  function _emscripten_get_now_is_monotonic() {
+      // return whether emscripten_get_now is guaranteed monotonic; the Date.now
+      // implementation is not :(
+      return (0
+        || ENVIRONMENT_IS_NODE
+        || (typeof dateNow !== 'undefined')
+        || (typeof performance === 'object' && performance && typeof performance['now'] === 'function')
+        );
+    }function _clock_gettime(clk_id, tp) {
+      // int clock_gettime(clockid_t clk_id, struct timespec *tp);
+      var now;
+      if (clk_id === 0) {
+        now = Date.now();
+      } else if (clk_id === 1 && _emscripten_get_now_is_monotonic()) {
+        now = _emscripten_get_now();
+      } else {
+        ___setErrNo(22);
+        return -1;
+      }
+      HEAP32[((tp)>>2)]=(now/1000)|0; // seconds
+      HEAP32[(((tp)+(4))>>2)]=((now % 1000)*1000*1000)|0; // nanoseconds
+      return 0;
+    }
 
   var _emscripten_asm_const_int=true;
-
-  
-  function _emscripten_conditional_set_current_thread_status_js(expectedStatus, newStatus) {
-    } 
-
-  
-  var __main_thread_futex_wait_address; if (ENVIRONMENT_IS_PTHREAD) __main_thread_futex_wait_address = PthreadWorkerInit.__main_thread_futex_wait_address; else PthreadWorkerInit.__main_thread_futex_wait_address = __main_thread_futex_wait_address = 35568;function _emscripten_futex_wait(addr, val, timeout) {
-      if (addr <= 0 || addr > HEAP8.length || addr&3 != 0) return -22;
-  //    dump('futex_wait addr:' + addr + ' by thread: ' + _pthread_self() + (ENVIRONMENT_IS_PTHREAD?'(pthread)':'') + '\n');
-      if (ENVIRONMENT_IS_WORKER) {
-        var ret = Atomics.wait(HEAP32, addr >> 2, val, timeout);
-  //    dump('futex_wait done by thread: ' + _pthread_self() + (ENVIRONMENT_IS_PTHREAD?'(pthread)':'') + '\n');
-        if (ret === 'timed-out') return -110;
-        if (ret === 'not-equal') return -11;
-        if (ret === 'ok') return 0;
-        throw 'Atomics.wait returned an unexpected value ' + ret;
-      } else {
-        // Atomics.wait is not available in the main browser thread, so simulate it via busy spinning.
-        var loadedVal = Atomics.load(HEAP32, addr >> 2);
-        if (val != loadedVal) return -11;
-  
-        var tNow = performance.now();
-        var tEnd = tNow + timeout;
-  
-  
-        // Register globally which address the main thread is simulating to be waiting on. When zero, main thread is not waiting on anything,
-        // and on nonzero, the contents of address pointed by __main_thread_futex_wait_address tell which address the main thread is simulating its wait on.
-        Atomics.store(HEAP32, __main_thread_futex_wait_address >> 2, addr);
-        var ourWaitAddress = addr; // We may recursively re-enter this function while processing queued calls, in which case we'll do a spurious wakeup of the older wait operation.
-        while (addr == ourWaitAddress) {
-          tNow = performance.now();
-          if (tNow > tEnd) {
-            return -110;
-          }
-          _emscripten_main_thread_process_queued_calls(); // We are performing a blocking loop here, so must pump any pthreads if they want to perform operations that are proxied.
-          addr = Atomics.load(HEAP32, __main_thread_futex_wait_address >> 2); // Look for a worker thread waking us up.
-        }
-        return 0;
-      }
-    }
-
-  function _emscripten_futex_wake(addr, count) {
-      if (addr <= 0 || addr > HEAP8.length || addr&3 != 0 || count < 0) return -22;
-      if (count == 0) return 0;
-      // Waking (at least) INT_MAX waiters is defined to mean wake all callers.
-      // For Atomics.notify() API Infinity is to be passed in that case.
-      if (count >= 2147483647) count = Infinity;
-  //    dump('futex_wake addr:' + addr + ' by thread: ' + _pthread_self() + (ENVIRONMENT_IS_PTHREAD?'(pthread)':'') + '\n');
-  
-      // See if main thread is waiting on this address? If so, wake it up by resetting its wake location to zero.
-      // Note that this is not a fair procedure, since we always wake main thread first before any workers, so
-      // this scheme does not adhere to real queue-based waiting.
-      var mainThreadWaitAddress = Atomics.load(HEAP32, __main_thread_futex_wait_address >> 2);
-      var mainThreadWoken = 0;
-      if (mainThreadWaitAddress == addr) {
-        var loadedAddr = Atomics.compareExchange(HEAP32, __main_thread_futex_wait_address >> 2, mainThreadWaitAddress, 0);
-        if (loadedAddr == mainThreadWaitAddress) {
-          --count;
-          mainThreadWoken = 1;
-          if (count <= 0) return 1;
-        }
-      }
-  
-      // Wake any workers waiting on this address.
-      var ret = Atomics.notify(HEAP32, addr >> 2, count);
-      if (ret >= 0) return ret + mainThreadWoken;
-      throw 'Atomics.notify returned an unexpected value ' + ret;
-    }
 
   function _emscripten_get_heap_size() {
       return HEAP8.length;
     }
 
-
-  function _emscripten_has_threading_support() {
-      return typeof SharedArrayBuffer !== 'undefined';
-    }
-
-   
-
-   
-
-  
-  function _emscripten_proxy_to_main_thread_js(index, sync) {
-      // Additional arguments are passed after those two, which are the actual
-      // function arguments.
-      // The serialization buffer contains the number of call params, and then
-      // all the args here.
-      // We also pass 'sync' to C separately, since C needs to look at it.
-      var numCallArgs = arguments.length - 2;
-      // Allocate a buffer, which will be copied by the C code.
-      var stack = stackSave();
-      var buffer = stackAlloc(numCallArgs * 8);
-      for (var i = 0; i < numCallArgs; i++) {
-        HEAPF64[(buffer >> 3) + i] = arguments[2 + i];
-      }
-      var ret = _emscripten_run_in_main_runtime_thread_js(index, numCallArgs, buffer, sync);
-      stackRestore(stack);
-      return ret;
-    }function _emscripten_receive_on_main_thread_js(index, numCallArgs, buffer) {
-      // Avoid garbage by reusing a single JS array for call arguments.
-      if (!_emscripten_receive_on_main_thread_js.callArgs) {
-        _emscripten_receive_on_main_thread_js.callArgs = [];
-      }
-      var callArgs = _emscripten_receive_on_main_thread_js.callArgs;
-      callArgs.length = numCallArgs;
-      for (var i = 0; i < numCallArgs; i++) {
-        callArgs[i] = HEAPF64[(buffer >> 3) + i];
-      }
-      // Proxied JS library funcs are encoded as positive values, and
-      // EM_ASMs as negative values (see include_asm_consts)
-      var func;
-      if (index > 0) {
-        func = proxiedFunctionTable[index];
-      } else {
-        func = ASM_CONSTS[-index - 1];
-      }
-      assert(func.length == numCallArgs);
-      return func.apply(null, callArgs);
-    }
-
-  
-  var JSEvents={keyEvent:0,mouseEvent:0,wheelEvent:0,uiEvent:0,focusEvent:0,deviceOrientationEvent:0,deviceMotionEvent:0,fullscreenChangeEvent:0,pointerlockChangeEvent:0,visibilityChangeEvent:0,touchEvent:0,previousFullscreenElement:null,previousScreenX:null,previousScreenY:null,removeEventListenersRegistered:false,removeAllEventListeners:function () {
-        for(var i = JSEvents.eventHandlers.length-1; i >= 0; --i) {
-          JSEvents._removeHandler(i);
-        }
-        JSEvents.eventHandlers = [];
-        JSEvents.deferredCalls = [];
-      },registerRemoveEventListeners:function () {
-        if (!JSEvents.removeEventListenersRegistered) {
-          __ATEXIT__.push(JSEvents.removeAllEventListeners);
-          JSEvents.removeEventListenersRegistered = true;
-        }
-      },deferredCalls:[],deferCall:function (targetFunction, precedence, argsList) {
-        function arraysHaveEqualContent(arrA, arrB) {
-          if (arrA.length != arrB.length) return false;
-  
-          for(var i in arrA) {
-            if (arrA[i] != arrB[i]) return false;
-          }
-          return true;
-        }
-        // Test if the given call was already queued, and if so, don't add it again.
-        for(var i in JSEvents.deferredCalls) {
-          var call = JSEvents.deferredCalls[i];
-          if (call.targetFunction == targetFunction && arraysHaveEqualContent(call.argsList, argsList)) {
-            return;
-          }
-        }
-        JSEvents.deferredCalls.push({
-          targetFunction: targetFunction,
-          precedence: precedence,
-          argsList: argsList
-        });
-  
-        JSEvents.deferredCalls.sort(function(x,y) { return x.precedence < y.precedence; });
-      },removeDeferredCalls:function (targetFunction) {
-        for(var i = 0; i < JSEvents.deferredCalls.length; ++i) {
-          if (JSEvents.deferredCalls[i].targetFunction == targetFunction) {
-            JSEvents.deferredCalls.splice(i, 1);
-            --i;
-          }
-        }
-      },canPerformEventHandlerRequests:function () {
-        return JSEvents.inEventHandler && JSEvents.currentEventHandler.allowsDeferredCalls;
-      },runDeferredCalls:function () {
-        if (!JSEvents.canPerformEventHandlerRequests()) {
-          return;
-        }
-        for(var i = 0; i < JSEvents.deferredCalls.length; ++i) {
-          var call = JSEvents.deferredCalls[i];
-          JSEvents.deferredCalls.splice(i, 1);
-          --i;
-          call.targetFunction.apply(this, call.argsList);
-        }
-      },inEventHandler:0,currentEventHandler:null,eventHandlers:[],isInternetExplorer:function () { return navigator.userAgent.indexOf('MSIE') !== -1 || navigator.appVersion.indexOf('Trident/') > 0; },removeAllHandlersOnTarget:function (target, eventTypeString) {
-        for(var i = 0; i < JSEvents.eventHandlers.length; ++i) {
-          if (JSEvents.eventHandlers[i].target == target && 
-            (!eventTypeString || eventTypeString == JSEvents.eventHandlers[i].eventTypeString)) {
-             JSEvents._removeHandler(i--);
-           }
-        }
-      },_removeHandler:function (i) {
-        var h = JSEvents.eventHandlers[i];
-        h.target.removeEventListener(h.eventTypeString, h.eventListenerFunc, h.useCapture);
-        JSEvents.eventHandlers.splice(i, 1);
-      },registerOrRemoveHandler:function (eventHandler) {
-        var jsEventHandler = function jsEventHandler(event) {
-          // Increment nesting count for the event handler.
-          ++JSEvents.inEventHandler;
-          JSEvents.currentEventHandler = eventHandler;
-          // Process any old deferred calls the user has placed.
-          JSEvents.runDeferredCalls();
-          // Process the actual event, calls back to user C code handler.
-          eventHandler.handlerFunc(event);
-          // Process any new deferred calls that were placed right now from this event handler.
-          JSEvents.runDeferredCalls();
-          // Out of event handler - restore nesting count.
-          --JSEvents.inEventHandler;
-        }
-        
-        if (eventHandler.callbackfunc) {
-          eventHandler.eventListenerFunc = jsEventHandler;
-          eventHandler.target.addEventListener(eventHandler.eventTypeString, jsEventHandler, eventHandler.useCapture);
-          JSEvents.eventHandlers.push(eventHandler);
-          JSEvents.registerRemoveEventListeners();
-        } else {
-          for(var i = 0; i < JSEvents.eventHandlers.length; ++i) {
-            if (JSEvents.eventHandlers[i].target == eventHandler.target
-             && JSEvents.eventHandlers[i].eventTypeString == eventHandler.eventTypeString) {
-               JSEvents._removeHandler(i--);
-             }
-          }
-        }
-      },queueEventHandlerOnThread_iiii:function (targetThread, eventHandlerFunc, eventTypeId, eventData, userData) {
-        var stackTop = stackSave();
-        var varargs = stackAlloc(12);
-        HEAP32[((varargs)>>2)]=eventTypeId;
-        HEAP32[(((varargs)+(4))>>2)]=eventData;
-        HEAP32[(((varargs)+(8))>>2)]=userData;
-        _emscripten_async_queue_on_thread_(targetThread, 637534208, eventHandlerFunc, eventData, varargs);
-        stackRestore(stackTop);
-      },getTargetThreadForEventCallback:function (targetThread) {
-        switch(targetThread) {
-          case 1: return 0; // The event callback for the current event should be called on the main browser thread. (0 == don't proxy)
-          case 2: return PThread.currentProxiedOperationCallerThread; // The event callback for the current event should be backproxied to the the thread that is registering the event.
-          default: return targetThread; // The event callback for the current event should be proxied to the given specific thread.
-        }
-      },getBoundingClientRectOrZeros:function (target) {
-        return target.getBoundingClientRect ? target.getBoundingClientRect() : { left: 0, top: 0 };
-      },pageScrollPos:function () {
-        if (window.pageXOffset > 0 || window.pageYOffset > 0) {
-          return [window.pageXOffset, window.pageYOffset];
-        }
-        if (typeof document.documentElement.scrollLeft !== 'undefined' || typeof document.documentElement.scrollTop !== 'undefined') {
-          return [document.documentElement.scrollLeft, document.documentElement.scrollTop];
-        }
-        return [document.body.scrollLeft|0, document.body.scrollTop|0];
-      },getNodeNameForTarget:function (target) {
-        if (!target) return '';
-        if (target == window) return '#window';
-        if (target == screen) return '#screen';
-        return (target && target.nodeName) ? target.nodeName : '';
-      },tick:function () {
-        if (window['performance'] && window['performance']['now']) return window['performance']['now']();
-        else return Date.now();
-      },fullscreenEnabled:function () {
-        return document.fullscreenEnabled || document.mozFullScreenEnabled || document.webkitFullscreenEnabled || document.msFullscreenEnabled;
-      }};
-  
-  
-  
-  
-  function stringToNewUTF8(jsString) {
-      var length = lengthBytesUTF8(jsString)+1;
-      var cString = _malloc(length);
-      stringToUTF8(jsString, cString, length);
-      return cString;
-    }function _emscripten_set_offscreencanvas_size_on_target_thread_js(targetThread, targetCanvas, width, height) {
-      var stackTop = stackSave();
-      var varargs = stackAlloc(12);
-      var targetCanvasPtr = 0;
-      if (targetCanvas) {
-        targetCanvasPtr = stringToNewUTF8(targetCanvas);
-      }
-      HEAP32[((varargs)>>2)]=targetCanvasPtr;
-      HEAP32[(((varargs)+(4))>>2)]=width;
-      HEAP32[(((varargs)+(8))>>2)]=height;
-      // Note: If we are also a pthread, the call below could theoretically be done synchronously. However if the target pthread is waiting for a mutex from us, then
-      // these two threads will deadlock. At the moment, we'd like to consider that this kind of deadlock would be an Emscripten runtime bug, although if
-      // emscripten_set_canvas_element_size() was documented to require running an event in the queue of thread that owns the OffscreenCanvas, then that might be ok.
-      // (safer this way however)
-      _emscripten_async_queue_on_thread_(targetThread, 657457152, 0, targetCanvasPtr /* satellite data */, varargs);
-      stackRestore(stackTop);
-    }function _emscripten_set_offscreencanvas_size_on_target_thread(targetThread, targetCanvas, width, height) {
-      targetCanvas = targetCanvas ? UTF8ToString(targetCanvas) : '';
-      _emscripten_set_offscreencanvas_size_on_target_thread_js(targetThread, targetCanvas, width, height);
-    }
-  
-  
-  
-  var __specialEventTargets=[0, typeof document !== 'undefined' ? document : 0, typeof window !== 'undefined' ? window : 0];function __findEventTarget(target) {
-      warnOnce('Rules for selecting event targets in HTML5 API are changing: instead of using document.getElementById() that only can refer to elements by their DOM ID, new event target selection mechanism uses the more flexible function document.querySelector() that can look up element names, classes, and complex CSS selectors. Build with -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 to change to the new lookup rules. See https://github.com/emscripten-core/emscripten/pull/7977 for more details.');
-      try {
-        // The sensible "default" target varies between events, but use window as the default
-        // since DOM events mostly can default to that. Specific callback registrations
-        // override their own defaults.
-        if (!target) return window;
-        if (typeof target === "number") target = __specialEventTargets[target] || UTF8ToString(target);
-        if (target === '#window') return window;
-        else if (target === '#document') return document;
-        else if (target === '#screen') return screen;
-        else if (target === '#canvas') return Module['canvas'];
-        return (typeof target === 'string') ? document.getElementById(target) : target;
-      } catch(e) {
-        // In Web Workers, some objects above, such as '#document' do not exist. Gracefully
-        // return null for them.
-        return null;
-      }
-    }function __findCanvasEventTarget(target) {
-      if (typeof target === 'number') target = UTF8ToString(target);
-      if (!target || target === '#canvas') {
-        if (typeof GL !== 'undefined' && GL.offscreenCanvases['canvas']) return GL.offscreenCanvases['canvas']; // TODO: Remove this line, target '#canvas' should refer only to Module['canvas'], not to GL.offscreenCanvases['canvas'] - but need stricter tests to be able to remove this line.
-        return Module['canvas'];
-      }
-      if (typeof GL !== 'undefined' && GL.offscreenCanvases[target]) return GL.offscreenCanvases[target];
-      return __findEventTarget(target);
-    }function _emscripten_set_canvas_element_size_calling_thread(target, width, height) {
-      var canvas = __findCanvasEventTarget(target);
-      if (!canvas) return -4;
-  
-      if (canvas.canvasSharedPtr) {
-        // N.B. We hold the canvasSharedPtr info structure as the authoritative source for specifying the size of a canvas
-        // since the actual canvas size changes are asynchronous if the canvas is owned by an OffscreenCanvas on another thread.
-        // Therefore when setting the size, eagerly set the size of the canvas on the calling thread here, though this thread
-        // might not be the one that actually ends up specifying the size, but the actual size change may be dispatched
-        // as an asynchronous event below.
-        HEAP32[((canvas.canvasSharedPtr)>>2)]=width;
-        HEAP32[(((canvas.canvasSharedPtr)+(4))>>2)]=height;
-      }
-  
-      if (canvas.offscreenCanvas || !canvas.controlTransferredOffscreen) {
-        if (canvas.offscreenCanvas) canvas = canvas.offscreenCanvas;
-        var autoResizeViewport = false;
-        if (canvas.GLctxObject && canvas.GLctxObject.GLctx) {
-          var prevViewport = canvas.GLctxObject.GLctx.getParameter(canvas.GLctxObject.GLctx.VIEWPORT);
-          // TODO: Perhaps autoResizeViewport should only be true if FBO 0 is currently active?
-          autoResizeViewport = (prevViewport[0] === 0 && prevViewport[1] === 0 && prevViewport[2] === canvas.width && prevViewport[3] === canvas.height);
-        }
-        canvas.width = width;
-        canvas.height = height;
-        if (autoResizeViewport) {
-          // TODO: Add -s CANVAS_RESIZE_SETS_GL_VIEWPORT=0/1 option (default=1). This is commonly done and several graphics engines depend on this,
-          // but this can be quite disruptive.
-          canvas.GLctxObject.GLctx.viewport(0, 0, width, height);
-        }
-      } else if (canvas.canvasSharedPtr) {
-        var targetThread = HEAP32[(((canvas.canvasSharedPtr)+(8))>>2)];
-        _emscripten_set_offscreencanvas_size_on_target_thread(targetThread, target, width, height);
-        return 1; // This will have to be done asynchronously
-      } else {
-        return -4;
-      }
-      return 0;
-    }
-  
-  function _emscripten_set_canvas_element_size_main_thread(target, width, height) {
-  if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(9, 1, target, width, height);
-   return _emscripten_set_canvas_element_size_calling_thread(target, width, height); }
-  function _emscripten_set_canvas_element_size(target, width, height) {
-      var canvas = __findCanvasEventTarget(target);
-      if (canvas) {
-        return _emscripten_set_canvas_element_size_calling_thread(target, width, height);
-      } else {
-        return _emscripten_set_canvas_element_size_main_thread(target, width, height);
-      }
-    }
-
-  
-  function _emscripten_set_current_thread_status_js(newStatus) {
-    } 
-
-  
-  function _emscripten_set_thread_name_js(threadId, name) {
-    } 
-
-  function _emscripten_syscall(which, varargs) {
-    switch (which) {
-      case 140: return ___syscall140(which, varargs);
-      case 145: return ___syscall145(which, varargs);
-      case 146: return ___syscall146(which, varargs);
-      case 221: return ___syscall221(which, varargs);
-      case 5: return ___syscall5(which, varargs);
-      case 54: return ___syscall54(which, varargs);
-      case 6: return ___syscall6(which, varargs);
-      case 91: return ___syscall91(which, varargs);
-      default: throw "surprising proxied syscall: " + which;
-    }
-  }
-
-  
-  
-  var GL={counter:1,lastError:0,buffers:[],mappedBuffers:{},programs:[],framebuffers:[],renderbuffers:[],textures:[],uniforms:[],shaders:[],vaos:[],contexts:{},currentContext:null,offscreenCanvases:{},timerQueriesEXT:[],programInfos:{},stringCache:{},unpackAlignment:4,init:function () {
-        GL.miniTempBuffer = new Float32Array(GL.MINI_TEMP_BUFFER_SIZE);
-        for (var i = 0; i < GL.MINI_TEMP_BUFFER_SIZE; i++) {
-          GL.miniTempBufferViews[i] = GL.miniTempBuffer.subarray(0, i+1);
-        }
-      },recordError:function recordError(errorCode) {
-        if (!GL.lastError) {
-          GL.lastError = errorCode;
-        }
-      },getNewId:function (table) {
-        var ret = GL.counter++;
-        for (var i = table.length; i < ret; i++) {
-          table[i] = null;
-        }
-        return ret;
-      },MINI_TEMP_BUFFER_SIZE:256,miniTempBuffer:null,miniTempBufferViews:[0],getSource:function (shader, count, string, length) {
-        var source = '';
-        for (var i = 0; i < count; ++i) {
-          var len = length ? HEAP32[(((length)+(i*4))>>2)] : -1;
-          source += UTF8ToString(HEAP32[(((string)+(i*4))>>2)], len < 0 ? undefined : len);
-        }
-        return source;
-      },createContext:function (canvas, webGLContextAttributes) {
-  
-  
-  
-  
-        var ctx = 
-          (canvas.getContext("webgl", webGLContextAttributes) || canvas.getContext("experimental-webgl", webGLContextAttributes));
-  
-  
-        return ctx ? GL.registerContext(ctx, webGLContextAttributes) : 0;
-      },registerContext:function (ctx, webGLContextAttributes) {
-        var handle = _malloc(8); // Make space on the heap to store GL context attributes that need to be accessible as shared between threads.
-        HEAP32[(((handle)+(4))>>2)]=_pthread_self(); // the thread pointer of the thread that owns the control of the context
-        var context = {
-          handle: handle,
-          attributes: webGLContextAttributes,
-          version: webGLContextAttributes.majorVersion,
-          GLctx: ctx
-        };
-  
-  
-  
-        // Store the created context object so that we can access the context given a canvas without having to pass the parameters again.
-        if (ctx.canvas) ctx.canvas.GLctxObject = context;
-        GL.contexts[handle] = context;
-        if (typeof webGLContextAttributes.enableExtensionsByDefault === 'undefined' || webGLContextAttributes.enableExtensionsByDefault) {
-          GL.initExtensions(context);
-        }
-  
-  
-  
-  
-        return handle;
-      },makeContextCurrent:function (contextHandle) {
-  
-        GL.currentContext = GL.contexts[contextHandle]; // Active Emscripten GL layer context object.
-        Module.ctx = GLctx = GL.currentContext && GL.currentContext.GLctx; // Active WebGL context object.
-        return !(contextHandle && !GLctx);
-      },getContext:function (contextHandle) {
-        return GL.contexts[contextHandle];
-      },deleteContext:function (contextHandle) {
-        if (GL.currentContext === GL.contexts[contextHandle]) GL.currentContext = null;
-        if (typeof JSEvents === 'object') JSEvents.removeAllHandlersOnTarget(GL.contexts[contextHandle].GLctx.canvas); // Release all JS event handlers on the DOM element that the GL context is associated with since the context is now deleted.
-        if (GL.contexts[contextHandle] && GL.contexts[contextHandle].GLctx.canvas) GL.contexts[contextHandle].GLctx.canvas.GLctxObject = undefined; // Make sure the canvas object no longer refers to the context object so there are no GC surprises.
-        _free(GL.contexts[contextHandle]);
-        GL.contexts[contextHandle] = null;
-      },initExtensions:function (context) {
-        // If this function is called without a specific context object, init the extensions of the currently active context.
-        if (!context) context = GL.currentContext;
-  
-        if (context.initExtensionsDone) return;
-        context.initExtensionsDone = true;
-  
-        var GLctx = context.GLctx;
-  
-        // Detect the presence of a few extensions manually, this GL interop layer itself will need to know if they exist.
-  
-        if (context.version < 2) {
-          // Extension available from Firefox 26 and Google Chrome 30
-          var instancedArraysExt = GLctx.getExtension('ANGLE_instanced_arrays');
-          if (instancedArraysExt) {
-            GLctx['vertexAttribDivisor'] = function(index, divisor) { instancedArraysExt['vertexAttribDivisorANGLE'](index, divisor); };
-            GLctx['drawArraysInstanced'] = function(mode, first, count, primcount) { instancedArraysExt['drawArraysInstancedANGLE'](mode, first, count, primcount); };
-            GLctx['drawElementsInstanced'] = function(mode, count, type, indices, primcount) { instancedArraysExt['drawElementsInstancedANGLE'](mode, count, type, indices, primcount); };
-          }
-  
-          // Extension available from Firefox 25 and WebKit
-          var vaoExt = GLctx.getExtension('OES_vertex_array_object');
-          if (vaoExt) {
-            GLctx['createVertexArray'] = function() { return vaoExt['createVertexArrayOES'](); };
-            GLctx['deleteVertexArray'] = function(vao) { vaoExt['deleteVertexArrayOES'](vao); };
-            GLctx['bindVertexArray'] = function(vao) { vaoExt['bindVertexArrayOES'](vao); };
-            GLctx['isVertexArray'] = function(vao) { return vaoExt['isVertexArrayOES'](vao); };
-          }
-  
-          var drawBuffersExt = GLctx.getExtension('WEBGL_draw_buffers');
-          if (drawBuffersExt) {
-            GLctx['drawBuffers'] = function(n, bufs) { drawBuffersExt['drawBuffersWEBGL'](n, bufs); };
-          }
-        }
-  
-        GLctx.disjointTimerQueryExt = GLctx.getExtension("EXT_disjoint_timer_query");
-  
-        // These are the 'safe' feature-enabling extensions that don't add any performance impact related to e.g. debugging, and
-        // should be enabled by default so that client GLES2/GL code will not need to go through extra hoops to get its stuff working.
-        // As new extensions are ratified at http://www.khronos.org/registry/webgl/extensions/ , feel free to add your new extensions
-        // here, as long as they don't produce a performance impact for users that might not be using those extensions.
-        // E.g. debugging-related extensions should probably be off by default.
-        var automaticallyEnabledExtensions = [ // Khronos ratified WebGL extensions ordered by number (no debug extensions):
-                                               "OES_texture_float", "OES_texture_half_float", "OES_standard_derivatives",
-                                               "OES_vertex_array_object", "WEBGL_compressed_texture_s3tc", "WEBGL_depth_texture",
-                                               "OES_element_index_uint", "EXT_texture_filter_anisotropic", "EXT_frag_depth",
-                                               "WEBGL_draw_buffers", "ANGLE_instanced_arrays", "OES_texture_float_linear",
-                                               "OES_texture_half_float_linear", "EXT_blend_minmax", "EXT_shader_texture_lod",
-                                               // Community approved WebGL extensions ordered by number:
-                                               "WEBGL_compressed_texture_pvrtc", "EXT_color_buffer_half_float", "WEBGL_color_buffer_float",
-                                               "EXT_sRGB", "WEBGL_compressed_texture_etc1", "EXT_disjoint_timer_query",
-                                               "WEBGL_compressed_texture_etc", "WEBGL_compressed_texture_astc", "EXT_color_buffer_float",
-                                               "WEBGL_compressed_texture_s3tc_srgb", "EXT_disjoint_timer_query_webgl2"];
-  
-        function shouldEnableAutomatically(extension) {
-          var ret = false;
-          automaticallyEnabledExtensions.forEach(function(include) {
-            if (extension.indexOf(include) != -1) {
-              ret = true;
-            }
-          });
-          return ret;
-        }
-  
-        var exts = GLctx.getSupportedExtensions();
-        if (exts && exts.length > 0) {
-          GLctx.getSupportedExtensions().forEach(function(ext) {
-            if (automaticallyEnabledExtensions.indexOf(ext) != -1) {
-              GLctx.getExtension(ext); // Calling .getExtension enables that extension permanently, no need to store the return value to be enabled.
-            }
-          });
-        }
-      },populateUniformTable:function (program) {
-        var p = GL.programs[program];
-        var ptable = GL.programInfos[program] = {
-          uniforms: {},
-          maxUniformLength: 0, // This is eagerly computed below, since we already enumerate all uniforms anyway.
-          maxAttributeLength: -1, // This is lazily computed and cached, computed when/if first asked, "-1" meaning not computed yet.
-          maxUniformBlockNameLength: -1 // Lazily computed as well
-        };
-  
-        var utable = ptable.uniforms;
-        // A program's uniform table maps the string name of an uniform to an integer location of that uniform.
-        // The global GL.uniforms map maps integer locations to WebGLUniformLocations.
-        var numUniforms = GLctx.getProgramParameter(p, 0x8B86/*GL_ACTIVE_UNIFORMS*/);
-        for (var i = 0; i < numUniforms; ++i) {
-          var u = GLctx.getActiveUniform(p, i);
-  
-          var name = u.name;
-          ptable.maxUniformLength = Math.max(ptable.maxUniformLength, name.length+1);
-  
-          // If we are dealing with an array, e.g. vec4 foo[3], strip off the array index part to canonicalize that "foo", "foo[]",
-          // and "foo[0]" will mean the same. Loop below will populate foo[1] and foo[2].
-          if (name.slice(-1) == ']') {
-            name = name.slice(0, name.lastIndexOf('['));
-          }
-  
-          // Optimize memory usage slightly: If we have an array of uniforms, e.g. 'vec3 colors[3];', then
-          // only store the string 'colors' in utable, and 'colors[0]', 'colors[1]' and 'colors[2]' will be parsed as 'colors'+i.
-          // Note that for the GL.uniforms table, we still need to fetch the all WebGLUniformLocations for all the indices.
-          var loc = GLctx.getUniformLocation(p, name);
-          if (loc) {
-            var id = GL.getNewId(GL.uniforms);
-            utable[name] = [u.size, id];
-            GL.uniforms[id] = loc;
-  
-            for (var j = 1; j < u.size; ++j) {
-              var n = name + '['+j+']';
-              loc = GLctx.getUniformLocation(p, n);
-              id = GL.getNewId(GL.uniforms);
-  
-              GL.uniforms[id] = loc;
-            }
-          }
-        }
-      }};
-  
-  var __emscripten_webgl_power_preferences=['default', 'low-power', 'high-performance'];function _emscripten_webgl_do_create_context(target, attributes) {
-      var contextAttributes = {};
-      var a = attributes >> 2;
-      contextAttributes['alpha'] = !!HEAP32[a + (0>>2)];
-      contextAttributes['depth'] = !!HEAP32[a + (4>>2)];
-      contextAttributes['stencil'] = !!HEAP32[a + (8>>2)];
-      contextAttributes['antialias'] = !!HEAP32[a + (12>>2)];
-      contextAttributes['premultipliedAlpha'] = !!HEAP32[a + (16>>2)];
-      contextAttributes['preserveDrawingBuffer'] = !!HEAP32[a + (20>>2)];
-      var powerPreference = HEAP32[a + (24>>2)];
-      contextAttributes['powerPreference'] = __emscripten_webgl_power_preferences[powerPreference];
-      contextAttributes['failIfMajorPerformanceCaveat'] = !!HEAP32[a + (28>>2)];
-      contextAttributes.majorVersion = HEAP32[a + (32>>2)];
-      contextAttributes.minorVersion = HEAP32[a + (36>>2)];
-      contextAttributes.enableExtensionsByDefault = HEAP32[a + (40>>2)];
-      contextAttributes.explicitSwapControl = HEAP32[a + (44>>2)];
-      contextAttributes.proxyContextToMainThread = HEAP32[a + (48>>2)];
-      contextAttributes.renderViaOffscreenBackBuffer = HEAP32[a + (52>>2)];
-  
-      var canvas = __findCanvasEventTarget(target);
-  
-  
-  
-      if (!canvas) {
-        return 0;
-      }
-  
-      if (contextAttributes.explicitSwapControl) {
-        return 0;
-      }
-  
-  
-      var contextHandle = GL.createContext(canvas, contextAttributes);
-      return contextHandle;
-    }function _emscripten_webgl_create_context(a0,a1
-  /*``*/) {
-  return _emscripten_webgl_do_create_context(a0,a1);
-  }
-
   
   var ENV={};function _getenv(name) {
-  if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(10, 1, name);
-  
       // char *getenv(const char *name);
       // http://pubs.opengroup.org/onlinepubs/009695399/functions/getenv.html
       if (name === 0) return 0;
@@ -6306,7 +5393,6 @@ function copyTempDouble(ptr) {
       _getenv.ret = allocateUTF8(ENV[name]);
       return _getenv.ret;
     }
-  
 
   function _llvm_stackrestore(p) {
       var self = _llvm_stacksave;
@@ -6339,284 +5425,11 @@ function copyTempDouble(ptr) {
 
    
 
-  function _pthread_cleanup_pop(execute) {
-      var routine = PThread.exitHandlers.pop();
-      if (execute) routine();
-    }
+   
 
-  function _pthread_cleanup_push(routine, arg) {
-      if (PThread.exitHandlers === null) {
-        PThread.exitHandlers = [];
-        if (!ENVIRONMENT_IS_PTHREAD) {
-          __ATEXIT__.push(function() { PThread.runExitHandlers(); });
-        }
-      }
-      PThread.exitHandlers.push(function() { dynCall_vi(routine, arg) });
-    }
+  function _pthread_cond_wait() { return 0; }
 
-  
-  function __spawn_thread(threadParams) {
-      if (ENVIRONMENT_IS_PTHREAD) throw 'Internal Error! _spawn_thread() can only ever be called from main application thread!';
-  
-      var worker = PThread.getNewWorker();
-      if (worker.pthread !== undefined) throw 'Internal error!';
-      if (!threadParams.pthread_ptr) throw 'Internal error, no pthread ptr!';
-      PThread.runningWorkers.push(worker);
-  
-      // Allocate memory for thread-local storage and initialize it to zero.
-      var tlsMemory = _malloc(128 * 4);
-      for (var i = 0; i < 128; ++i) {
-        HEAP32[(((tlsMemory)+(i*4))>>2)]=0;
-      }
-  
-      var stackHigh = threadParams.stackBase + threadParams.stackSize;
-  
-      var pthread = PThread.pthreads[threadParams.pthread_ptr] = { // Create a pthread info object to represent this thread.
-        worker: worker,
-        stackBase: threadParams.stackBase,
-        stackSize: threadParams.stackSize,
-        allocatedOwnStack: threadParams.allocatedOwnStack,
-        thread: threadParams.pthread_ptr,
-        threadInfoStruct: threadParams.pthread_ptr // Info area for this thread in Emscripten HEAP (shared)
-      };
-      Atomics.store(HEAPU32, (pthread.threadInfoStruct + 0 ) >> 2, 0); // threadStatus <- 0, meaning not yet exited.
-      Atomics.store(HEAPU32, (pthread.threadInfoStruct + 4 ) >> 2, 0); // threadExitCode <- 0.
-      Atomics.store(HEAPU32, (pthread.threadInfoStruct + 20 ) >> 2, 0); // profilerBlock <- 0.
-      Atomics.store(HEAPU32, (pthread.threadInfoStruct + 80 ) >> 2, threadParams.detached);
-      Atomics.store(HEAPU32, (pthread.threadInfoStruct + 116 ) >> 2, tlsMemory); // Init thread-local-storage memory array.
-      Atomics.store(HEAPU32, (pthread.threadInfoStruct + 60 ) >> 2, 0); // Mark initial status to unused.
-      Atomics.store(HEAPU32, (pthread.threadInfoStruct + 52 ) >> 2, pthread.threadInfoStruct); // Main thread ID.
-      Atomics.store(HEAPU32, (pthread.threadInfoStruct + 56 ) >> 2, PROCINFO.pid); // Process ID.
-  
-      Atomics.store(HEAPU32, (pthread.threadInfoStruct + 120) >> 2, threadParams.stackSize);
-      Atomics.store(HEAPU32, (pthread.threadInfoStruct + 96) >> 2, threadParams.stackSize);
-      Atomics.store(HEAPU32, (pthread.threadInfoStruct + 92) >> 2, stackHigh);
-      Atomics.store(HEAPU32, (pthread.threadInfoStruct + 120 + 8) >> 2, stackHigh);
-      Atomics.store(HEAPU32, (pthread.threadInfoStruct + 120 + 12) >> 2, threadParams.detached);
-      Atomics.store(HEAPU32, (pthread.threadInfoStruct + 120 + 20) >> 2, threadParams.schedPolicy);
-      Atomics.store(HEAPU32, (pthread.threadInfoStruct + 120 + 24) >> 2, threadParams.schedPrio);
-  
-      var global_libc = _emscripten_get_global_libc();
-      var global_locale = global_libc + 40;
-      Atomics.store(HEAPU32, (pthread.threadInfoStruct + 188) >> 2, global_locale);
-  
-  
-      worker.pthread = pthread;
-      var msg = {
-          cmd: 'run',
-          start_routine: threadParams.startRoutine,
-          arg: threadParams.arg,
-          threadInfoStruct: threadParams.pthread_ptr,
-          selfThreadId: threadParams.pthread_ptr, // TODO: Remove this since thread ID is now the same as the thread address.
-          parentThreadId: threadParams.parent_pthread_ptr,
-          stackBase: threadParams.stackBase,
-          stackSize: threadParams.stackSize,
-        };
-      worker.runPthread = function() {
-        // Ask the worker to start executing its pthread entry point function.
-        msg.time = performance.now();
-        worker.postMessage(msg, threadParams.transferList);
-      };
-      if (worker.loaded) {
-        worker.runPthread();
-        delete worker.runPthread;
-      }
-    }
-  
-  function _pthread_getschedparam(thread, policy, schedparam) {
-      if (!policy && !schedparam) return ERRNO_CODES.EINVAL;
-  
-      if (!thread) {
-        err('pthread_getschedparam called with a null thread pointer!');
-        return ERRNO_CODES.ESRCH;
-      }
-      var self = HEAP32[(((thread)+(24))>>2)];
-      if (self != thread) {
-        err('pthread_getschedparam attempted on thread ' + thread + ', which does not point to a valid thread, or does not exist anymore!');
-        return ERRNO_CODES.ESRCH;
-      }
-  
-      var schedPolicy = Atomics.load(HEAPU32, (thread + 120 + 20 ) >> 2);
-      var schedPrio = Atomics.load(HEAPU32, (thread + 120 + 24 ) >> 2);
-  
-      if (policy) HEAP32[((policy)>>2)]=schedPolicy;
-      if (schedparam) HEAP32[((schedparam)>>2)]=schedPrio;
-      return 0;
-    }
-  
-   function _pthread_create(pthread_ptr, attr, start_routine, arg) {
-      if (typeof SharedArrayBuffer === 'undefined') {
-        err('Current environment does not support SharedArrayBuffer, pthreads are not available!');
-        return 11;
-      }
-      if (!pthread_ptr) {
-        err('pthread_create called with a null thread pointer!');
-        return 22;
-      }
-  
-      var transferList = []; // List of JS objects that will transfer ownership to the Worker hosting the thread
-      var error = 0;
-  
-  
-      // Synchronously proxy the thread creation to main thread if possible. If we need to transfer ownership of objects, then
-      // proxy asynchronously via postMessage.
-      if (ENVIRONMENT_IS_PTHREAD && (transferList.length == 0 || error)) {
-        return _emscripten_sync_run_in_main_thread_4(687865856, pthread_ptr, attr, start_routine, arg);
-      }
-  
-      // If on the main thread, and accessing Canvas/OffscreenCanvas failed, abort with the detected error.
-      if (error) return error;
-  
-      var stackSize = 0;
-      var stackBase = 0;
-      var detached = 0; // Default thread attr is PTHREAD_CREATE_JOINABLE, i.e. start as not detached.
-      var schedPolicy = 0; /*SCHED_OTHER*/
-      var schedPrio = 0;
-      if (attr) {
-        stackSize = HEAP32[((attr)>>2)];
-        // Musl has a convention that the stack size that is stored to the pthread attribute structure is always musl's #define DEFAULT_STACK_SIZE
-        // smaller than the actual created stack size. That is, stored stack size of 0 would mean a stack of DEFAULT_STACK_SIZE in size. All musl
-        // functions hide this impl detail, and offset the size transparently, so pthread_*() API user does not see this offset when operating with
-        // the pthread API. When reading the structure directly on JS side however, we need to offset the size manually here.
-        stackSize += 81920 /*DEFAULT_STACK_SIZE*/;
-        stackBase = HEAP32[(((attr)+(8))>>2)];
-        detached = HEAP32[(((attr)+(12))>>2)] != 0/*PTHREAD_CREATE_JOINABLE*/;
-        var inheritSched = HEAP32[(((attr)+(16))>>2)] == 0/*PTHREAD_INHERIT_SCHED*/;
-        if (inheritSched) {
-          var prevSchedPolicy = HEAP32[(((attr)+(20))>>2)];
-          var prevSchedPrio = HEAP32[(((attr)+(24))>>2)];
-          // If we are inheriting the scheduling properties from the parent thread, we need to identify the parent thread properly - this function call may
-          // be getting proxied, in which case _pthread_self() will point to the thread performing the proxying, not the thread that initiated the call.
-          var parentThreadPtr = PThread.currentProxiedOperationCallerThread ? PThread.currentProxiedOperationCallerThread : _pthread_self();
-          _pthread_getschedparam(parentThreadPtr, attr + 20, attr + 24);
-          schedPolicy = HEAP32[(((attr)+(20))>>2)];
-          schedPrio = HEAP32[(((attr)+(24))>>2)];
-          HEAP32[(((attr)+(20))>>2)]=prevSchedPolicy;
-          HEAP32[(((attr)+(24))>>2)]=prevSchedPrio;
-        } else {
-          schedPolicy = HEAP32[(((attr)+(20))>>2)];
-          schedPrio = HEAP32[(((attr)+(24))>>2)];
-        }
-      } else {
-        // According to http://man7.org/linux/man-pages/man3/pthread_create.3.html, default stack size if not specified is 2 MB, so follow that convention.
-        stackSize = 2097152;
-      }
-      var allocatedOwnStack = stackBase == 0; // If allocatedOwnStack == true, then the pthread impl maintains the stack allocation.
-      if (allocatedOwnStack) {
-        stackBase = _memalign(16, stackSize); // Allocate a stack if the user doesn't want to place the stack in a custom memory area.
-      } else {
-        // Musl stores the stack base address assuming stack grows downwards, so adjust it to Emscripten convention that the
-        // stack grows upwards instead.
-        stackBase -= stackSize;
-        assert(stackBase > 0);
-      }
-  
-      // Allocate thread block (pthread_t structure).
-      var threadInfoStruct = _malloc(244);
-      for (var i = 0; i < 244 >> 2; ++i) HEAPU32[(threadInfoStruct>>2) + i] = 0; // zero-initialize thread structure.
-      HEAP32[((pthread_ptr)>>2)]=threadInfoStruct;
-  
-      // The pthread struct has a field that points to itself - this is used as a magic ID to detect whether the pthread_t
-      // structure is 'alive'.
-      HEAP32[(((threadInfoStruct)+(24))>>2)]=threadInfoStruct;
-  
-      // pthread struct robust_list head should point to itself.
-      var headPtr = threadInfoStruct + 168;
-      HEAP32[((headPtr)>>2)]=headPtr;
-  
-  
-      var threadParams = {
-        stackBase: stackBase,
-        stackSize: stackSize,
-        allocatedOwnStack: allocatedOwnStack,
-        schedPolicy: schedPolicy,
-        schedPrio: schedPrio,
-        detached: detached,
-        startRoutine: start_routine,
-        pthread_ptr: threadInfoStruct,
-        parent_pthread_ptr: _pthread_self(),
-        arg: arg,
-        transferList: transferList
-      };
-  
-      if (ENVIRONMENT_IS_PTHREAD) {
-        // The prepopulated pool of web workers that can host pthreads is stored in the main JS thread. Therefore if a
-        // pthread is attempting to spawn a new thread, the thread creation must be deferred to the main JS thread.
-        threadParams.cmd = 'spawnThread';
-        postMessage(threadParams, transferList);
-      } else {
-        // We are the main thread, so we have the pthread warmup pool in this thread and can fire off JS thread creation
-        // directly ourselves.
-        __spawn_thread(threadParams);
-      }
-  
-      return 0;
-    }
-
-  
-  function __cleanup_thread(pthread_ptr) {
-      if (ENVIRONMENT_IS_PTHREAD) throw 'Internal Error! _cleanup_thread() can only ever be called from main application thread!';
-      if (!pthread_ptr) throw 'Internal Error! Null pthread_ptr in _cleanup_thread!';
-      HEAP32[(((pthread_ptr)+(24))>>2)]=0;
-      var pthread = PThread.pthreads[pthread_ptr];
-      if (pthread) {
-        var worker = pthread.worker;
-        PThread.returnWorkerToPool(worker);
-      }
-    }
-  
-  function __pthread_testcancel_js() {
-      if (!ENVIRONMENT_IS_PTHREAD) return;
-      if (!threadInfoStruct) return;
-      var cancelDisabled = Atomics.load(HEAPU32, (threadInfoStruct + 72 ) >> 2);
-      if (cancelDisabled) return;
-      var canceled = Atomics.load(HEAPU32, (threadInfoStruct + 0 ) >> 2);
-      if (canceled == 2) throw 'Canceled!';
-    }function _pthread_join(thread, status) {
-      if (!thread) {
-        err('pthread_join attempted on a null thread pointer!');
-        return ERRNO_CODES.ESRCH;
-      }
-      if (ENVIRONMENT_IS_PTHREAD && selfThreadId == thread) {
-        err('PThread ' + thread + ' is attempting to join to itself!');
-        return ERRNO_CODES.EDEADLK;
-      }
-      else if (!ENVIRONMENT_IS_PTHREAD && PThread.mainThreadBlock == thread) {
-        err('Main thread ' + thread + ' is attempting to join to itself!');
-        return ERRNO_CODES.EDEADLK;
-      }
-      var self = HEAP32[(((thread)+(24))>>2)];
-      if (self != thread) {
-        err('pthread_join attempted on thread ' + thread + ', which does not point to a valid thread, or does not exist anymore!');
-        return ERRNO_CODES.ESRCH;
-      }
-  
-      var detached = Atomics.load(HEAPU32, (thread + 80 ) >> 2);
-      if (detached) {
-        err('Attempted to join thread ' + thread + ', which was already detached!');
-        return ERRNO_CODES.EINVAL; // The thread is already detached, can no longer join it!
-      }
-      for (;;) {
-        var threadStatus = Atomics.load(HEAPU32, (thread + 0 ) >> 2);
-        if (threadStatus == 1) { // Exited?
-          var threadExitCode = Atomics.load(HEAPU32, (thread + 4 ) >> 2);
-          if (status) HEAP32[((status)>>2)]=threadExitCode;
-          Atomics.store(HEAPU32, (thread + 80 ) >> 2, 1); // Mark the thread as detached.
-  
-          if (!ENVIRONMENT_IS_PTHREAD) __cleanup_thread(thread);
-          else postMessage({ cmd: 'cleanupThread', thread: thread });
-          return 0;
-        }
-        // TODO HACK! Replace the _js variant with just _pthread_testcancel:
-        //_pthread_testcancel();
-        __pthread_testcancel_js();
-        // In main runtime thread (the thread that initialized the Emscripten C runtime and launched main()), assist pthreads in performing operations
-        // that they need to access the Emscripten main runtime for.
-        if (!ENVIRONMENT_IS_PTHREAD) _emscripten_main_thread_process_queued_calls();
-        _emscripten_futex_wait(thread + 0, threadStatus, ENVIRONMENT_IS_PTHREAD ? 100 : 1);
-      }
-    }
-
+  function _pthread_join() {}
 
   
   
@@ -6986,14 +5799,13 @@ function copyTempDouble(ptr) {
       return _strftime(s, maxsize, format, tm); // no locale support yet
     }
 
-if (!ENVIRONMENT_IS_PTHREAD) PThread.initMainThreadBlock();;
+FS.staticInit();Module["FS_createFolder"] = FS.createFolder;Module["FS_createPath"] = FS.createPath;Module["FS_createDataFile"] = FS.createDataFile;Module["FS_createPreloadedFile"] = FS.createPreloadedFile;Module["FS_createLazyFile"] = FS.createLazyFile;Module["FS_createLink"] = FS.createLink;Module["FS_createDevice"] = FS.createDevice;Module["FS_unlink"] = FS.unlink;;
+if (ENVIRONMENT_HAS_NODE) { var fs = require("fs"); var NODEJS_PATH = require("path"); NODEFS.staticInit(); };
 if (ENVIRONMENT_IS_NODE) {
     _emscripten_get_now = function _emscripten_get_now_actual() {
       var t = process['hrtime']();
       return t[0] * 1e3 + t[1] / 1e6;
     };
-  } else if (ENVIRONMENT_IS_PTHREAD) {
-    _emscripten_get_now = function() { return performance['now']() - __performance_now_clock_drift; };
   } else if (typeof dateNow !== 'undefined') {
     _emscripten_get_now = dateNow;
   } else if (typeof performance === 'object' && performance && typeof performance['now'] === 'function') {
@@ -7001,14 +5813,6 @@ if (ENVIRONMENT_IS_NODE) {
   } else {
     _emscripten_get_now = Date.now;
   };
-FS.staticInit();Module["FS_createFolder"] = FS.createFolder;Module["FS_createPath"] = FS.createPath;Module["FS_createDataFile"] = FS.createDataFile;Module["FS_createPreloadedFile"] = FS.createPreloadedFile;Module["FS_createLazyFile"] = FS.createLazyFile;Module["FS_createLink"] = FS.createLink;Module["FS_createDevice"] = FS.createDevice;Module["FS_unlink"] = FS.unlink;;
-if (ENVIRONMENT_HAS_NODE) { var fs = require("fs"); var NODEJS_PATH = require("path"); NODEFS.staticInit(); };
-var GLctx; GL.init();
-
- // proxiedFunctionTable specifies the list of functions that can be called either synchronously or asynchronously from other threads in postMessage()d or internally queued events. This way a pthread in a Worker can synchronously access e.g. the DOM on the main thread.
-
-var proxiedFunctionTable = [null,___syscall140,___syscall145,___syscall146,___syscall221,___syscall5,___syscall54,___syscall6,___syscall91,_emscripten_set_canvas_element_size_main_thread,_getenv];
-
 var ASSERTIONS = true;
 
 // Copyright 2017 The Emscripten Authors.  All rights reserved.
@@ -7044,8 +5848,6 @@ function intArrayToString(array) {
 // ASM_LIBRARY EXTERN PRIMITIVES: Int8Array,Int32Array
 
 
-function nullFunc_i(x) { err("Invalid function pointer called with signature 'i'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
-
 function nullFunc_ii(x) { err("Invalid function pointer called with signature 'ii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
 
 function nullFunc_iidiiii(x) { err("Invalid function pointer called with signature 'iidiiii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
@@ -7068,37 +5870,15 @@ function nullFunc_iiiiiiii(x) { err("Invalid function pointer called with signat
 
 function nullFunc_iiiiiiiii(x) { err("Invalid function pointer called with signature 'iiiiiiiii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
 
-function nullFunc_iiiiiiiiii(x) { err("Invalid function pointer called with signature 'iiiiiiiiii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
-
 function nullFunc_iiiiij(x) { err("Invalid function pointer called with signature 'iiiiij'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
 
 function nullFunc_jiji(x) { err("Invalid function pointer called with signature 'jiji'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
 
 function nullFunc_v(x) { err("Invalid function pointer called with signature 'v'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
 
-function nullFunc_vf(x) { err("Invalid function pointer called with signature 'vf'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
-
-function nullFunc_vff(x) { err("Invalid function pointer called with signature 'vff'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
-
-function nullFunc_vfff(x) { err("Invalid function pointer called with signature 'vfff'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
-
-function nullFunc_vffff(x) { err("Invalid function pointer called with signature 'vffff'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
-
 function nullFunc_vi(x) { err("Invalid function pointer called with signature 'vi'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
 
-function nullFunc_vif(x) { err("Invalid function pointer called with signature 'vif'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
-
-function nullFunc_viff(x) { err("Invalid function pointer called with signature 'viff'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
-
-function nullFunc_vifff(x) { err("Invalid function pointer called with signature 'vifff'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
-
-function nullFunc_viffff(x) { err("Invalid function pointer called with signature 'viffff'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
-
 function nullFunc_vii(x) { err("Invalid function pointer called with signature 'vii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
-
-function nullFunc_viif(x) { err("Invalid function pointer called with signature 'viif'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
-
-function nullFunc_viifi(x) { err("Invalid function pointer called with signature 'viifi'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
 
 function nullFunc_viii(x) { err("Invalid function pointer called with signature 'viii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
 
@@ -7107,16 +5887,6 @@ function nullFunc_viiii(x) { err("Invalid function pointer called with signature
 function nullFunc_viiiii(x) { err("Invalid function pointer called with signature 'viiiii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
 
 function nullFunc_viiiiii(x) { err("Invalid function pointer called with signature 'viiiiii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
-
-function nullFunc_viiiiiii(x) { err("Invalid function pointer called with signature 'viiiiiii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
-
-function nullFunc_viiiiiiii(x) { err("Invalid function pointer called with signature 'viiiiiiii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
-
-function nullFunc_viiiiiiiii(x) { err("Invalid function pointer called with signature 'viiiiiiiii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
-
-function nullFunc_viiiiiiiiii(x) { err("Invalid function pointer called with signature 'viiiiiiiiii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
-
-function nullFunc_viiiiiiiiiii(x) { err("Invalid function pointer called with signature 'viiiiiiiiiii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
 
 function nullFunc_viijii(x) { err("Invalid function pointer called with signature 'viijii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
 
@@ -7127,7 +5897,6 @@ var asmLibraryArg = {
   "setTempRet0": setTempRet0,
   "getTempRet0": getTempRet0,
   "abortStackOverflow": abortStackOverflow,
-  "nullFunc_i": nullFunc_i,
   "nullFunc_ii": nullFunc_ii,
   "nullFunc_iidiiii": nullFunc_iidiiii,
   "nullFunc_iii": nullFunc_iii,
@@ -7139,35 +5908,16 @@ var asmLibraryArg = {
   "nullFunc_iiiiiii": nullFunc_iiiiiii,
   "nullFunc_iiiiiiii": nullFunc_iiiiiiii,
   "nullFunc_iiiiiiiii": nullFunc_iiiiiiiii,
-  "nullFunc_iiiiiiiiii": nullFunc_iiiiiiiiii,
   "nullFunc_iiiiij": nullFunc_iiiiij,
   "nullFunc_jiji": nullFunc_jiji,
   "nullFunc_v": nullFunc_v,
-  "nullFunc_vf": nullFunc_vf,
-  "nullFunc_vff": nullFunc_vff,
-  "nullFunc_vfff": nullFunc_vfff,
-  "nullFunc_vffff": nullFunc_vffff,
   "nullFunc_vi": nullFunc_vi,
-  "nullFunc_vif": nullFunc_vif,
-  "nullFunc_viff": nullFunc_viff,
-  "nullFunc_vifff": nullFunc_vifff,
-  "nullFunc_viffff": nullFunc_viffff,
   "nullFunc_vii": nullFunc_vii,
-  "nullFunc_viif": nullFunc_viif,
-  "nullFunc_viifi": nullFunc_viifi,
   "nullFunc_viii": nullFunc_viii,
   "nullFunc_viiii": nullFunc_viiii,
   "nullFunc_viiiii": nullFunc_viiiii,
   "nullFunc_viiiiii": nullFunc_viiiiii,
-  "nullFunc_viiiiiii": nullFunc_viiiiiii,
-  "nullFunc_viiiiiiii": nullFunc_viiiiiiii,
-  "nullFunc_viiiiiiiii": nullFunc_viiiiiiiii,
-  "nullFunc_viiiiiiiiii": nullFunc_viiiiiiiiii,
-  "nullFunc_viiiiiiiiiii": nullFunc_viiiiiiiiiii,
   "nullFunc_viijii": nullFunc_viijii,
-  "___assert_fail": ___assert_fail,
-  "___call_main": ___call_main,
-  "___clock_gettime": ___clock_gettime,
   "___cxa_allocate_exception": ___cxa_allocate_exception,
   "___cxa_begin_catch": ___cxa_begin_catch,
   "___cxa_pure_virtual": ___cxa_pure_virtual,
@@ -7191,53 +5941,26 @@ var asmLibraryArg = {
   "___unlock": ___unlock,
   "__addDays": __addDays,
   "__arraySum": __arraySum,
-  "__cleanup_thread": __cleanup_thread,
   "__emscripten_syscall_munmap": __emscripten_syscall_munmap,
-  "__findCanvasEventTarget": __findCanvasEventTarget,
-  "__findEventTarget": __findEventTarget,
   "__isLeapYear": __isLeapYear,
-  "__pthread_testcancel_js": __pthread_testcancel_js,
-  "__spawn_thread": __spawn_thread,
   "_abort": _abort,
   "_clock_gettime": _clock_gettime,
   "_emscripten_asm_const_i": _emscripten_asm_const_i,
-  "_emscripten_asm_const_ii": _emscripten_asm_const_ii,
   "_emscripten_asm_const_iiiiii": _emscripten_asm_const_iiiiii,
-  "_emscripten_conditional_set_current_thread_status_js": _emscripten_conditional_set_current_thread_status_js,
-  "_emscripten_futex_wait": _emscripten_futex_wait,
-  "_emscripten_futex_wake": _emscripten_futex_wake,
   "_emscripten_get_heap_size": _emscripten_get_heap_size,
   "_emscripten_get_now": _emscripten_get_now,
   "_emscripten_get_now_is_monotonic": _emscripten_get_now_is_monotonic,
-  "_emscripten_has_threading_support": _emscripten_has_threading_support,
   "_emscripten_memcpy_big": _emscripten_memcpy_big,
-  "_emscripten_proxy_to_main_thread_js": _emscripten_proxy_to_main_thread_js,
-  "_emscripten_receive_on_main_thread_js": _emscripten_receive_on_main_thread_js,
   "_emscripten_resize_heap": _emscripten_resize_heap,
-  "_emscripten_set_canvas_element_size": _emscripten_set_canvas_element_size,
-  "_emscripten_set_canvas_element_size_calling_thread": _emscripten_set_canvas_element_size_calling_thread,
-  "_emscripten_set_canvas_element_size_main_thread": _emscripten_set_canvas_element_size_main_thread,
-  "_emscripten_set_current_thread_status_js": _emscripten_set_current_thread_status_js,
-  "_emscripten_set_offscreencanvas_size_on_target_thread": _emscripten_set_offscreencanvas_size_on_target_thread,
-  "_emscripten_set_offscreencanvas_size_on_target_thread_js": _emscripten_set_offscreencanvas_size_on_target_thread_js,
-  "_emscripten_set_thread_name_js": _emscripten_set_thread_name_js,
-  "_emscripten_syscall": _emscripten_syscall,
-  "_emscripten_webgl_create_context": _emscripten_webgl_create_context,
-  "_emscripten_webgl_do_create_context": _emscripten_webgl_do_create_context,
   "_getenv": _getenv,
-  "_initPthreadsJS": _initPthreadsJS,
   "_llvm_stackrestore": _llvm_stackrestore,
   "_llvm_stacksave": _llvm_stacksave,
   "_llvm_trap": _llvm_trap,
-  "_pthread_cleanup_pop": _pthread_cleanup_pop,
-  "_pthread_cleanup_push": _pthread_cleanup_push,
-  "_pthread_create": _pthread_create,
-  "_pthread_getschedparam": _pthread_getschedparam,
+  "_pthread_cond_wait": _pthread_cond_wait,
   "_pthread_join": _pthread_join,
   "_strftime": _strftime,
   "_strftime_l": _strftime_l,
   "abortOnCannotGrowMemory": abortOnCannotGrowMemory,
-  "stringToNewUTF8": stringToNewUTF8,
   "tempDoublePtr": tempDoublePtr,
   "DYNAMICTOP_PTR": DYNAMICTOP_PTR
 }
@@ -7266,333 +5989,11 @@ asm["___cxa_is_pointer_type"] = function() {
   return real____cxa_is_pointer_type.apply(null, arguments);
 };
 
-var real____em_js__initPthreadsJS = asm["___em_js__initPthreadsJS"];
-asm["___em_js__initPthreadsJS"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real____em_js__initPthreadsJS.apply(null, arguments);
-};
-
-var real____emscripten_pthread_data_constructor = asm["___emscripten_pthread_data_constructor"];
-asm["___emscripten_pthread_data_constructor"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real____emscripten_pthread_data_constructor.apply(null, arguments);
-};
-
 var real____errno_location = asm["___errno_location"];
 asm["___errno_location"] = function() {
   assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
   assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
   return real____errno_location.apply(null, arguments);
-};
-
-var real____pthread_tsd_run_dtors = asm["___pthread_tsd_run_dtors"];
-asm["___pthread_tsd_run_dtors"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real____pthread_tsd_run_dtors.apply(null, arguments);
-};
-
-var real___emscripten_atomic_fetch_and_add_u64 = asm["__emscripten_atomic_fetch_and_add_u64"];
-asm["__emscripten_atomic_fetch_and_add_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real___emscripten_atomic_fetch_and_add_u64.apply(null, arguments);
-};
-
-var real___emscripten_atomic_fetch_and_and_u64 = asm["__emscripten_atomic_fetch_and_and_u64"];
-asm["__emscripten_atomic_fetch_and_and_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real___emscripten_atomic_fetch_and_and_u64.apply(null, arguments);
-};
-
-var real___emscripten_atomic_fetch_and_or_u64 = asm["__emscripten_atomic_fetch_and_or_u64"];
-asm["__emscripten_atomic_fetch_and_or_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real___emscripten_atomic_fetch_and_or_u64.apply(null, arguments);
-};
-
-var real___emscripten_atomic_fetch_and_sub_u64 = asm["__emscripten_atomic_fetch_and_sub_u64"];
-asm["__emscripten_atomic_fetch_and_sub_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real___emscripten_atomic_fetch_and_sub_u64.apply(null, arguments);
-};
-
-var real___emscripten_atomic_fetch_and_xor_u64 = asm["__emscripten_atomic_fetch_and_xor_u64"];
-asm["__emscripten_atomic_fetch_and_xor_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real___emscripten_atomic_fetch_and_xor_u64.apply(null, arguments);
-};
-
-var real___register_pthread_ptr = asm["__register_pthread_ptr"];
-asm["__register_pthread_ptr"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real___register_pthread_ptr.apply(null, arguments);
-};
-
-var real__emscripten_async_queue_call_on_thread = asm["_emscripten_async_queue_call_on_thread"];
-asm["_emscripten_async_queue_call_on_thread"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_async_queue_call_on_thread.apply(null, arguments);
-};
-
-var real__emscripten_async_queue_on_thread_ = asm["_emscripten_async_queue_on_thread_"];
-asm["_emscripten_async_queue_on_thread_"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_async_queue_on_thread_.apply(null, arguments);
-};
-
-var real__emscripten_async_run_in_main_thread = asm["_emscripten_async_run_in_main_thread"];
-asm["_emscripten_async_run_in_main_thread"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_async_run_in_main_thread.apply(null, arguments);
-};
-
-var real__emscripten_atomic_add_u64 = asm["_emscripten_atomic_add_u64"];
-asm["_emscripten_atomic_add_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_atomic_add_u64.apply(null, arguments);
-};
-
-var real__emscripten_atomic_and_u64 = asm["_emscripten_atomic_and_u64"];
-asm["_emscripten_atomic_and_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_atomic_and_u64.apply(null, arguments);
-};
-
-var real__emscripten_atomic_cas_u64 = asm["_emscripten_atomic_cas_u64"];
-asm["_emscripten_atomic_cas_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_atomic_cas_u64.apply(null, arguments);
-};
-
-var real__emscripten_atomic_exchange_u64 = asm["_emscripten_atomic_exchange_u64"];
-asm["_emscripten_atomic_exchange_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_atomic_exchange_u64.apply(null, arguments);
-};
-
-var real__emscripten_atomic_load_f32 = asm["_emscripten_atomic_load_f32"];
-asm["_emscripten_atomic_load_f32"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_atomic_load_f32.apply(null, arguments);
-};
-
-var real__emscripten_atomic_load_f64 = asm["_emscripten_atomic_load_f64"];
-asm["_emscripten_atomic_load_f64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_atomic_load_f64.apply(null, arguments);
-};
-
-var real__emscripten_atomic_load_u64 = asm["_emscripten_atomic_load_u64"];
-asm["_emscripten_atomic_load_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_atomic_load_u64.apply(null, arguments);
-};
-
-var real__emscripten_atomic_or_u64 = asm["_emscripten_atomic_or_u64"];
-asm["_emscripten_atomic_or_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_atomic_or_u64.apply(null, arguments);
-};
-
-var real__emscripten_atomic_store_f32 = asm["_emscripten_atomic_store_f32"];
-asm["_emscripten_atomic_store_f32"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_atomic_store_f32.apply(null, arguments);
-};
-
-var real__emscripten_atomic_store_f64 = asm["_emscripten_atomic_store_f64"];
-asm["_emscripten_atomic_store_f64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_atomic_store_f64.apply(null, arguments);
-};
-
-var real__emscripten_atomic_store_u64 = asm["_emscripten_atomic_store_u64"];
-asm["_emscripten_atomic_store_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_atomic_store_u64.apply(null, arguments);
-};
-
-var real__emscripten_atomic_sub_u64 = asm["_emscripten_atomic_sub_u64"];
-asm["_emscripten_atomic_sub_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_atomic_sub_u64.apply(null, arguments);
-};
-
-var real__emscripten_atomic_xor_u64 = asm["_emscripten_atomic_xor_u64"];
-asm["_emscripten_atomic_xor_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_atomic_xor_u64.apply(null, arguments);
-};
-
-var real__emscripten_conditional_set_current_thread_status = asm["_emscripten_conditional_set_current_thread_status"];
-asm["_emscripten_conditional_set_current_thread_status"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_conditional_set_current_thread_status.apply(null, arguments);
-};
-
-var real__emscripten_current_thread_process_queued_calls = asm["_emscripten_current_thread_process_queued_calls"];
-asm["_emscripten_current_thread_process_queued_calls"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_current_thread_process_queued_calls.apply(null, arguments);
-};
-
-var real__emscripten_get_global_libc = asm["_emscripten_get_global_libc"];
-asm["_emscripten_get_global_libc"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_get_global_libc.apply(null, arguments);
-};
-
-var real__emscripten_is_main_browser_thread = asm["_emscripten_is_main_browser_thread"];
-asm["_emscripten_is_main_browser_thread"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_is_main_browser_thread.apply(null, arguments);
-};
-
-var real__emscripten_is_main_runtime_thread = asm["_emscripten_is_main_runtime_thread"];
-asm["_emscripten_is_main_runtime_thread"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_is_main_runtime_thread.apply(null, arguments);
-};
-
-var real__emscripten_main_browser_thread_id = asm["_emscripten_main_browser_thread_id"];
-asm["_emscripten_main_browser_thread_id"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_main_browser_thread_id.apply(null, arguments);
-};
-
-var real__emscripten_main_thread_process_queued_calls = asm["_emscripten_main_thread_process_queued_calls"];
-asm["_emscripten_main_thread_process_queued_calls"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_main_thread_process_queued_calls.apply(null, arguments);
-};
-
-var real__emscripten_register_main_browser_thread_id = asm["_emscripten_register_main_browser_thread_id"];
-asm["_emscripten_register_main_browser_thread_id"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_register_main_browser_thread_id.apply(null, arguments);
-};
-
-var real__emscripten_run_in_main_runtime_thread_js = asm["_emscripten_run_in_main_runtime_thread_js"];
-asm["_emscripten_run_in_main_runtime_thread_js"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_run_in_main_runtime_thread_js.apply(null, arguments);
-};
-
-var real__emscripten_set_current_thread_status = asm["_emscripten_set_current_thread_status"];
-asm["_emscripten_set_current_thread_status"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_set_current_thread_status.apply(null, arguments);
-};
-
-var real__emscripten_set_thread_name = asm["_emscripten_set_thread_name"];
-asm["_emscripten_set_thread_name"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_set_thread_name.apply(null, arguments);
-};
-
-var real__emscripten_sync_run_in_main_thread = asm["_emscripten_sync_run_in_main_thread"];
-asm["_emscripten_sync_run_in_main_thread"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_sync_run_in_main_thread.apply(null, arguments);
-};
-
-var real__emscripten_sync_run_in_main_thread_0 = asm["_emscripten_sync_run_in_main_thread_0"];
-asm["_emscripten_sync_run_in_main_thread_0"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_sync_run_in_main_thread_0.apply(null, arguments);
-};
-
-var real__emscripten_sync_run_in_main_thread_1 = asm["_emscripten_sync_run_in_main_thread_1"];
-asm["_emscripten_sync_run_in_main_thread_1"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_sync_run_in_main_thread_1.apply(null, arguments);
-};
-
-var real__emscripten_sync_run_in_main_thread_2 = asm["_emscripten_sync_run_in_main_thread_2"];
-asm["_emscripten_sync_run_in_main_thread_2"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_sync_run_in_main_thread_2.apply(null, arguments);
-};
-
-var real__emscripten_sync_run_in_main_thread_3 = asm["_emscripten_sync_run_in_main_thread_3"];
-asm["_emscripten_sync_run_in_main_thread_3"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_sync_run_in_main_thread_3.apply(null, arguments);
-};
-
-var real__emscripten_sync_run_in_main_thread_4 = asm["_emscripten_sync_run_in_main_thread_4"];
-asm["_emscripten_sync_run_in_main_thread_4"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_sync_run_in_main_thread_4.apply(null, arguments);
-};
-
-var real__emscripten_sync_run_in_main_thread_5 = asm["_emscripten_sync_run_in_main_thread_5"];
-asm["_emscripten_sync_run_in_main_thread_5"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_sync_run_in_main_thread_5.apply(null, arguments);
-};
-
-var real__emscripten_sync_run_in_main_thread_6 = asm["_emscripten_sync_run_in_main_thread_6"];
-asm["_emscripten_sync_run_in_main_thread_6"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_sync_run_in_main_thread_6.apply(null, arguments);
-};
-
-var real__emscripten_sync_run_in_main_thread_7 = asm["_emscripten_sync_run_in_main_thread_7"];
-asm["_emscripten_sync_run_in_main_thread_7"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_sync_run_in_main_thread_7.apply(null, arguments);
-};
-
-var real__emscripten_sync_run_in_main_thread_xprintf_varargs = asm["_emscripten_sync_run_in_main_thread_xprintf_varargs"];
-asm["_emscripten_sync_run_in_main_thread_xprintf_varargs"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__emscripten_sync_run_in_main_thread_xprintf_varargs.apply(null, arguments);
 };
 
 var real__fflush = asm["_fflush"];
@@ -7623,13 +6024,6 @@ asm["_malloc"] = function() {
   return real__malloc.apply(null, arguments);
 };
 
-var real__memalign = asm["_memalign"];
-asm["_memalign"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__memalign.apply(null, arguments);
-};
-
 var real__memmove = asm["_memmove"];
 asm["_memmove"] = function() {
   assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
@@ -7637,18 +6031,11 @@ asm["_memmove"] = function() {
   return real__memmove.apply(null, arguments);
 };
 
-var real__proxy_main = asm["_proxy_main"];
-asm["_proxy_main"] = function() {
+var real__pthread_cond_broadcast = asm["_pthread_cond_broadcast"];
+asm["_pthread_cond_broadcast"] = function() {
   assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
   assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__proxy_main.apply(null, arguments);
-};
-
-var real__pthread_self = asm["_pthread_self"];
-asm["_pthread_self"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real__pthread_self.apply(null, arguments);
+  return real__pthread_cond_broadcast.apply(null, arguments);
 };
 
 var real__sbrk = asm["_sbrk"];
@@ -7711,286 +6098,10 @@ var ___cxa_is_pointer_type = Module["___cxa_is_pointer_type"] = function() {
   return Module["asm"]["___cxa_is_pointer_type"].apply(null, arguments)
 };
 
-var ___em_js__initPthreadsJS = Module["___em_js__initPthreadsJS"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["___em_js__initPthreadsJS"].apply(null, arguments)
-};
-
-var ___emscripten_pthread_data_constructor = Module["___emscripten_pthread_data_constructor"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["___emscripten_pthread_data_constructor"].apply(null, arguments)
-};
-
 var ___errno_location = Module["___errno_location"] = function() {
   assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
   assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
   return Module["asm"]["___errno_location"].apply(null, arguments)
-};
-
-var ___pthread_tsd_run_dtors = Module["___pthread_tsd_run_dtors"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["___pthread_tsd_run_dtors"].apply(null, arguments)
-};
-
-var __emscripten_atomic_fetch_and_add_u64 = Module["__emscripten_atomic_fetch_and_add_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["__emscripten_atomic_fetch_and_add_u64"].apply(null, arguments)
-};
-
-var __emscripten_atomic_fetch_and_and_u64 = Module["__emscripten_atomic_fetch_and_and_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["__emscripten_atomic_fetch_and_and_u64"].apply(null, arguments)
-};
-
-var __emscripten_atomic_fetch_and_or_u64 = Module["__emscripten_atomic_fetch_and_or_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["__emscripten_atomic_fetch_and_or_u64"].apply(null, arguments)
-};
-
-var __emscripten_atomic_fetch_and_sub_u64 = Module["__emscripten_atomic_fetch_and_sub_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["__emscripten_atomic_fetch_and_sub_u64"].apply(null, arguments)
-};
-
-var __emscripten_atomic_fetch_and_xor_u64 = Module["__emscripten_atomic_fetch_and_xor_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["__emscripten_atomic_fetch_and_xor_u64"].apply(null, arguments)
-};
-
-var __register_pthread_ptr = Module["__register_pthread_ptr"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["__register_pthread_ptr"].apply(null, arguments)
-};
-
-var _emscripten_async_queue_call_on_thread = Module["_emscripten_async_queue_call_on_thread"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_async_queue_call_on_thread"].apply(null, arguments)
-};
-
-var _emscripten_async_queue_on_thread_ = Module["_emscripten_async_queue_on_thread_"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_async_queue_on_thread_"].apply(null, arguments)
-};
-
-var _emscripten_async_run_in_main_thread = Module["_emscripten_async_run_in_main_thread"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_async_run_in_main_thread"].apply(null, arguments)
-};
-
-var _emscripten_atomic_add_u64 = Module["_emscripten_atomic_add_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_atomic_add_u64"].apply(null, arguments)
-};
-
-var _emscripten_atomic_and_u64 = Module["_emscripten_atomic_and_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_atomic_and_u64"].apply(null, arguments)
-};
-
-var _emscripten_atomic_cas_u64 = Module["_emscripten_atomic_cas_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_atomic_cas_u64"].apply(null, arguments)
-};
-
-var _emscripten_atomic_exchange_u64 = Module["_emscripten_atomic_exchange_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_atomic_exchange_u64"].apply(null, arguments)
-};
-
-var _emscripten_atomic_load_f32 = Module["_emscripten_atomic_load_f32"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_atomic_load_f32"].apply(null, arguments)
-};
-
-var _emscripten_atomic_load_f64 = Module["_emscripten_atomic_load_f64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_atomic_load_f64"].apply(null, arguments)
-};
-
-var _emscripten_atomic_load_u64 = Module["_emscripten_atomic_load_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_atomic_load_u64"].apply(null, arguments)
-};
-
-var _emscripten_atomic_or_u64 = Module["_emscripten_atomic_or_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_atomic_or_u64"].apply(null, arguments)
-};
-
-var _emscripten_atomic_store_f32 = Module["_emscripten_atomic_store_f32"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_atomic_store_f32"].apply(null, arguments)
-};
-
-var _emscripten_atomic_store_f64 = Module["_emscripten_atomic_store_f64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_atomic_store_f64"].apply(null, arguments)
-};
-
-var _emscripten_atomic_store_u64 = Module["_emscripten_atomic_store_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_atomic_store_u64"].apply(null, arguments)
-};
-
-var _emscripten_atomic_sub_u64 = Module["_emscripten_atomic_sub_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_atomic_sub_u64"].apply(null, arguments)
-};
-
-var _emscripten_atomic_xor_u64 = Module["_emscripten_atomic_xor_u64"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_atomic_xor_u64"].apply(null, arguments)
-};
-
-var _emscripten_conditional_set_current_thread_status = Module["_emscripten_conditional_set_current_thread_status"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_conditional_set_current_thread_status"].apply(null, arguments)
-};
-
-var _emscripten_current_thread_process_queued_calls = Module["_emscripten_current_thread_process_queued_calls"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_current_thread_process_queued_calls"].apply(null, arguments)
-};
-
-var _emscripten_get_global_libc = Module["_emscripten_get_global_libc"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_get_global_libc"].apply(null, arguments)
-};
-
-var _emscripten_is_main_browser_thread = Module["_emscripten_is_main_browser_thread"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_is_main_browser_thread"].apply(null, arguments)
-};
-
-var _emscripten_is_main_runtime_thread = Module["_emscripten_is_main_runtime_thread"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_is_main_runtime_thread"].apply(null, arguments)
-};
-
-var _emscripten_main_browser_thread_id = Module["_emscripten_main_browser_thread_id"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_main_browser_thread_id"].apply(null, arguments)
-};
-
-var _emscripten_main_thread_process_queued_calls = Module["_emscripten_main_thread_process_queued_calls"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_main_thread_process_queued_calls"].apply(null, arguments)
-};
-
-var _emscripten_register_main_browser_thread_id = Module["_emscripten_register_main_browser_thread_id"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_register_main_browser_thread_id"].apply(null, arguments)
-};
-
-var _emscripten_run_in_main_runtime_thread_js = Module["_emscripten_run_in_main_runtime_thread_js"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_run_in_main_runtime_thread_js"].apply(null, arguments)
-};
-
-var _emscripten_set_current_thread_status = Module["_emscripten_set_current_thread_status"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_set_current_thread_status"].apply(null, arguments)
-};
-
-var _emscripten_set_thread_name = Module["_emscripten_set_thread_name"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_set_thread_name"].apply(null, arguments)
-};
-
-var _emscripten_sync_run_in_main_thread = Module["_emscripten_sync_run_in_main_thread"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_sync_run_in_main_thread"].apply(null, arguments)
-};
-
-var _emscripten_sync_run_in_main_thread_0 = Module["_emscripten_sync_run_in_main_thread_0"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_sync_run_in_main_thread_0"].apply(null, arguments)
-};
-
-var _emscripten_sync_run_in_main_thread_1 = Module["_emscripten_sync_run_in_main_thread_1"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_sync_run_in_main_thread_1"].apply(null, arguments)
-};
-
-var _emscripten_sync_run_in_main_thread_2 = Module["_emscripten_sync_run_in_main_thread_2"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_sync_run_in_main_thread_2"].apply(null, arguments)
-};
-
-var _emscripten_sync_run_in_main_thread_3 = Module["_emscripten_sync_run_in_main_thread_3"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_sync_run_in_main_thread_3"].apply(null, arguments)
-};
-
-var _emscripten_sync_run_in_main_thread_4 = Module["_emscripten_sync_run_in_main_thread_4"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_sync_run_in_main_thread_4"].apply(null, arguments)
-};
-
-var _emscripten_sync_run_in_main_thread_5 = Module["_emscripten_sync_run_in_main_thread_5"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_sync_run_in_main_thread_5"].apply(null, arguments)
-};
-
-var _emscripten_sync_run_in_main_thread_6 = Module["_emscripten_sync_run_in_main_thread_6"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_sync_run_in_main_thread_6"].apply(null, arguments)
-};
-
-var _emscripten_sync_run_in_main_thread_7 = Module["_emscripten_sync_run_in_main_thread_7"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_sync_run_in_main_thread_7"].apply(null, arguments)
-};
-
-var _emscripten_sync_run_in_main_thread_xprintf_varargs = Module["_emscripten_sync_run_in_main_thread_xprintf_varargs"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_emscripten_sync_run_in_main_thread_xprintf_varargs"].apply(null, arguments)
 };
 
 var _fflush = Module["_fflush"] = function() {
@@ -8017,12 +6128,6 @@ var _malloc = Module["_malloc"] = function() {
   return Module["asm"]["_malloc"].apply(null, arguments)
 };
 
-var _memalign = Module["_memalign"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_memalign"].apply(null, arguments)
-};
-
 var _memcpy = Module["_memcpy"] = function() {
   assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
   assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
@@ -8041,16 +6146,10 @@ var _memset = Module["_memset"] = function() {
   return Module["asm"]["_memset"].apply(null, arguments)
 };
 
-var _proxy_main = Module["_proxy_main"] = function() {
+var _pthread_cond_broadcast = Module["_pthread_cond_broadcast"] = function() {
   assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
   assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_proxy_main"].apply(null, arguments)
-};
-
-var _pthread_self = Module["_pthread_self"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["_pthread_self"].apply(null, arguments)
+  return Module["asm"]["_pthread_cond_broadcast"].apply(null, arguments)
 };
 
 var _sbrk = Module["_sbrk"] = function() {
@@ -8087,12 +6186,6 @@ var stackSave = Module["stackSave"] = function() {
   assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
   assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
   return Module["asm"]["stackSave"].apply(null, arguments)
-};
-
-var dynCall_i = Module["dynCall_i"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["dynCall_i"].apply(null, arguments)
 };
 
 var dynCall_ii = Module["dynCall_ii"] = function() {
@@ -8161,12 +6254,6 @@ var dynCall_iiiiiiiii = Module["dynCall_iiiiiiiii"] = function() {
   return Module["asm"]["dynCall_iiiiiiiii"].apply(null, arguments)
 };
 
-var dynCall_iiiiiiiiii = Module["dynCall_iiiiiiiiii"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["dynCall_iiiiiiiiii"].apply(null, arguments)
-};
-
 var dynCall_iiiiij = Module["dynCall_iiiiij"] = function() {
   assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
   assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
@@ -8185,76 +6272,16 @@ var dynCall_v = Module["dynCall_v"] = function() {
   return Module["asm"]["dynCall_v"].apply(null, arguments)
 };
 
-var dynCall_vf = Module["dynCall_vf"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["dynCall_vf"].apply(null, arguments)
-};
-
-var dynCall_vff = Module["dynCall_vff"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["dynCall_vff"].apply(null, arguments)
-};
-
-var dynCall_vfff = Module["dynCall_vfff"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["dynCall_vfff"].apply(null, arguments)
-};
-
-var dynCall_vffff = Module["dynCall_vffff"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["dynCall_vffff"].apply(null, arguments)
-};
-
 var dynCall_vi = Module["dynCall_vi"] = function() {
   assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
   assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
   return Module["asm"]["dynCall_vi"].apply(null, arguments)
 };
 
-var dynCall_vif = Module["dynCall_vif"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["dynCall_vif"].apply(null, arguments)
-};
-
-var dynCall_viff = Module["dynCall_viff"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["dynCall_viff"].apply(null, arguments)
-};
-
-var dynCall_vifff = Module["dynCall_vifff"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["dynCall_vifff"].apply(null, arguments)
-};
-
-var dynCall_viffff = Module["dynCall_viffff"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["dynCall_viffff"].apply(null, arguments)
-};
-
 var dynCall_vii = Module["dynCall_vii"] = function() {
   assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
   assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
   return Module["asm"]["dynCall_vii"].apply(null, arguments)
-};
-
-var dynCall_viif = Module["dynCall_viif"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["dynCall_viif"].apply(null, arguments)
-};
-
-var dynCall_viifi = Module["dynCall_viifi"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["dynCall_viifi"].apply(null, arguments)
 };
 
 var dynCall_viii = Module["dynCall_viii"] = function() {
@@ -8279,36 +6306,6 @@ var dynCall_viiiiii = Module["dynCall_viiiiii"] = function() {
   assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
   assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
   return Module["asm"]["dynCall_viiiiii"].apply(null, arguments)
-};
-
-var dynCall_viiiiiii = Module["dynCall_viiiiiii"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["dynCall_viiiiiii"].apply(null, arguments)
-};
-
-var dynCall_viiiiiiii = Module["dynCall_viiiiiiii"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["dynCall_viiiiiiii"].apply(null, arguments)
-};
-
-var dynCall_viiiiiiiii = Module["dynCall_viiiiiiiii"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["dynCall_viiiiiiiii"].apply(null, arguments)
-};
-
-var dynCall_viiiiiiiiii = Module["dynCall_viiiiiiiiii"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["dynCall_viiiiiiiiii"].apply(null, arguments)
-};
-
-var dynCall_viiiiiiiiiii = Module["dynCall_viiiiiiiiiii"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["dynCall_viiiiiiiiiii"].apply(null, arguments)
 };
 
 var dynCall_viijii = Module["dynCall_viijii"] = function() {
@@ -8386,69 +6383,16 @@ if (!Module["getCompilerSetting"]) Module["getCompilerSetting"] = function() { a
 if (!Module["stackSave"]) Module["stackSave"] = function() { abort("'stackSave' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Module["stackRestore"]) Module["stackRestore"] = function() { abort("'stackRestore' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Module["stackAlloc"]) Module["stackAlloc"] = function() { abort("'stackAlloc' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
-Module["establishStackSpace"] = establishStackSpace;
+if (!Module["establishStackSpace"]) Module["establishStackSpace"] = function() { abort("'establishStackSpace' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Module["print"]) Module["print"] = function() { abort("'print' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Module["printErr"]) Module["printErr"] = function() { abort("'printErr' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Module["getTempRet0"]) Module["getTempRet0"] = function() { abort("'getTempRet0' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Module["setTempRet0"]) Module["setTempRet0"] = function() { abort("'setTempRet0' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
-if (!Module["Pointer_stringify"]) Module["Pointer_stringify"] = function() { abort("'Pointer_stringify' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
-Module["dynCall_ii"] = dynCall_ii;if (!Module["ALLOC_NORMAL"]) Object.defineProperty(Module, "ALLOC_NORMAL", { get: function() { abort("'ALLOC_NORMAL' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") } });
+if (!Module["Pointer_stringify"]) Module["Pointer_stringify"] = function() { abort("'Pointer_stringify' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };if (!Module["ALLOC_NORMAL"]) Object.defineProperty(Module, "ALLOC_NORMAL", { get: function() { abort("'ALLOC_NORMAL' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") } });
 if (!Module["ALLOC_STACK"]) Object.defineProperty(Module, "ALLOC_STACK", { get: function() { abort("'ALLOC_STACK' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") } });
 if (!Module["ALLOC_DYNAMIC"]) Object.defineProperty(Module, "ALLOC_DYNAMIC", { get: function() { abort("'ALLOC_DYNAMIC' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") } });
 if (!Module["ALLOC_NONE"]) Object.defineProperty(Module, "ALLOC_NONE", { get: function() { abort("'ALLOC_NONE' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") } });
 
-if (memoryInitializer && !ENVIRONMENT_IS_PTHREAD) {
-  if (!isDataURI(memoryInitializer)) {
-    memoryInitializer = locateFile(memoryInitializer);
-  }
-  if (ENVIRONMENT_IS_NODE || ENVIRONMENT_IS_SHELL) {
-    var data = Module['readBinary'](memoryInitializer);
-    HEAPU8.set(data, GLOBAL_BASE);
-  } else {
-    addRunDependency('memory initializer');
-    var applyMemoryInitializer = function(data) {
-      if (data.byteLength) data = new Uint8Array(data);
-      for (var i = 0; i < data.length; i++) {
-        assert(HEAPU8[GLOBAL_BASE + i] === 0, "area for memory initializer should not have been touched before it's loaded");
-      }
-      HEAPU8.set(data, GLOBAL_BASE);
-      // Delete the typed array that contains the large blob of the memory initializer request response so that
-      // we won't keep unnecessary memory lying around. However, keep the XHR object itself alive so that e.g.
-      // its .status field can still be accessed later.
-      if (Module['memoryInitializerRequest']) delete Module['memoryInitializerRequest'].response;
-      removeRunDependency('memory initializer');
-    }
-    var doBrowserLoad = function() {
-      Module['readAsync'](memoryInitializer, applyMemoryInitializer, function() {
-        throw 'could not load memory initializer ' + memoryInitializer;
-      });
-    }
-    if (Module['memoryInitializerRequest']) {
-      // a network request has already been created, just use that
-      var useRequest = function() {
-        var request = Module['memoryInitializerRequest'];
-        var response = request.response;
-        if (request.status !== 200 && request.status !== 0) {
-            // If you see this warning, the issue may be that you are using locateFile and defining it in JS. That
-            // means that the HTML file doesn't know about it, and when it tries to create the mem init request early, does it to the wrong place.
-            // Look in your browser's devtools network console to see what's going on.
-            console.warn('a problem seems to have happened with Module.memoryInitializerRequest, status: ' + request.status + ', retrying ' + memoryInitializer);
-            doBrowserLoad();
-            return;
-        }
-        applyMemoryInitializer(response);
-      }
-      if (Module['memoryInitializerRequest'].response) {
-        setTimeout(useRequest, 0); // it's already here; but, apply it asynchronously
-      } else {
-        Module['memoryInitializerRequest'].addEventListener('load', useRequest); // wait for it
-      }
-    } else {
-      // fetch it from the network ourselves
-      doBrowserLoad();
-    }
-  }
-}
 
 
 
@@ -8625,7 +6569,6 @@ function exit(status, implicit) {
       err('exit(' + status + ') called, but EXIT_RUNTIME is not set, so halting execution but not exiting the runtime or preventing further async execution (build with EXIT_RUNTIME=1, if you want a true shutdown)');
     }
   } else {
-    PThread.terminateAllThreads();
 
     ABORT = true;
     EXITSTATUS = status;
@@ -8645,7 +6588,6 @@ function abort(what) {
     Module['onAbort'](what);
   }
 
-  if (ENVIRONMENT_IS_PTHREAD) console.error('Pthread aborting at ' + new Error().stack);
   if (what !== undefined) {
     out(what);
     err(what);
@@ -8681,10 +6623,9 @@ if (Module['noInitialRun']) {
   shouldRunNow = false;
 }
 
-if (!ENVIRONMENT_IS_PTHREAD) // EXIT_RUNTIME=0 only applies to default behavior of the main browser thread
   Module["noExitRuntime"] = true;
 
-if (!ENVIRONMENT_IS_PTHREAD) run();
+run();
 
 
 
